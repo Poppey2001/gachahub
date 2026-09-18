@@ -1,0 +1,203 @@
+[
+  {
+    "id": "arknights",
+    "name": "Arknights",
+    "shortName": "AK",
+    "subtitle": "Rhodes Island tactical operations",
+    "publisher": "Yostar / Hypergryph",
+    "provider": "hypergryph",
+    "platforms": [
+      "Windows",
+      "Linux (community Proton)"
+    ],
+    "installModes": [
+      "Official PC Client"
+    ],
+    "status": "not_installed",
+    "modPolicy": "restricted",
+    "accent": "#55d7ff",
+    "accent2": "#536dff",
+    "version": "PC Client",
+    "notes": "Official PC client; Linux community reports via GE-Proton/Proton Experimental.",
+    "assets": {
+      "background": "/game-assets/arknights/background.webp",
+      "video": "/game-assets/arknights/background.mp4",
+      "logo": "/game-assets/arknights/logo.webp",
+      "icon": "/game-assets/arknights/icon.webp"
+    },
+    "xxmiImporter": null
+  },
+  {
+    "id": "endfield",
+    "name": "Arknights: Endfield",
+    "shortName": "EF",
+    "subtitle": "Explore Talos-II",
+    "publisher": "GRYPHLINE",
+    "provider": "gryphline",
+    "platforms": [
+      "Windows",
+      "Linux (Proton with compatible runner)"
+    ],
+    "installModes": [
+      "Official PC Client"
+    ],
+    "status": "not_installed",
+    "modPolicy": "restricted",
+    "accent": "#f4cd58",
+    "accent2": "#ff7a45",
+    "version": "Stable",
+    "notes": "Use Proton builds with Endfield/ACE fixes; avoid Proton Vanilla/UMU per current launcher guidance.",
+    "assets": {
+      "background": "/game-assets/endfield/background.webp",
+      "video": "/game-assets/endfield/background.mp4",
+      "logo": "/game-assets/endfield/logo.webp",
+      "icon": "/game-assets/endfield/icon.webp"
+    },
+    "xxmiImporter": "EFMI"
+  },
+  {
+    "id": "genshin",
+    "name": "Genshin Impact",
+    "shortName": "GI",
+    "subtitle": "Step into a vast magical world",
+    "publisher": "HoYoverse",
+    "provider": "hoyoverse",
+    "platforms": [
+      "Windows",
+      "Linux (compatibility layer)"
+    ],
+    "installModes": [
+      "Direct provider",
+      "Official launcher import"
+    ],
+    "status": "not_installed",
+    "modPolicy": "supported",
+    "accent": "#70cfff",
+    "accent2": "#7f7bff",
+    "version": "Latest",
+    "notes": null,
+    "assets": {
+      "background": "/game-assets/genshin/background.webp",
+      "video": "/game-assets/genshin/background.mp4",
+      "logo": "/game-assets/genshin/logo.webp",
+      "icon": "/game-assets/genshin/icon.webp"
+    },
+    "xxmiImporter": "GIMI"
+  },
+  {
+    "id": "hsr",
+    "name": "Honkai: Star Rail",
+    "shortName": "HSR",
+    "subtitle": "Board the Astral Express",
+    "publisher": "HoYoverse",
+    "provider": "hoyoverse",
+    "platforms": [
+      "Windows",
+      "Linux (current Proton builds)"
+    ],
+    "installModes": [
+      "Direct provider",
+      "Official launcher import"
+    ],
+    "status": "not_installed",
+    "modPolicy": "restricted",
+    "accent": "#b78cff",
+    "accent2": "#6574ff",
+    "version": "Latest",
+    "notes": null,
+    "assets": {
+      "background": "/game-assets/hsr/background.webp",
+      "video": "/game-assets/hsr/background.mp4",
+      "logo": "/game-assets/hsr/logo.webp",
+      "icon": "/game-assets/hsr/icon.webp"
+    },
+    "xxmiImporter": "SRMI"
+  },
+  {
+    "id": "zzz",
+    "name": "Zenless Zone Zero",
+    "shortName": "ZZZ",
+    "subtitle": "Welcome to New Eridu",
+    "publisher": "HoYoverse",
+    "provider": "hoyoverse",
+    "platforms": [
+      "Windows",
+      "Linux (compatibility layer)"
+    ],
+    "installModes": [
+      "Direct provider",
+      "Official launcher import"
+    ],
+    "status": "not_installed",
+    "modPolicy": "supported",
+    "accent": "#f4e75a",
+    "accent2": "#8cff6b",
+    "version": "Latest",
+    "notes": null,
+    "assets": {
+      "background": "/game-assets/zzz/background.webp",
+      "video": "/game-assets/zzz/background.mp4",
+      "logo": "/game-assets/zzz/logo.webp",
+      "icon": "/game-assets/zzz/icon.webp"
+    },
+    "xxmiImporter": "ZZMI"
+  },
+  {
+    "id": "wuwa",
+    "name": "Wuthering Waves",
+    "shortName": "WW",
+    "subtitle": "Wake and journey as a Rover",
+    "publisher": "Kuro Games",
+    "provider": "kuro",
+    "platforms": [
+      "Windows",
+      "Linux (compatibility layer)"
+    ],
+    "installModes": [
+      "Direct provider",
+      "Official launcher import"
+    ],
+    "status": "not_installed",
+    "modPolicy": "supported",
+    "accent": "#58e5dc",
+    "accent2": "#3998ff",
+    "version": "Latest",
+    "notes": null,
+    "assets": {
+      "background": "/game-assets/wuwa/background.webp",
+      "video": "/game-assets/wuwa/background.mp4",
+      "logo": "/game-assets/wuwa/logo.webp",
+      "icon": "/game-assets/wuwa/icon.webp"
+    },
+    "xxmiImporter": "WWMI"
+  },
+  {
+    "id": "gfl2",
+    "name": "GIRLS' FRONTLINE 2: EXILIUM",
+    "shortName": "GFL2",
+    "subtitle": "Command your tactical dolls",
+    "publisher": "Sunborn",
+    "provider": "sunborn",
+    "platforms": [
+      "Windows",
+      "Linux (Proton with runner caveats)"
+    ],
+    "installModes": [
+      "Steam",
+      "Standalone import"
+    ],
+    "status": "not_installed",
+    "modPolicy": "restricted",
+    "accent": "#ff8d72",
+    "accent2": "#ff4f7a",
+    "version": "Latest",
+    "notes": "Known runner regressions exist; keep per-game runner selection available.",
+    "assets": {
+      "background": "/game-assets/gfl2/background.webp",
+      "video": "/game-assets/gfl2/background.mp4",
+      "logo": "/game-assets/gfl2/logo.webp",
+      "icon": "/game-assets/gfl2/icon.webp"
+    },
+    "xxmiImporter": null
+  }
+]
