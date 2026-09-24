@@ -30,9 +30,82 @@ export interface Game {
 export interface InstallJob {
   id: string;
   gameId: string;
-  phase: 'queued' | 'downloading' | 'verifying' | 'extracting' | 'ready' | 'error';
+  phase: 'resolving' | 'queued' | 'downloading' | 'verifying' | 'extracting' | 'downloaded' | 'ready' | 'cancelled' | 'error';
   progress: number;
   downloadedBytes: number;
   totalBytes: number;
   speedBytes: number;
+  version?: string | null;
+  providerMode?: string | null;
+  destination?: string | null;
+  message?: string | null;
+}
+
+
+export interface DownloadPackage {
+  url: string;
+  destination: string;
+  size: number;
+  hash?: string | null;
+}
+
+export interface DownloadPlan {
+  gameId: string;
+  provider: string;
+  version: string;
+  mode: string;
+  packages: DownloadPackage[];
+  totalBytes: number;
+  resourceListUrl?: string | null;
+  notes: string[];
+}
+
+export interface RunnerInfo {
+  id: string;
+  name: string;
+  family: string;
+  kind: string;
+  version: string;
+  path: string;
+  source: string;
+  installed: boolean;
+  managedByUmu: boolean;
+  removable: boolean;
+  recommendedBackend: string;
+  notes: string;
+}
+
+export interface RunnerCatalogEntry {
+  id: string;
+  name: string;
+  family: string;
+  kind: string;
+  source: string;
+  recommendedBackend: string;
+  description: string;
+}
+
+export interface RunnerFamily {
+  id: string;
+  name: string;
+  shortName: string;
+  provider: string;
+  source: string;
+  installable: boolean;
+  recommendedBackend: string;
+  description: string;
+}
+
+export interface RunnerVersion {
+  id: string;
+  familyId: string;
+  name: string;
+  tagName: string;
+  assetName: string;
+  downloadUrl: string;
+  size: number;
+  publishedAt: string;
+  prerelease: boolean;
+  installed: boolean;
+  installedPath: string;
 }

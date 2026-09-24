@@ -1,6 +1,7 @@
 import {
   AlertTriangle,
   CheckCircle2,
+  FolderOpen,
   Gauge,
   Info,
   Play,
@@ -16,9 +17,12 @@ import {
   type ModDeploymentMode,
   type RuntimeKind,
 } from '../../lib/settings';
+import { useI18n } from '../../i18n';
 import { getCompatibilityPreset } from '../../data/compatibilityPresets';
-import { startXxmi } from '../../lib/tauri';
+import { chooseDirectory, postInstallDefaults, type PostInstallResult } from '../../lib/tauri';
 import { useSettingsStore } from '../../stores/useSettingsStore';
+import { useXxmiStore } from '../../stores/useXxmiStore';
+import { RunnerInput } from './RunnerInput';
 
 interface GameSettingsPanelProps {
   game: Game;
@@ -45,16 +49,27 @@ function stateClass(state?: string): string {
 }
 
 export function GameSettingsPanel({ game }: GameSettingsPanelProps) {
+  const { t } = useI18n();
   const global = useSettingsStore((state) => state.global);
   const storedGame = useSettingsStore((state) => state.games[game.id]);
   const setGameOverride = useSettingsStore((state) => state.setGameOverride);
   const patchGame = useSettingsStore((state) => state.patchGame);
+  const applyDetectedGameDefaults = useSettingsStore((state) => state.applyDetectedGameDefaults);
   const resetGame = useSettingsStore((state) => state.resetGame);
-  const overrideEnabled = storedGame?.overrideEnabled ?? false;
+  const overrideEnabled = storedGame?.overrideEnabled ?? true;
   const effective = resolveGameSettings(game.id, global, storedGame);
   const preset = getCompatibilityPreset(game.id);
   const [xxmiMessage, setXxmiMessage] = useState('');
   const [xxmiBusy, setXxmiBusy] = useState(false);
+  const [postInstallBusy, setPostInstallBusy] = useState(false);
+  const [postInstallResult, setPostInstallResult] = useState<PostInstallResult | null>(null);
+  const [postInstallMessage, setPostInstallMessage] = useState('');
+  const [pathPickerBusy, setPathPickerBusy] = useState(false);
+  const xxmiStatus = useXxmiStore((state) => state.status);
+  const xxmiManagerBusy = useXxmiStore((state) => state.busy);
+  const installManagedXxmi = useXxmiStore((state) => state.install);
+  const launchManagedXxmi = useXxmiStore((state) => state.launch);
+  const refreshManagedXxmi = useXxmiStore((state) => state.refresh);
 
   const patch = (value: Partial<GameSettings>) => patchGame(game.id, value);
   const modBackend = preset?.modding.backend ?? (game.xxmiImporter ? 'xxmi' : 'library-only');
@@ -67,7 +82,11 @@ export function GameSettingsPanel({ game }: GameSettingsPanelProps) {
     patchGame(game.id, {
       overrideEnabled: true,
       runtime: preset.linux.recommendedRuntime,
-      runnerVersion: preset.linux.recommendedRunner,
+      // The preset describes a preferred family, but it must not pretend that a
+      // concrete local build is installed. With no path, UMU can choose its managed
+      // runtime until the user selects an installed runner below.
+      runnerVersion: '',
+      runnerPath: '',
       launchArguments: mergeArguments('', useXxmiArgs),
       environmentVariables: preset.linux.environmentVariables,
       gamescopeEnabled: false,
@@ -102,6 +121,35 @@ export function GameSettingsPanel({ game }: GameSettingsPanelProps) {
     });
   };
 
+  const applyGenshinPostInstall = async () => {
+    if (game.id !== 'genshin') return;
+    setPostInstallBusy(true);
+    setPostInstallMessage('');
+    try {
+      const result = await postInstallDefaults(game.id, effective.installPath, effective.prefixPath);
+      setGameOverride(game.id, true);
+      applyDetectedGameDefaults(game.id, result.settings);
+      setPostInstallResult(result);
+      setPostInstallMessage('Genshin Standardprofil wurde erkannt und übernommen.');
+    } catch (error) {
+      setPostInstallMessage(String(error));
+    } finally {
+      setPostInstallBusy(false);
+    }
+  };
+
+  const browseInstallPath = async () => {
+    if (!overrideEnabled || pathPickerBusy) return;
+    setPathPickerBusy(true);
+    try {
+      const selected = await chooseDirectory(`Installationsordner für ${game.name}`, effective.installPath);
+      if (selected) patch({ installPath: selected });
+    } finally {
+      setPathPickerBusy(false);
+    }
+  };
+
+
   return (
     <div className="settings-panel-stack">
       <div className="settings-panel-header game-settings-header" style={{ '--game-accent': game.accent } as CSSProperties}>
@@ -119,11 +167,11 @@ export function GameSettingsPanel({ game }: GameSettingsPanelProps) {
         <section className="settings-section compatibility-section">
           <div className="settings-section-title compatibility-title-row">
             <div>
-              <h3>Kompatibilität</h3>
+              <h3>{t('settings.compatibility')}</h3>
               <p>Recherche-Stand {preset.checkedAt}. Community-/Launcher-Kompatibilität, keine offizielle Linux-Zusage.</p>
             </div>
             <button className="recommended-preset-btn" onClick={applyRecommendedPreset}>
-              <Sparkles size={15} /> Empfohlene Linux-Werte anwenden
+              <Sparkles size={15} /> {t('settings.applyRecommended')}
             </button>
           </div>
 
@@ -184,10 +232,59 @@ export function GameSettingsPanel({ game }: GameSettingsPanelProps) {
         </section>
       )}
 
+      {game.id === 'genshin' && (
+        <section className="settings-section post-install-section">
+          <div className="settings-section-title compatibility-title-row">
+            <div>
+              <h3>{t('settings.postInstall')}</h3>
+              <p>Nach der Genshin-Installation erkennt GachaHub die lokale Linux/Windows-Umgebung und übernimmt konservative Standardwerte.</p>
+            </div>
+            <button className="recommended-preset-btn" disabled={postInstallBusy} onClick={applyGenshinPostInstall}>
+              <Sparkles size={15} /> {postInstallBusy ? 'Erkenne…' : t('settings.detectApply')}
+            </button>
+          </div>
+
+          <div className="compatibility-notes">
+            <div><Info size={13} /><span>Runner wird nur aus vorhandenen Installationen erkannt; fehlt ein passender Runner, bleibt die Auswahl auf Auto.</span></div>
+            <div><ShieldCheck size={13} /><span>XXMI, Mods und optionale Anti-Cheat-/Timeout-Workarounds bleiben standardmäßig ausgeschaltet.</span></div>
+          </div>
+
+          {storedGame?.postInstallProfile && (
+            <div className="inheritance-notice">
+              <CheckCircle2 size={16} />
+              <span>Aktiv: {storedGame.postInstallProfile} · zuletzt angewendet: {storedGame.postInstallAppliedAt ?? 'unbekannt'}</span>
+            </div>
+          )}
+
+          {postInstallResult && (
+            <div className="compatibility-details-grid">
+              <div className="compatibility-detail-box">
+                <strong>Erkannte Tools</strong>
+                <div className="compatibility-chip-row">
+                  <span>GameMode {postInstallResult.detected.gameMode ? '✓' : '—'}</span>
+                  <span>Gamescope {postInstallResult.detected.gamescope ? '✓' : '—'}</span>
+                  <span>MangoHud {postInstallResult.detected.mangoHud ? '✓' : '—'}</span>
+                  <span>umu {postInstallResult.detected.umu ? '✓' : '—'}</span>
+                </div>
+              </div>
+              <div className="compatibility-detail-box">
+                <strong>Erkannter Startpunkt</strong>
+                <small>{postInstallResult.executablePath || 'GenshinImpact.exe noch nicht gefunden'}</small>
+              </div>
+            </div>
+          )}
+
+          {postInstallResult?.warnings.map((warning) => (
+            <div className="inheritance-notice" key={warning}><AlertTriangle size={15}/><span>{warning}</span></div>
+          ))}
+          {postInstallMessage && <div className="xxmi-inline-message">{postInstallMessage}</div>}
+        </section>
+      )}
+
       <section className="settings-section override-card">
         <label className="override-toggle">
           <span>
-            <strong>Eigene Einstellungen für {game.name}</strong>
+            <strong>{t('settings.gameSpecific')}: {game.name}</strong>
             <small>
               {overrideEnabled
                 ? 'Game-spezifische Werte überschreiben die globalen Einstellungen.'
@@ -213,21 +310,26 @@ export function GameSettingsPanel({ game }: GameSettingsPanelProps) {
 
       <section className="settings-section">
         <div className="settings-section-title">
-          <h3>Installation</h3>
+          <h3>{t('settings.installation')}</h3>
           <p>Installationspfad und dateibezogene Optionen.</p>
         </div>
         <div className="settings-form-grid">
           <label className="settings-field settings-field-wide">
-            <span>Installationspfad</span>
-            <input
-              disabled={!overrideEnabled}
-              value={overrideEnabled ? storedGame?.installPath ?? '' : effective.installPath}
-              placeholder={effective.installPath}
-              onChange={(event) => patch({ installPath: event.target.value })}
-            />
+            <span>{t('game.installPath')}</span>
+            <div className="settings-path-row">
+              <input
+                disabled={!overrideEnabled}
+                value={overrideEnabled ? storedGame?.installPath ?? '' : effective.installPath}
+                placeholder={effective.installPath}
+                onChange={(event) => patch({ installPath: event.target.value })}
+              />
+              <button type="button" className="secondary-btn path-browse-btn" disabled={!overrideEnabled || pathPickerBusy} onClick={() => void browseInstallPath()}>
+                <FolderOpen size={15} /> {pathPickerBusy ? 'Öffne…' : 'Durchsuchen'}
+              </button>
+            </div>
           </label>
           <label className={`settings-switch-row ${!overrideEnabled ? 'disabled' : ''}`}>
-            <span><strong>Vor Start verifizieren</strong><small>Integrität der Spieldateien vor dem Start prüfen.</small></span>
+            <span><strong>{t('settings.verifyBeforeLaunch')}</strong><small>{t('global.verifyHint')}</small></span>
             <input
               type="checkbox"
               disabled={!overrideEnabled}
@@ -240,12 +342,12 @@ export function GameSettingsPanel({ game }: GameSettingsPanelProps) {
 
       <section className="settings-section">
         <div className="settings-section-title">
-          <h3>Runtime</h3>
+          <h3>{t('settings.runtime')}</h3>
           <p>Game-spezifische Linux-Kompatibilitätsumgebung.</p>
         </div>
         <div className="settings-form-grid">
           <label className="settings-field">
-            <span>Runtime</span>
+            <span>{t('settings.runtime')}</span>
             <select
               disabled={!overrideEnabled}
               value={overrideEnabled ? storedGame?.runtime ?? global.defaultRuntime : effective.runtime}
@@ -259,17 +361,19 @@ export function GameSettingsPanel({ game }: GameSettingsPanelProps) {
               <option value="wine">Wine</option>
             </select>
           </label>
-          <label className="settings-field">
-            <span>Runner-Version / Familie</span>
-            <input
+          <div className="settings-field">
+            <span>{t('settings.runner')}</span>
+            <RunnerInput
+              inputId={`game-runner-${game.id}`}
               disabled={!overrideEnabled}
               value={overrideEnabled ? storedGame?.runnerVersion ?? '' : effective.runnerVersion}
+              pathValue={overrideEnabled ? storedGame?.runnerPath ?? '' : effective.runnerPath}
               placeholder={preset?.linux.recommendedRunner ?? effective.runnerVersion}
-              onChange={(event) => patch({ runnerVersion: event.target.value })}
+              onChange={(value, path, runtime) => patch({ runnerVersion: value, runnerPath: path, runtime })}
             />
-          </label>
+          </div>
           <label className="settings-field settings-field-wide">
-            <span>Prefix-Pfad</span>
+            <span>{t('settings.prefix')}</span>
             <input
               disabled={!overrideEnabled}
               value={overrideEnabled ? storedGame?.prefixPath ?? '' : effective.prefixPath}
@@ -282,33 +386,33 @@ export function GameSettingsPanel({ game }: GameSettingsPanelProps) {
 
       <section className="settings-section">
         <div className="settings-section-title">
-          <h3>Linux Extras</h3>
+          <h3>{t('settings.linuxExtras')}</h3>
           <p>Pro Spiel steuerbare Hilfen für Windowing, Performance und Session-Verhalten.</p>
         </div>
         <div className="settings-form-grid">
           <label className={`settings-switch-row ${!overrideEnabled ? 'disabled' : ''}`}>
-            <span><strong>Gamescope</strong><small>Kann besonders bei Fullscreen-/Input-Problemen helfen.</small></span>
+            <span><strong>{t('settings.gamescope')}</strong><small>Kann besonders bei Fullscreen-/Input-Problemen helfen.</small></span>
             <input type="checkbox" disabled={!overrideEnabled} checked={effective.gamescopeEnabled} onChange={(event) => patch({ gamescopeEnabled: event.target.checked })} />
           </label>
           <label className={`settings-switch-row ${!overrideEnabled ? 'disabled' : ''}`}>
-            <span><strong>GameMode</strong><small>gamemoderun beim späteren Launch-Backend verwenden.</small></span>
+            <span><strong>{t('settings.gamemode')}</strong><small>gamemoderun beim späteren Launch-Backend verwenden.</small></span>
             <input type="checkbox" disabled={!overrideEnabled} checked={effective.gameModeEnabled} onChange={(event) => patch({ gameModeEnabled: event.target.checked })} />
           </label>
           <label className={`settings-switch-row ${!overrideEnabled ? 'disabled' : ''}`}>
-            <span><strong>MangoHud</strong><small>Performance-Overlay für diesen Titel.</small></span>
+            <span><strong>{t('settings.mangohud')}</strong><small>Performance-Overlay für diesen Titel.</small></span>
             <input type="checkbox" disabled={!overrideEnabled} checked={effective.mangoHudEnabled} onChange={(event) => patch({ mangoHudEnabled: event.target.checked })} />
           </label>
           <label className={`settings-switch-row ${!overrideEnabled ? 'disabled' : ''}`}>
-            <span><strong>Idle / Suspend verhindern</strong><small>System während des Spielens wach halten.</small></span>
+            <span><strong>{t('settings.preventSleep')}</strong><small>System während des Spielens wach halten.</small></span>
             <input type="checkbox" disabled={!overrideEnabled} checked={effective.preventSleep} onChange={(event) => patch({ preventSleep: event.target.checked })} />
           </label>
           <label className="settings-field">
-            <span>FPS-Limit</span>
+            <span>{t('settings.fpsLimit')}</span>
             <input
               type="number"
               min={0}
               disabled={!overrideEnabled}
-              placeholder="Unbegrenzt"
+              placeholder={t('common.unlimited')}
               value={overrideEnabled ? storedGame?.fpsLimit ?? '' : effective.fpsLimit ?? ''}
               onChange={(event) => patch({ fpsLimit: event.target.value ? Math.max(0, Number(event.target.value)) : null })}
             />
@@ -318,12 +422,12 @@ export function GameSettingsPanel({ game }: GameSettingsPanelProps) {
 
       <section className="settings-section">
         <div className="settings-section-title">
-          <h3>Launch</h3>
+          <h3>{t('settings.launch')}</h3>
           <p>Startargumente und Umgebungsvariablen.</p>
         </div>
         <div className="settings-form-grid">
           <label className="settings-field settings-field-wide">
-            <span>Launch Arguments</span>
+            <span>{t('settings.launchArgs')}</span>
             <input
               disabled={!overrideEnabled}
               value={overrideEnabled ? storedGame?.launchArguments ?? '' : ''}
@@ -332,7 +436,7 @@ export function GameSettingsPanel({ game }: GameSettingsPanelProps) {
             />
           </label>
           <label className="settings-field settings-field-wide">
-            <span>Environment Variables</span>
+            <span>{t('settings.envVars')}</span>
             <textarea
               disabled={!overrideEnabled}
               rows={5}
@@ -347,7 +451,7 @@ export function GameSettingsPanel({ game }: GameSettingsPanelProps) {
       <section className="settings-section xxmi-settings-section">
         <div className="settings-section-title">
           <h3>XXMI</h3>
-          <p>Game-spezifischer XXMI-Schalter. Der allgemeine Launcher-Pfad liegt in den Global Settings.</p>
+          <p>XXMI wird von GachaHub verwaltet. Pro Spiel bleibt nur der passende Model Importer aktivierbar.</p>
         </div>
         {game.xxmiImporter ? (
           <div className="settings-form-grid">
@@ -359,6 +463,7 @@ export function GameSettingsPanel({ game }: GameSettingsPanelProps) {
               <input
                 type="checkbox"
                 checked={effective.xxmiEnabled}
+                disabled={!xxmiStatus?.installed || !(xxmiStatus.importers.find((entry) => entry.id === game.xxmiImporter)?.installed ?? false)}
                 onChange={(event) => patch({ xxmiEnabled: event.target.checked })}
               />
             </label>
@@ -366,9 +471,13 @@ export function GameSettingsPanel({ game }: GameSettingsPanelProps) {
               <span>Model Importer</span>
               <input value={game.xxmiImporter} readOnly />
             </label>
+            <label className="settings-field">
+              <span>XXMI Status</span>
+              <input value={xxmiStatus?.installed ? `Installiert · ${xxmiStatus.version ?? 'Version unbekannt'}` : 'Nicht installiert'} readOnly />
+            </label>
             <label className="settings-field settings-field-wide">
               <span>XXMI Launcher</span>
-              <input value={global.xxmiLauncherPath} readOnly placeholder="Unter Global Settings konfigurieren" />
+              <input value={xxmiStatus?.launcherPath ?? ''} readOnly placeholder="GachaHub Managed XXMI noch nicht installiert" />
             </label>
             {preset?.linux.xxmiLaunchArguments && (
               <div className="xxmi-requirement-card settings-field-wide">
@@ -383,24 +492,44 @@ export function GameSettingsPanel({ game }: GameSettingsPanelProps) {
               <div className="inheritance-notice settings-field-wide" key={note}><Info size={15}/><span>{note}</span></div>
             ))}
             <div className="xxmi-test-row settings-field-wide">
-              <button
-                className="secondary-btn"
-                disabled={xxmiBusy || !global.xxmiLauncherPath.trim()}
-                onClick={async () => {
-                  setXxmiBusy(true);
-                  setXxmiMessage('');
-                  try {
-                    await startXxmi(global.xxmiLauncherPath, game.xxmiImporter!, global.xxmiWineExecutable, global.xxmiNoGui);
-                    setXxmiMessage(`${game.xxmiImporter} wurde über XXMI gestartet.`);
-                  } catch (error) {
-                    setXxmiMessage(String(error));
-                  } finally {
-                    setXxmiBusy(false);
-                  }
-                }}
-              >
-                <Play size={14} /> {xxmiBusy ? 'Starte…' : 'XXMI testen / starten'}
-              </button>
+              {!xxmiStatus?.installed ? (
+                <button
+                  className="recommended-preset-btn"
+                  disabled={xxmiManagerBusy}
+                  onClick={async () => {
+                    setXxmiMessage('');
+                    const installed = await installManagedXxmi(global);
+                    setXxmiMessage(installed?.installed ? 'XXMI wurde installiert. Öffne jetzt das Importer-Setup.' : 'XXMI Installation fehlgeschlagen.');
+                  }}
+                >
+                  <Sparkles size={14} /> {xxmiManagerBusy ? 'Installiere…' : 'XXMI installieren'}
+                </button>
+              ) : (
+                <>
+                  <button
+                    className="secondary-btn"
+                    disabled={xxmiBusy || xxmiManagerBusy}
+                    onClick={async () => {
+                      setXxmiBusy(true);
+                      setXxmiMessage('');
+                      try {
+                        const importerReady = xxmiStatus.importers.find((entry) => entry.id === game.xxmiImporter)?.installed ?? false;
+                        await launchManagedXxmi(global, game.xxmiImporter!, importerReady ? global.xxmiNoGui : false);
+                        setXxmiMessage(importerReady
+                          ? `${game.xxmiImporter} wurde über XXMI gestartet.`
+                          : `XXMI Setup für ${game.xxmiImporter} geöffnet. Installiere den Importer dort einmalig.`);
+                        await refreshManagedXxmi(global);
+                      } catch (error) {
+                        setXxmiMessage(String(error));
+                      } finally {
+                        setXxmiBusy(false);
+                      }
+                    }}
+                  >
+                    <Play size={14} /> {xxmiBusy ? 'Starte…' : ((xxmiStatus.importers.find((entry) => entry.id === game.xxmiImporter)?.installed ?? false) ? 'XXMI testen / starten' : `${game.xxmiImporter} Setup öffnen`)}
+                  </button>
+                </>
+              )}
               {xxmiMessage && <span className="xxmi-inline-message">{xxmiMessage}</span>}
             </div>
           </div>
@@ -411,7 +540,7 @@ export function GameSettingsPanel({ game }: GameSettingsPanelProps) {
 
       <section className="settings-section">
         <div className="settings-section-title">
-          <h3>Mod Manager</h3>
+          <h3>{t('settings.mods')}</h3>
           <p>{preset?.modding.note ?? 'GMM-kompatible Library und optionaler Active-Mods-Ordner.'}</p>
         </div>
         <div className="mod-backend-banner">
@@ -423,7 +552,7 @@ export function GameSettingsPanel({ game }: GameSettingsPanelProps) {
         </div>
         <div className="settings-form-grid">
           <label className="settings-field settings-field-wide">
-            <span>Mod Library</span>
+            <span>{t('settings.modLibrary')}</span>
             <input
               disabled={!overrideEnabled}
               value={overrideEnabled ? storedGame?.modLibraryPath ?? '' : effective.modLibraryPath}
@@ -432,7 +561,7 @@ export function GameSettingsPanel({ game }: GameSettingsPanelProps) {
             />
           </label>
           <label className="settings-field settings-field-wide">
-            <span>Active Mods / Loader Mods</span>
+            <span>{t('settings.activeModsPath')}</span>
             <input
               disabled={!overrideEnabled || !deploymentAvailable}
               value={overrideEnabled ? storedGame?.activeModsPath ?? '' : effective.activeModsPath}
@@ -441,7 +570,7 @@ export function GameSettingsPanel({ game }: GameSettingsPanelProps) {
             />
           </label>
           <label className="settings-field">
-            <span>Deployment</span>
+            <span>{t('settings.deployment')}</span>
             <select
               disabled={!overrideEnabled || !deploymentAvailable}
               value={overrideEnabled ? storedGame?.modDeploymentMode ?? global.defaultModDeploymentMode : effective.modDeploymentMode}
@@ -465,12 +594,12 @@ export function GameSettingsPanel({ game }: GameSettingsPanelProps) {
 
       <section className="settings-section">
         <div className="settings-section-title">
-          <h3>Updates & Mods</h3>
+          <h3>{t('global.updatesMods')}</h3>
           <p>Diese Optionen gelten nur für {game.name}, wenn Overrides aktiv sind.</p>
         </div>
         <div className="settings-form-grid">
           <label className="settings-field">
-            <span>Update-Kanal</span>
+            <span>{t('global.updateChannel')}</span>
             <select
               disabled={!overrideEnabled}
               value={overrideEnabled ? storedGame?.updateChannel ?? global.updateChannel : effective.updateChannel}
@@ -481,7 +610,7 @@ export function GameSettingsPanel({ game }: GameSettingsPanelProps) {
             </select>
           </label>
           <label className="settings-field">
-            <span>Mod-Profil</span>
+            <span>{t('settings.modProfile')}</span>
             <input
               disabled={!overrideEnabled || game.modPolicy === 'disabled'}
               value={overrideEnabled ? storedGame?.modProfile ?? '' : effective.modProfile}
@@ -490,7 +619,7 @@ export function GameSettingsPanel({ game }: GameSettingsPanelProps) {
             />
           </label>
           <label className={`settings-switch-row ${!overrideEnabled ? 'disabled' : ''}`}>
-            <span><strong>Automatische Updates</strong><small>Updates dieses Spiels automatisch vorbereiten.</small></span>
+            <span><strong>{t('global.autoUpdates')}</strong><small>Updates dieses Spiels automatisch vorbereiten.</small></span>
             <input
               type="checkbox"
               disabled={!overrideEnabled}
@@ -499,7 +628,7 @@ export function GameSettingsPanel({ game }: GameSettingsPanelProps) {
             />
           </label>
           <label className={`settings-switch-row ${!overrideEnabled ? 'disabled' : ''}`}>
-            <span><strong>Preloads erlauben</strong><small>Vorabdownloads nutzen, sofern der Provider sie anbietet.</small></span>
+            <span><strong>{t('global.preloads')}</strong><small>Vorabdownloads nutzen, sofern der Provider sie anbietet.</small></span>
             <input
               type="checkbox"
               disabled={!overrideEnabled}

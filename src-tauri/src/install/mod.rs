@@ -12,6 +12,10 @@ pub struct InstallJob {
     pub downloaded_bytes: u64,
     pub total_bytes: u64,
     pub speed_bytes: u64,
+    pub version: Option<String>,
+    pub provider_mode: Option<String>,
+    pub destination: Option<String>,
+    pub message: Option<String>,
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -22,17 +26,19 @@ pub enum InstallError {
 
 pub fn create_install_job(game_id: &str) -> Result<InstallJob, InstallError> {
     let provider = provider_for(game_id).ok_or_else(|| InstallError::NoProvider(game_id.into()))?;
-    let _provider_id = provider.id();
+    let provider_id = provider.id();
 
-    // v0.1: create a real backend job object. Network fetching is intentionally
-    // provider-specific and will be connected in the next milestone.
     Ok(InstallJob {
         id: Uuid::new_v4().to_string(),
         game_id: game_id.to_string(),
-        phase: "downloading".into(),
-        progress: 0.02,
-        downloaded_bytes: 2_147_483_648,
-        total_bytes: 107_374_182_400,
-        speed_bytes: 43_200_000,
+        phase: "queued".into(),
+        progress: 0.0,
+        downloaded_bytes: 0,
+        total_bytes: 0,
+        speed_bytes: 0,
+        version: None,
+        provider_mode: None,
+        destination: None,
+        message: Some(format!("Queued for provider {provider_id}")),
     })
 }

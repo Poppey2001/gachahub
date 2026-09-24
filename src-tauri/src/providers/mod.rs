@@ -1,5 +1,5 @@
 mod gryphline;
-mod hoyoverse;
+pub mod hoyoverse;
 mod hypergryph;
 mod kuro;
 mod sunborn;
@@ -7,6 +7,7 @@ mod sunborn;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct PackageFile {
     pub url: String,
     pub destination: String,
@@ -15,22 +16,31 @@ pub struct PackageFile {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct InstallPlan {
+#[serde(rename_all = "camelCase")]
+pub struct ProviderDownloadPlan {
     pub game_id: String,
+    pub provider: String,
     pub version: String,
-    pub files: Vec<PackageFile>,
+    pub mode: String,
+    pub packages: Vec<PackageFile>,
+    pub total_bytes: u64,
+    pub resource_list_url: Option<String>,
+    pub notes: Vec<String>,
 }
 
 pub trait GameProvider: Send + Sync {
     fn id(&self) -> &'static str;
     fn supports(&self, game_id: &str) -> bool;
-    fn install_plan(&self, game_id: &str) -> Result<InstallPlan, ProviderError>;
 }
 
 #[derive(Debug, thiserror::Error)]
 pub enum ProviderError {
-    #[error("provider metadata not implemented yet for {0}")]
-    NotImplemented(String),
+    #[error("network request failed: {0}")]
+    Network(String),
+    #[error("provider response is invalid: {0}")]
+    InvalidResponse(String),
+    #[error("game not found in provider metadata: {0}")]
+    GameNotFound(String),
 }
 
 pub fn provider_for(game_id: &str) -> Option<Box<dyn GameProvider>> {

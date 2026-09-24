@@ -2,7 +2,7 @@ export type RuntimeKind = 'auto' | 'native' | 'wine' | 'proton' | 'ge-proton' | 
 export type ModDeploymentMode = 'copy' | 'symlink';
 export type UpdateChannel = 'stable' | 'beta';
 export type ThemeKind = 'dark' | 'light' | 'system';
-export type LanguageKind = 'de' | 'en';
+export type LanguageKind = 'de' | 'en' | 'fr' | 'es';
 
 export interface GlobalSettings {
   language: LanguageKind;
@@ -16,6 +16,7 @@ export interface GlobalSettings {
   bandwidthLimitMbps: number | null;
   defaultRuntime: RuntimeKind;
   defaultRunnerVersion: string;
+  defaultRunnerPath: string;
   prefixBasePath: string;
   defaultGamescopeEnabled: boolean;
   defaultGameModeEnabled: boolean;
@@ -31,17 +32,23 @@ export interface GlobalSettings {
   defaultModDeploymentMode: ModDeploymentMode;
   verifyBeforeLaunch: boolean;
   debugLogging: boolean;
+  xxmiInstallPath: string;
   xxmiLauncherPath: string;
   xxmiWineExecutable: string;
+  xxmiWinePrefix: string;
   xxmiNoGui: boolean;
+  xxmiAutoUpdate: boolean;
 }
 
 export interface GameSettings {
   gameId: string;
   overrideEnabled: boolean;
   installPath?: string;
+  executablePath?: string;
+  installationDetectedAt?: string;
   runtime?: RuntimeKind;
   runnerVersion?: string;
+  runnerPath?: string;
   prefixPath?: string;
   launchArguments?: string;
   environmentVariables?: string;
@@ -62,12 +69,17 @@ export interface GameSettings {
   verifyBeforeLaunch?: boolean;
   xxmiEnabled?: boolean;
   compatibilityPresetAppliedAt?: string;
+  postInstallProfile?: string;
+  postInstallAppliedAt?: string;
 }
 
 export interface ResolvedGameSettings {
   installPath: string;
+  executablePath: string;
+  installationDetectedAt: string;
   runtime: RuntimeKind;
   runnerVersion: string;
+  runnerPath: string;
   prefixPath: string;
   launchArguments: string;
   environmentVariables: Record<string, string>;
@@ -87,9 +99,12 @@ export interface ResolvedGameSettings {
   legacyGmmConfigPath: string;
   verifyBeforeLaunch: boolean;
   xxmiEnabled: boolean;
+  xxmiInstallPath: string;
   xxmiLauncherPath: string;
   xxmiWineExecutable: string;
+  xxmiWinePrefix: string;
   xxmiNoGui: boolean;
+  xxmiAutoUpdate: boolean;
 }
 
 export const defaultGlobalSettings: GlobalSettings = {
@@ -104,6 +119,7 @@ export const defaultGlobalSettings: GlobalSettings = {
   bandwidthLimitMbps: null,
   defaultRuntime: 'auto',
   defaultRunnerVersion: 'GE-Proton',
+  defaultRunnerPath: '',
   prefixBasePath: '~/.local/share/gachahub/prefixes',
   defaultGamescopeEnabled: false,
   defaultGameModeEnabled: false,
@@ -119,9 +135,12 @@ export const defaultGlobalSettings: GlobalSettings = {
   defaultModDeploymentMode: 'copy',
   verifyBeforeLaunch: false,
   debugLogging: false,
+  xxmiInstallPath: '',
   xxmiLauncherPath: '',
   xxmiWineExecutable: 'wine',
+  xxmiWinePrefix: '~/.local/share/gachahub/prefixes/xxmi',
   xxmiNoGui: true,
+  xxmiAutoUpdate: true,
 };
 
 export function parseEnvironmentVariables(value?: string): Record<string, string> {
@@ -145,15 +164,19 @@ export function resolveGameSettings(
   global: GlobalSettings,
   game?: GameSettings,
 ): ResolvedGameSettings {
-  const useOverride = game?.overrideEnabled === true;
+  const useOverride = game?.overrideEnabled !== false;
   const gameInstallPath = `${global.defaultInstallPath}/${gameId}`;
   const gamePrefixPath = `${global.prefixBasePath}/${gameId}`;
 
   return {
     installPath: useOverride && game?.installPath ? game.installPath : gameInstallPath,
+    executablePath: useOverride ? game?.executablePath ?? '' : '',
+    installationDetectedAt: useOverride ? game?.installationDetectedAt ?? '' : '',
     runtime: useOverride && game?.runtime ? game.runtime : global.defaultRuntime,
     runnerVersion:
       useOverride && game?.runnerVersion ? game.runnerVersion : global.defaultRunnerVersion,
+    runnerPath:
+      useOverride && game?.runnerPath !== undefined ? game.runnerPath : global.defaultRunnerPath,
     prefixPath: useOverride && game?.prefixPath ? game.prefixPath : gamePrefixPath,
     launchArguments: useOverride ? game?.launchArguments ?? '' : '',
     environmentVariables: parseEnvironmentVariables(
@@ -209,8 +232,11 @@ export function resolveGameSettings(
         : global.verifyBeforeLaunch,
     // XXMI is deliberately independent from the general override switch. It is a per-game launch toggle.
     xxmiEnabled: game?.xxmiEnabled ?? false,
+    xxmiInstallPath: global.xxmiInstallPath,
     xxmiLauncherPath: global.xxmiLauncherPath,
     xxmiWineExecutable: global.xxmiWineExecutable,
+    xxmiWinePrefix: global.xxmiWinePrefix,
     xxmiNoGui: global.xxmiNoGui,
+    xxmiAutoUpdate: global.xxmiAutoUpdate,
   };
 }

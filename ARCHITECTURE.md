@@ -1,58 +1,50 @@
-# GachaHub v0.7 architecture
+# GachaHub v0.11 architecture
 
-## Settings resolution
-
-```text
-GlobalSettings
-      |
-      v
-GameSettings override
-      |
-      v
-ResolvedGameSettings
-      |
-      +-- runtime / runner / prefix
-      +-- launch args / environment
-      +-- gamescope / gamemode / mangohud
-      +-- prevent sleep / fps limit
-      +-- update / preload
-      +-- mod paths / deployment
-      +-- XXMI toggle
-```
-
-## Compatibility database
-
-`src/data/compatibilityPresets.ts` is intentionally separate from the generic game manifest.
-It contains changeable Linux compatibility guidance:
-
-- status
-- research date
-- recommended runtime
-- recommended runner family/version text
-- candidate runners
-- known regressions / runners to avoid
-- optional environment workarounds
-- XXMI launch conditions
-- mod backend type
-
-This allows compatibility data to be updated without redesigning the launcher.
-
-## Mod backends
+## XXMI
 
 ```text
-Mod Library (all games)
+React UI
   |
-  +-- import folder/ZIP/7z/RAR
-  +-- scan/search
-  +-- profiles metadata
+  +-- useXxmiStore
+  |     +-- local status
+  |     +-- install / update / repair / remove
+  |     +-- progress
+  |     +-- quick launch
   |
-  +-- XXMI backend (supported games)
-  |     +-- Active Mods path
-  |     +-- Copy/Symlink deployment
-  |     +-- XXMI quick launch
+Tauri commands
   |
-  +-- Library-only backend
-        +-- no automatic injection/deployment
+  +-- xxmi_manager_status
+  +-- install_xxmi
+  +-- repair_xxmi
+  +-- remove_xxmi
+  +-- launch_managed_xxmi
+  |
+Rust XXMI Manager
+  |
+  +-- official GitHub latest-release API
+  +-- Portable ZIP selector
+  +-- streaming download
+  +-- optional SHA-256 verification
+  +-- safe ZIP extraction
+  +-- managed state file
+  +-- importer detection
+  +-- Windows native launch / Linux Wine launch
 ```
 
-The Rust scanner is generic. INI validation is only required for the XXMI/3DMigoto families currently configured in GachaHub.
+The official XXMI GUI remains responsible for the documented first-time Model Importer installation. Once GIMI/SRMI/ZZMI/WWMI/EFMI/HIMI is detected, GachaHub can use `--nogui --xxmi <IMPORTER>`.
+
+## Settings precedence
+
+```text
+manual game value
+      >
+post-install detection (only fills unset fields)
+      >
+compatibility/global defaults
+```
+
+Game-specific settings are enabled by default in v0.11.
+
+## Game download path
+
+The game provider/downloader is separate from XXMI. Genshin's current provider integration can resolve HoYo package metadata and direct packages; Sophon chunk assembly is still a later milestone.
