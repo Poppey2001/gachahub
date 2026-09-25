@@ -353,6 +353,24 @@ Object.assign(es, {
   'runnerPicker.auto': 'Automático / UMU-Proton', 'runnerPicker.manage': 'Gestionar', 'runnerPicker.refresh': 'Actualizar runners detectados',
 });
 
+
+Object.assign(de, {
+  'downloads.pauseAll': 'Alle pausieren', 'downloads.resumeAll': 'Alle fortsetzen', 'downloads.paused': 'Pausiert',
+  'downloads.running': 'Laufend', 'downloads.completedShort': 'Fertig', 'downloads.speedPaused': 'Pausiert',
+});
+Object.assign(en, {
+  'downloads.pauseAll': 'Pause all', 'downloads.resumeAll': 'Resume all', 'downloads.paused': 'Paused',
+  'downloads.running': 'Running', 'downloads.completedShort': 'Done', 'downloads.speedPaused': 'Paused',
+});
+Object.assign(fr, {
+  'common.pause': 'Pause', 'downloads.pauseAll': 'Tout mettre en pause', 'downloads.resumeAll': 'Tout reprendre', 'downloads.paused': 'En pause',
+  'downloads.running': 'En cours', 'downloads.completedShort': 'Terminés', 'downloads.speedPaused': 'En pause',
+});
+Object.assign(es, {
+  'common.pause': 'Pausar', 'downloads.pauseAll': 'Pausar todo', 'downloads.resumeAll': 'Reanudar todo', 'downloads.paused': 'Pausado',
+  'downloads.running': 'En curso', 'downloads.completedShort': 'Completadas', 'downloads.speedPaused': 'Pausado',
+});
+
 const dictionaries: Record<LanguageKind, Dictionary> = { de, en, fr, es };
 
 export function translate(language: LanguageKind, key: string, vars?: Vars): string {

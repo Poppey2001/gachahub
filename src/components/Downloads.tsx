@@ -19,17 +19,28 @@ function isDone(job: InstallJob) {
 export function Downloads() {
   const { t } = useI18n();
   const { jobs, games } = useLauncherStore();
-  const [paused, setPaused] = useState<Record<string, boolean>>({});
   const [actionError, setActionError] = useState('');
+  const [busyJobs, setBusyJobs] = useState<Record<string, boolean>>({});
+
   const activeJobs = useMemo(() => jobs.filter((job) => !isDone(job)), [jobs]);
+  const pausedJobs = useMemo(() => activeJobs.filter((job) => job.phase === 'paused'), [activeJobs]);
+  const runningJobs = useMemo(() => activeJobs.filter((job) => job.phase !== 'paused'), [activeJobs]);
   const completedJobs = useMemo(() => jobs.filter(isDone), [jobs]);
 
+  const withBusy = async (jobId: string, action: () => Promise<void>) => {
+    setBusyJobs((state) => ({ ...state, [jobId]: true }));
+    try {
+      await action();
+    } finally {
+      setBusyJobs((state) => ({ ...state, [jobId]: false }));
+    }
+  };
+
   const togglePause = async (job: InstallJob) => {
-    const next = !paused[job.id];
+    const next = job.phase !== 'paused';
     setActionError('');
     try {
-      await pauseDownload(job.id, next);
-      setPaused((state) => ({ ...state, [job.id]: next }));
+      await withBusy(job.id, () => pauseDownload(job.id, next));
     } catch (error) {
       setActionError(error instanceof Error ? error.message : String(error));
     }
@@ -38,18 +49,33 @@ export function Downloads() {
   const cancel = async (job: InstallJob) => {
     setActionError('');
     try {
-      await cancelDownload(job.id);
+      await withBusy(job.id, () => cancelDownload(job.id));
     } catch (error) {
       setActionError(error instanceof Error ? error.message : String(error));
+    }
+  };
+
+  const setAllPaused = async (paused: boolean) => {
+    setActionError('');
+    const targets = activeJobs.filter((job) => (paused ? job.phase !== 'paused' : job.phase === 'paused'));
+    const results = await Promise.allSettled(targets.map((job) => pauseDownload(job.id, paused)));
+    const rejected = results.find((result) => result.status === 'rejected');
+    if (rejected?.status === 'rejected') {
+      setActionError(rejected.reason instanceof Error ? rejected.reason.message : String(rejected.reason));
     }
   };
 
   const renderJob = (job: InstallJob, finished = false) => {
     const game = games.find((entry) => entry.id === job.gameId);
     const progress = Math.round(job.progress * 100);
-    const isPaused = paused[job.id] === true;
+    const isPaused = job.phase === 'paused';
+    const isBusy = busyJobs[job.id] === true;
     return (
-      <article className="download-row" key={job.id} style={{ '--download-accent': game?.accent ?? '#7bcfff' } as React.CSSProperties}>
+      <article
+        className={`download-row${isPaused ? ' download-row-paused' : ''}`}
+        key={job.id}
+        style={{ '--download-accent': game?.accent ?? '#7bcfff' } as React.CSSProperties}
+      >
         <GripVertical className="drag-handle" size={19} />
         <div className="download-avatar">{game?.shortName ?? 'GH'}</div>
         <div className="download-main">
@@ -57,21 +83,35 @@ export function Downloads() {
             <strong>{game?.name ?? job.gameId}</strong>
             <div className="download-title-right">
               {job.version && <span className="download-version-badge">v{job.version}</span>}
-              <span className={`download-phase-${job.phase}`}>{isPaused ? 'paused' : job.phase}</span>
+              <span className={`download-phase-${job.phase}`}>
+                {isPaused ? t('downloads.paused') : job.phase}
+              </span>
             </div>
           </div>
           <div className="download-progress"><i style={{ width: `${progress}%` }} /></div>
           <div className="download-meta">
             <span>{fmt(job.downloadedBytes)} / {fmt(job.totalBytes)}</span>
-            <span>{finished ? job.providerMode ?? 'provider' : `${fmt(job.speedBytes)}/s`}</span>
+            <span>{finished ? job.providerMode ?? 'provider' : isPaused ? t('downloads.speedPaused') : `${fmt(job.speedBytes)}/s`}</span>
             <span>{progress}%</span>
-            {job.destination && <span>{job.destination}</span>}
+            {job.destination && <span title={job.destination}>{job.destination}</span>}
           </div>
           {job.message && <div className="download-message">{job.message}</div>}
         </div>
         <div className="download-actions">
-          {!finished && <button onClick={() => void togglePause(job)} title={isPaused ? t('common.resume') : t('common.pause')}>{isPaused ? <Play size={16}/> : <Pause size={16}/>}</button>}
-          {!finished && <button onClick={() => void cancel(job)} title={t('common.cancel')}><X size={16}/></button>}
+          {!finished && (
+            <button
+              disabled={isBusy}
+              onClick={() => void togglePause(job)}
+              title={isPaused ? t('common.resume') : t('common.pause')}
+            >
+              {isPaused ? <Play size={16}/> : <Pause size={16}/>} 
+            </button>
+          )}
+          {!finished && (
+            <button disabled={isBusy} onClick={() => void cancel(job)} title={t('common.cancel')}>
+              <X size={16}/>
+            </button>
+          )}
           {finished && (job.phase === 'error' || job.phase === 'cancelled' ? <XCircle size={20}/> : <CheckCircle2 size={20}/>)}
         </div>
       </article>
@@ -80,12 +120,34 @@ export function Downloads() {
 
   return (
     <main className="page-shell">
-      <header className="page-header">
-        <div><span className="page-eyebrow">{t('downloads.eyebrow')}</span><h1>{t('downloads.title')}</h1><p>{t('downloads.subtitle')}</p></div>
-        <div className="page-header-icon"><DownloadCloud size={25} /></div>
+      <header className="page-header downloads-page-header">
+        <div>
+          <span className="page-eyebrow">{t('downloads.eyebrow')}</span>
+          <h1>{t('downloads.title')}</h1>
+          <p>{t('downloads.subtitle')}</p>
+        </div>
+        <div className="downloads-header-actions">
+          {runningJobs.length > 0 && (
+            <button className="download-queue-action" onClick={() => void setAllPaused(true)}>
+              <Pause size={15}/>{t('downloads.pauseAll')}
+            </button>
+          )}
+          {pausedJobs.length > 0 && (
+            <button className="download-queue-action" onClick={() => void setAllPaused(false)}>
+              <Play size={15}/>{t('downloads.resumeAll')}
+            </button>
+          )}
+          <div className="page-header-icon"><DownloadCloud size={25} /></div>
+        </div>
       </header>
 
       {actionError && <div className="runner-error">{actionError}</div>}
+
+      <div className="download-summary-strip">
+        <span>{t('downloads.running')}: <b>{runningJobs.length}</b></span>
+        <span>{t('downloads.paused')}: <b>{pausedJobs.length}</b></span>
+        <span>{t('downloads.completedShort')}: <b>{completedJobs.length}</b></span>
+      </div>
 
       <div className="section-label"><span>{t('downloads.active')}</span><b>{activeJobs.length}</b></div>
       <section className="download-list">

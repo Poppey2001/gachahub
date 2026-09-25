@@ -1,52 +1,42 @@
-# GachaHub Download Integration v0.9
+# GachaHub Download Integration v0.14
 
-v0.9 replaces the old fake install progress with the first real backend download path.
+v0.14 turns pause/resume into a real backend download state instead of only a frontend control.
 
-## HoYoverse provider
+## Direct provider packages
 
-For Genshin Impact, Honkai: Star Rail, Zenless Zone Zero and Honkai Impact 3rd, GachaHub queries HoYoPlay package metadata through the global HoYoPlay package endpoint.
+When a provider exposes direct package URLs, GachaHub downloads them in Rust into:
 
-The resolver reads:
+`<game install path>/.gachahub-downloads/`
 
-- game/provider ID
-- current major version
-- direct game package URLs when exposed
-- package size
-- package MD5 when exposed
-- `res_list_url` for Sophon-based distributions
+The active downloader supports:
 
-## Direct package downloader
-
-When the provider exposes direct package URLs, GachaHub now performs real HTTP downloads in Rust.
-
-Implemented in v0.9:
-
-- real backend HTTP requests
 - `.part` files
 - HTTP Range resume
-- pause/resume in the current session
-- cancel
-- download speed
-- byte progress
+- backend pause/resume
+- Pause all / Resume all in the queue
+- cancel while preserving partial data
+- download speed and byte progress
 - Tauri progress events
 - package-size validation
-- MD5 verification when HoYoPlay supplies a package MD5
-- downloaded package cache under `<game install path>/.gachahub-downloads/`
+- MD5 verification when supplied by the provider
 
-## Sophon
+## How pause works
 
-Current HoYoPlay versions may use the Sophon chunk distribution method. GachaHub v0.9 detects this mode and returns the real version/resource-list metadata instead of showing fake progress.
+GachaHub does not keep a CDN body stream open indefinitely while paused.
 
-The next downloader milestone is the native GachaHub Sophon engine:
+1. The backend marks the job as `paused` and emits the new state immediately.
+2. The downloader flushes the current `.part` file.
+3. The active HTTP response is dropped.
+4. While paused, no further chunks are requested or written.
+5. Resume opens a new HTTP Range request from the last committed byte.
+6. The speed baseline is reset so the pause duration is not included in the speed calculation.
 
-1. resolve Sophon resource/category metadata
-2. fetch manifest protobufs
-3. enumerate deduplicated chunks
-4. parallel chunk download
-5. Zstandard decompression
-6. chunk/hash verification
-7. write chunks to target file offsets
-8. full-file verification
-9. update/repair reuse
+If the origin does not support HTTP Range, GachaHub safely restarts that package instead of appending a full response to a partial file.
 
-No external GPL downloader is embedded in v0.9; this keeps the GachaHub implementation independent.
+## Restart / cancel recovery
+
+Partial `.part` files are intentionally retained. If GachaHub is closed or a job is cancelled, starting the same game download into the same destination can continue from that partial file when the origin supports Range requests.
+
+## HoYoPlay / Sophon
+
+GachaHub resolves current HoYoPlay package metadata and detects `res_list_url`/Sophon mode. v0.14 does not pretend Sophon metadata is a direct package download. Native resource-list parsing, manifest/chunk assembly, decompression and final-file verification remain the next provider-specific implementation stage.

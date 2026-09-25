@@ -161,7 +161,7 @@ async fn run_download(
     control: Arc<DownloadControl>,
 ) -> Result<(), String> {
     let client = reqwest::Client::builder()
-        .user_agent("GachaHub/0.14.0")
+        .user_agent("GachaHub/0.14.1")
         .connect_timeout(Duration::from_secs(20))
         .timeout(Duration::from_secs(120))
         .build()
@@ -391,7 +391,7 @@ async fn run_download(
 pub async fn start(app: AppHandle, game_id: String, install_path: String) -> Result<InstallJob, String> {
     let mut plan = resolve_plan(&game_id).await?;
     let client = reqwest::Client::builder()
-        .user_agent("GachaHub/0.14.0")
+        .user_agent("GachaHub/0.14.1")
         .timeout(Duration::from_secs(30))
         .build()
         .map_err(|e| e.to_string())?;

@@ -41,7 +41,7 @@ pub async fn fetch_download_plan(game_id: &str) -> Result<ProviderDownloadPlan, 
         .ok_or_else(|| ProviderError::GameNotFound(game_id.into()))?;
 
     let client = reqwest::Client::builder()
-        .user_agent("GachaHub/0.14.0")
+        .user_agent("GachaHub/0.14.1")
         .timeout(std::time::Duration::from_secs(30))
         .build()
         .map_err(|e| ProviderError::Network(e.to_string()))?;

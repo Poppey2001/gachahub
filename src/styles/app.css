@@ -787,3 +787,45 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
   .runner-input-row { grid-template-columns:minmax(0,1fr) 34px; }
   .runner-input-manage { grid-column:1 / -1; }
 }
+
+/* v0.14 download pause/resume */
+.downloads-page-header { align-items:center; }
+.downloads-header-actions { display:flex; align-items:center; justify-content:flex-end; gap:8px; }
+.download-queue-action {
+  min-height:36px;
+  padding:0 11px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  border-radius:10px;
+  border:1px solid #263246;
+  background:#101722;
+  color:#aebbd0;
+  font-size:9px;
+  cursor:pointer;
+}
+.download-queue-action:hover { color:#f2f7ff; border-color:#456787; }
+.download-summary-strip {
+  display:flex;
+  flex-wrap:wrap;
+  gap:9px;
+  margin:0 0 14px;
+}
+.download-summary-strip span {
+  border:1px solid #1f2a3a;
+  border-radius:9px;
+  background:#0f151f;
+  color:#758397;
+  padding:6px 9px;
+  font-size:9px;
+}
+.download-summary-strip b { color:#c8d5e7; }
+.download-row-paused { border-color:#34455d; background:linear-gradient(115deg,rgba(18,25,37,.94),rgba(11,16,24,.9)); }
+.download-row-paused .download-progress i { opacity:.62; }
+.download-phase-paused { color:#e6bd72 !important; }
+.download-actions button:disabled { opacity:.45; cursor:not-allowed; }
+@media (max-width: 760px) {
+  .downloads-page-header { align-items:flex-start; }
+  .downloads-header-actions { width:100%; justify-content:flex-start; flex-wrap:wrap; }
+}

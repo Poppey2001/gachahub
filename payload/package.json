@@ -1,7 +1,7 @@
 {
   "name": "gachahub",
   "private": true,
-  "version": "0.14.3",
+  "version": "0.14.2",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -13,9 +13,7 @@
     "tauri:dev:linux": "bash ./scripts/dev-linux.sh",
     "tauri:dev:stop": "bash ./scripts/stop-dev.sh",
     "assets:check": "node ./scripts/check-assets.mjs",
-    "postinstall:genshin:linux": "bash ./scripts/postinstall/genshin-linux.sh",
-    "i18n:check": "python3 ./scripts/check-i18n.py --strict",
-    "i18n:audit": "python3 ./scripts/check-i18n.py --hardcoded --json ./i18n-report.json"
+    "postinstall:genshin:linux": "bash ./scripts/postinstall/genshin-linux.sh"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.8.0",

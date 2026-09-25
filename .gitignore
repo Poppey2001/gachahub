@@ -6,3 +6,6 @@ src-tauri/target/
 .env
 .idea/
 .vscode/
+
+# Local i18n audit report
+i18n-report.json

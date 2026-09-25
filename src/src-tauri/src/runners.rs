@@ -235,7 +235,7 @@ fn installed_match(tag:&str)->Option<String> {
 }
 
 async fn get_text(url:&str)->Result<String,String> {
-    let client=reqwest::Client::builder().user_agent("GachaHub/0.14.0 runner-manager").build().map_err(|e|e.to_string())?;
+    let client=reqwest::Client::builder().user_agent("GachaHub/0.14.1 runner-manager").build().map_err(|e|e.to_string())?;
     let response=client.get(url).header("Accept","application/vnd.github+json").send().await.map_err(|e|e.to_string())?;
     if !response.status().is_success() { return Err(format!("runner source returned HTTP {}",response.status())); }
     response.text().await.map_err(|e|e.to_string())
@@ -311,7 +311,7 @@ fn copy_dir_all(src:&Path,dst:&Path)->Result<(),String> {
 pub async fn install(family_id:&str,tag_name:&str)->Result<RunnerInfo,String> {
     let version=versions(family_id).await?.into_iter().find(|v|v.tag_name==tag_name).ok_or_else(||format!("version not found: {tag_name}"))?;
     if version.download_url.is_empty() { return Err("this runner is managed externally".into()); }
-    let client=reqwest::Client::builder().user_agent("GachaHub/0.14.0 runner-manager").build().map_err(|e|e.to_string())?;
+    let client=reqwest::Client::builder().user_agent("GachaHub/0.14.1 runner-manager").build().map_err(|e|e.to_string())?;
     let response=client.get(&version.download_url).send().await.map_err(|e|e.to_string())?;
     if !response.status().is_success(){return Err(format!("download failed with HTTP {}",response.status()));}
     let bytes=response.bytes().await.map_err(|e|e.to_string())?;

@@ -24,6 +24,3 @@
 - Preserve partial files for later continuation.
 - Reset speed accounting after a resume.
 - Localized pause/resume controls for DE / EN / FR / ES.
-
-## v0.14.3
-- Added project-wide i18n audit script with strict missing-translation, fallback, placeholder, duplicate, unused-key and hard-coded UI checks.

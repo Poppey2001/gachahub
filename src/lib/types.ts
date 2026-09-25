@@ -30,7 +30,7 @@ export interface Game {
 export interface InstallJob {
   id: string;
   gameId: string;
-  phase: 'resolving' | 'queued' | 'downloading' | 'verifying' | 'extracting' | 'downloaded' | 'ready' | 'cancelled' | 'error';
+  phase: 'resolving' | 'queued' | 'downloading' | 'paused' | 'verifying' | 'extracting' | 'downloaded' | 'ready' | 'cancelled' | 'error';
   progress: number;
   downloadedBytes: number;
   totalBytes: number;

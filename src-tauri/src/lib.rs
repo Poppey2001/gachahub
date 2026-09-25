@@ -40,13 +40,13 @@ async fn start_game_download(app: tauri::AppHandle, game_id: String, install_pat
 }
 
 #[tauri::command]
-fn pause_download(job_id: String, paused: bool) -> Result<download_manager::DownloadControlState, String> {
-    download_manager::pause(&job_id, paused)
+fn pause_download(app: tauri::AppHandle, job_id: String, paused: bool) -> Result<download_manager::DownloadControlState, String> {
+    download_manager::pause(&app, &job_id, paused)
 }
 
 #[tauri::command]
-fn cancel_download(job_id: String) -> Result<download_manager::DownloadControlState, String> {
-    download_manager::cancel(&job_id)
+fn cancel_download(app: tauri::AppHandle, job_id: String) -> Result<download_manager::DownloadControlState, String> {
+    download_manager::cancel(&app, &job_id)
 }
 
 #[tauri::command]

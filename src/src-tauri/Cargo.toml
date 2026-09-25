@@ -1,6 +1,6 @@
 [package]
 name = "gachahub"
-version = "0.14.2"
+version = "0.14.1"
 description = "Cross-platform gacha game launcher"
 authors = ["GachaHub contributors"]
 edition = "2021"
