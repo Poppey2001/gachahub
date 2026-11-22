@@ -5,7 +5,7 @@ use crate::{
     theme::{self, alpha},
 };
 use eframe::egui::{self, CornerRadius, RichText, Sense, Stroke, StrokeKind, Vec2};
-use gachahub_core::settings::{Language, ModDeploymentMode, RuntimeKind};
+use gachahub_core::settings::{AppChannel, Language, ModDeploymentMode, RuntimeKind};
 
 /// A labelled settings row: title + hint on the left, control on the right.
 fn row(
@@ -209,6 +209,79 @@ impl GachaHubApp {
 
     fn settings_general(&mut self, ui: &mut egui::Ui) -> bool {
         let mut changed = false;
+        theme::section_label(ui, "GachaHub");
+        theme::card().show(ui, |ui| {
+            ui.set_width(ui.available_width());
+            ui.horizontal(|ui| {
+                ui.vertical(|ui| {
+                    ui.label(
+                        RichText::new(format!("GachaHub {}", gachahub_core::VERSION))
+                            .font(theme::font_semi(14.0))
+                            .color(theme::TEXT),
+                    );
+                    let status = if self.app_update_ready {
+                        tr("Update installiert – Neustart nötig.", "Update installed – restart required.").to_string()
+                    } else if let Some(info) = &self.app_update {
+                        format!(
+                            "{} {}{}",
+                            tr("Neue Version verfügbar:", "New version available:"),
+                            info.version,
+                            if info.prerelease { tr(" (Vorabversion)", " (pre-release)") } else { "" }
+                        )
+                    } else if self.busy.contains("app-update-check") {
+                        tr("Suche nach Updates…", "Checking for updates…").to_string()
+                    } else {
+                        self.app_update_status.clone().unwrap_or_default()
+                    };
+                    ui.label(RichText::new(status).font(theme::font(11.5)).color(theme::MUTED));
+                });
+                ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                    if self.app_update_ready {
+                        if ui.button(tr("↻  Neu starten", "↻  Restart")).clicked() {
+                            self.restart_app();
+                        }
+                    } else if let Some((done, total)) = self.app_update_progress {
+                        ui.spinner();
+                        ui.label(format!("{} / {}", theme::fmt_bytes(done), theme::fmt_bytes(total)));
+                    } else if self.app_update.is_some() {
+                        if ui.button(tr("⬆  Jetzt aktualisieren", "⬆  Update now")).clicked() {
+                            self.install_app_update();
+                        }
+                    }
+                    if !self.busy.contains("app-update-check")
+                        && self.app_update_progress.is_none()
+                        && ui.button(tr("⟳  Nach Updates suchen", "⟳  Check for updates")).clicked()
+                    {
+                        self.check_app_update(true);
+                    }
+                });
+            });
+            ui.add_space(6.0);
+            let g = &mut self.cfg.global;
+            changed |= row(
+                ui,
+                tr("Beim Start nach Updates suchen", "Check for updates on start"),
+                "",
+                |ui| theme::toggle(ui, &mut g.app_update_check).changed(),
+            );
+            changed |= row(
+                ui,
+                tr("Update-Kanal", "Update channel"),
+                tr(
+                    "Vorabversionen werden bei jeder Änderung automatisch gebaut – neuer, aber weniger getestet.",
+                    "Pre-releases are built automatically for every change – newer, but less tested.",
+                ),
+                |ui| {
+                    let mut c = false;
+                    c |= ui
+                        .selectable_value(&mut g.app_update_channel, AppChannel::Prerelease, tr("Vorabversionen", "Pre-releases"))
+                        .changed();
+                    c |= ui.selectable_value(&mut g.app_update_channel, AppChannel::Stable, tr("Stabil", "Stable")).changed();
+                    c
+                },
+            );
+        });
+
         theme::section_label(ui, tr("Oberfläche", "Interface"));
         theme::card().show(ui, |ui| {
             ui.set_width(ui.available_width());

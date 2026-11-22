@@ -13,6 +13,8 @@ pub enum CoreEvent {
     Download(InstallJob),
     Xxmi(XxmiProgress),
     Runner(RunnerProgress),
+    /// Download progress of a GachaHub self-update: (downloaded, total).
+    SelfUpdate(u64, u64),
 }
 
 pub type EventSink = Arc<dyn Fn(CoreEvent) + Send + Sync>;

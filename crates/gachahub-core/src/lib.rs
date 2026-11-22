@@ -17,6 +17,7 @@ pub mod platform;
 pub mod postinstall;
 pub mod providers;
 pub mod runners;
+pub mod self_update;
 pub mod settings;
 pub mod sophon;
 pub mod xxmi;
@@ -24,7 +25,12 @@ pub mod xxmi;
 pub use events::{CoreEvent, EventSink};
 pub use games::{Game, GameRegistry};
 
-pub const VERSION: &str = env!("CARGO_PKG_VERSION");
+/// App version. Release builds get the exact release version (e.g. `0.16.1-pre.42`)
+/// injected through the `GACHAHUB_VERSION` environment variable at build time.
+pub const VERSION: &str = match option_env!("GACHAHUB_VERSION") {
+    Some(v) => v,
+    None => env!("CARGO_PKG_VERSION"),
+};
 pub const USER_AGENT: &str = concat!("GachaHub/", env!("CARGO_PKG_VERSION"));
 
 /// Expand a leading `~` to the user's home directory.

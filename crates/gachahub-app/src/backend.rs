@@ -58,6 +58,12 @@ pub enum Msg {
     Picked(PickTarget, Option<PathBuf>),
     ExeIcon(String, Result<PathBuf, String>),
     LatestVersion(String, Result<String, String>),
+    /// (result, started manually by the user)
+    AppUpdateChecked(
+        Result<Option<gachahub_core::self_update::UpdateInfo>, String>,
+        bool,
+    ),
+    AppUpdateInstalled(Result<(), String>),
     Notice(Result<String, String>),
 }
 

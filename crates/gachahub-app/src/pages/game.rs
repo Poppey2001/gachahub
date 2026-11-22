@@ -213,6 +213,7 @@ impl GachaHubApp {
                             self.mark_dirty(ui.ctx());
                         }
                         ui.add_space(6.0);
+                        self.app_update_button(ui);
                         if self.running.contains_key(&game.id) {
                             theme::pill(ui, tr("● Läuft", "● Running"), theme::OK);
                         }
@@ -705,5 +706,46 @@ pub fn phase_label(phase: &str) -> &'static str {
         "cancelled" => tr("Abgebrochen", "Cancelled"),
         "error" => tr("Fehler", "Error"),
         _ => "—",
+    }
+}
+
+impl GachaHubApp {
+    /// Compact self-update control for the top bar (only shown when relevant).
+    pub fn app_update_button(&mut self, ui: &mut egui::Ui) {
+        if self.app_update_ready {
+            if theme::ghost_button_sized(
+                ui,
+                "↻",
+                tr("Neu starten & aktualisieren", "Restart to update"),
+                36.0,
+                true,
+            )
+            .clicked()
+            {
+                self.restart_app();
+            }
+        } else if let Some((done, total)) = self.app_update_progress {
+            let pct = if total > 0 {
+                done as f64 * 100.0 / total as f64
+            } else {
+                0.0
+            };
+            theme::pill(
+                ui,
+                &format!("{} {pct:.0}%", tr("GachaHub-Update", "GachaHub update")),
+                theme::BRAND,
+            );
+        } else if let Some(info) = &self.app_update {
+            let label = format!("GachaHub {}", info.version);
+            if theme::ghost_button_sized(ui, "⬆", &label, 36.0, true)
+                .on_hover_text(tr(
+                    "Neue GachaHub-Version herunterladen und installieren",
+                    "Download and install the new GachaHub version",
+                ))
+                .clicked()
+            {
+                self.install_app_update();
+            }
+        }
     }
 }

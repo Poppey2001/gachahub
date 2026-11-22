@@ -137,6 +137,17 @@ pub struct GachaHubApp {
     pub partial_installs: HashSet<String>,
     /// Running runner installations by tag.
     pub runner_progress: HashMap<String, RunnerProgress>,
+
+    /// Newer GachaHub release, if one was found.
+    pub app_update: Option<gachahub_core::self_update::UpdateInfo>,
+    /// Self-update download progress (downloaded, total).
+    pub app_update_progress: Option<(u64, u64)>,
+    /// Update installed – restart to activate it.
+    pub app_update_ready: bool,
+    /// Last self-update error / "up to date" note for the settings page.
+    pub app_update_status: Option<String>,
+    /// Path of the running executable, captured before any self-update.
+    startup_exe: Option<PathBuf>,
 }
 
 pub fn now_unix() -> u64 {
@@ -250,6 +261,11 @@ impl GachaHubApp {
             latest_versions: HashMap::new(),
             partial_installs: HashSet::new(),
             runner_progress: HashMap::new(),
+            app_update: None,
+            app_update_progress: None,
+            app_update_ready: false,
+            app_update_status: None,
+            startup_exe: std::env::current_exe().ok(),
         };
         // Developer aid: open a specific page on start (used for screenshots/CI).
         if let Ok(page) = std::env::var("GACHAHUB_START_PAGE") {
@@ -271,6 +287,9 @@ impl GachaHubApp {
         }
         app.refresh_installed_versions();
         app.check_updates();
+        if app.cfg.global.app_update_check {
+            app.check_app_update(false);
+        }
         app.refresh_runners();
         app.refresh_xxmi();
         app
@@ -444,6 +463,52 @@ impl GachaHubApp {
         }
     }
 
+    // ------------------------------------------------------------ GachaHub self-update
+
+    pub fn check_app_update(&mut self, manual: bool) {
+        let prerelease =
+            self.cfg.global.app_update_channel == gachahub_core::settings::AppChannel::Prerelease;
+        self.busy.insert("app-update-check".into());
+        self.backend.spawn(async move {
+            Msg::AppUpdateChecked(gachahub_core::self_update::check(prerelease).await, manual)
+        });
+    }
+
+    pub fn install_app_update(&mut self) {
+        let Some(info) = self.app_update.clone() else {
+            return;
+        };
+        let sink = self.sink.clone();
+        self.busy.insert("app-update-install".into());
+        self.app_update_progress = Some((0, info.asset_size));
+        self.app_update_status = None;
+        self.backend.spawn(async move {
+            Msg::AppUpdateInstalled(gachahub_core::self_update::install(&info, sink).await)
+        });
+    }
+
+    pub fn restart_app(&mut self) {
+        let _ = self.cfg.save();
+        let exe = self
+            .startup_exe
+            .clone()
+            .or_else(|| std::env::current_exe().ok());
+        match exe {
+            Some(exe) => {
+                if let Err(e) = gachahub_core::self_update::restart(&exe) {
+                    self.toast(ToastKind::Error, e);
+                }
+            }
+            None => self.toast(
+                ToastKind::Error,
+                tr(
+                    "Pfad der App unbekannt – bitte manuell neu starten.",
+                    "Unknown app path – please restart manually.",
+                ),
+            ),
+        }
+    }
+
     /// A download/update/repair job completed: pick up the new installation.
     fn on_job_finished(&mut self, job: &InstallJob) {
         let game_id = job.game_id.clone();
@@ -500,6 +565,65 @@ impl GachaHubApp {
                     } else {
                         self.runner_progress
                             .insert(progress.tag_name.clone(), progress);
+                    }
+                }
+                Msg::Core(CoreEvent::SelfUpdate(done, total)) => {
+                    self.app_update_progress = Some((done, total));
+                }
+                Msg::AppUpdateChecked(res, manual) => {
+                    self.busy.remove("app-update-check");
+                    match res {
+                        Ok(Some(info)) => {
+                            if self.app_update.as_ref().map(|u| &u.version) != Some(&info.version) {
+                                self.toast(
+                                    ToastKind::Info,
+                                    format!(
+                                        "GachaHub {} {}",
+                                        info.version,
+                                        tr("ist verfügbar", "is available")
+                                    ),
+                                );
+                            }
+                            self.app_update_status = None;
+                            self.app_update = Some(info);
+                        }
+                        Ok(None) => {
+                            self.app_update = None;
+                            self.app_update_status =
+                                Some(tr("GachaHub ist aktuell.", "GachaHub is up to date.").into());
+                            if manual {
+                                self.toast(
+                                    ToastKind::Success,
+                                    tr("GachaHub ist aktuell.", "GachaHub is up to date."),
+                                );
+                            }
+                        }
+                        Err(e) => {
+                            self.app_update_status = Some(e.clone());
+                            if manual {
+                                self.toast(ToastKind::Error, e);
+                            }
+                        }
+                    }
+                }
+                Msg::AppUpdateInstalled(res) => {
+                    self.busy.remove("app-update-install");
+                    self.app_update_progress = None;
+                    match res {
+                        Ok(()) => {
+                            self.app_update_ready = true;
+                            self.toast(
+                                ToastKind::Success,
+                                tr(
+                                    "Update installiert – Neustart aktiviert die neue Version.",
+                                    "Update installed – restart to activate it.",
+                                ),
+                            );
+                        }
+                        Err(e) => {
+                            self.app_update_status = Some(e.clone());
+                            self.toast(ToastKind::Error, e);
+                        }
                     }
                 }
                 Msg::LatestVersion(game_id, res) => {

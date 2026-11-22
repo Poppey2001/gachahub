@@ -79,6 +79,15 @@ impl ModDeploymentMode {
     }
 }
 
+/// Which GachaHub builds the self-updater offers.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "lowercase")]
+pub enum AppChannel {
+    #[default]
+    Stable,
+    Prerelease,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[serde(rename_all = "lowercase")]
 pub enum Language {
@@ -114,6 +123,9 @@ pub struct GlobalSettings {
     pub xxmi_launcher_path: String,
     pub xxmi_no_gui: bool,
     pub xxmi_auto_update: bool,
+    /// Look for new GachaHub versions on start.
+    pub app_update_check: bool,
+    pub app_update_channel: AppChannel,
 }
 
 impl Default for GlobalSettings {
@@ -155,6 +167,8 @@ impl Default for GlobalSettings {
             xxmi_launcher_path: String::new(),
             xxmi_no_gui: true,
             xxmi_auto_update: true,
+            app_update_check: true,
+            app_update_channel: AppChannel::Stable,
         }
     }
 }

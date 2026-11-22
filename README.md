@@ -52,14 +52,17 @@ Oder `gachahub-linux-x86_64.tar.gz` herunterladen, entpacken und `./install.sh` 
 (`sudo ./install.sh --system` für alle Benutzer). GachaHub erscheint danach im Anwendungsmenü.
 Deinstallieren: `~/.local/share/gachahub/uninstall.sh`.
 
+### Updates
+
+GachaHub aktualisiert sich selbst: Beim Start wird nach einer neuen Version gesucht, oben rechts
+erscheint dann „⬆ GachaHub x.y“. Unter *Einstellungen → Allgemein → GachaHub* lässt sich der
+Kanal wählen: **Stabil** oder **Vorabversionen** (werden bei jeder Änderung auf `main` automatisch gebaut).
+
 ### Neues Release erstellen
 
-```bash
-git tag v0.15.0 && git push origin v0.15.0
-```
-
-Der Workflow *Release* baut dann EXE + Linux-Paket und veröffentlicht sie als GitHub-Release.
-Manuell gestartet (Actions → Release → *Run workflow*) landen die Dateien als Artefakte am Lauf.
+- **Vorabversion:** passiert automatisch bei jedem Push auf `main`.
+- **Stabiles Release:** GitHub → *Actions → Release → Run workflow*, Version eintragen (z. B. `v0.17.0`).
+  Danach die Version in `Cargo.toml` erhöhen.
 
 ## Selbst bauen
 

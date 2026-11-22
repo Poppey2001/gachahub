@@ -1,5 +1,12 @@
 # GachaHub v0.16.0 — Installieren, Updaten, Reparieren
 
+## GachaHub aktualisiert sich selbst
+- Neuer **Auto-Updater**: prüft beim Start die GitHub-Releases, lädt die neue Version,
+  prüft die SHA-256-Prüfsumme und ersetzt die laufende EXE (Windows & Linux). Ein Klick auf
+  „Neu starten“ aktiviert sie. Einstellungen → Allgemein → GachaHub.
+- **Update-Kanal** wählbar: „Stabil“ oder „Vorabversionen“.
+- Jeder Push auf `main` erzeugt automatisch ein **Pre-Release** (`vX.Y.Z-pre.N`); die 5 neuesten bleiben erhalten.
+
 ## Spiele wirklich installieren
 - **Sophon-Downloader** für Genshin Impact, Honkai: Star Rail und ZZZ (HoYoPlay-Chunk-Verteilung):
   Dateien werden aus MD5-geprüften, zstd-komprimierten Chunks zusammengesetzt, mehrere parallel.
