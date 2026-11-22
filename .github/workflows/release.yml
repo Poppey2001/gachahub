@@ -85,11 +85,35 @@ jobs:
           Copy-Item target/release/gachahub.exe dist/gachahub-windows-x64/
           Copy-Item README.md, CHANGELOG.md dist/gachahub-windows-x64/
           Compress-Archive -Path dist/gachahub-windows-x64/* -DestinationPath dist/gachahub-windows-x64.zip
+      - name: Build installer (Inno Setup)
+        shell: pwsh
+        run: |
+          $iscc = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+          if (-not (Test-Path $iscc)) {
+            choco install innosetup -y --no-progress
+          }
+          & $iscc "/DAppVersion=$env:GACHAHUB_VERSION" packaging/windows/gachahub.iss
+          if ($LASTEXITCODE -ne 0) { throw "ISCC failed" }
+      - name: Test installer (silent install + uninstall)
+        shell: pwsh
+        run: |
+          $p = Start-Process dist/gachahub-setup.exe -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/CURRENTUSER' -Wait -PassThru
+          if ($p.ExitCode -ne 0) { throw "installer exit code $($p.ExitCode)" }
+          $dir = "$env:LOCALAPPDATA\Programs\GachaHub"
+          if (-not (Test-Path "$dir\gachahub.exe")) { throw "gachahub.exe was not installed" }
+          $lnk = Get-ChildItem "$env:APPDATA\Microsoft\Windows\Start Menu\Programs" -Recurse -Filter "GachaHub.lnk"
+          if (-not $lnk) { throw "start menu shortcut missing" }
+          $u = Start-Process "$dir\unins000.exe" -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART' -Wait -PassThru
+          # the uninstaller re-launches itself from %TEMP%, so poll for completion
+          for ($i = 0; $i -lt 30 -and (Test-Path "$dir\gachahub.exe"); $i++) { Start-Sleep -Seconds 1 }
+          if (Test-Path "$dir\gachahub.exe") { throw "uninstaller left gachahub.exe behind" }
+          Write-Host "Installer test passed"
       - uses: actions/upload-artifact@v4
         with:
           name: gachahub-windows
           path: |
             dist/gachahub.exe
+            dist/gachahub-setup.exe
             dist/gachahub-windows-x64.zip
 
   linux:
@@ -138,14 +162,16 @@ jobs:
           make_latest: ${{ needs.meta.outputs.prerelease == 'false' }}
           generate_release_notes: true
           files: |
+            dist/gachahub-setup.exe
             dist/gachahub.exe
             dist/gachahub-windows-x64.zip
             dist/gachahub-linux-x86_64.tar.gz
           body: |
             ## Download
 
-            **Windows:** `gachahub.exe` herunterladen und starten (portabel, keine Installation nötig).
-            Alternativ `gachahub-windows-x64.zip`.
+            **Windows:** `gachahub-setup.exe` herunterladen und ausführen – installiert GachaHub mit
+            Startmenü-Eintrag (keine Adminrechte nötig, deinstallierbar über „Apps & Features“).
+            Portabel ohne Installation: `gachahub.exe`.
 
             **Linux:** im Terminal
 

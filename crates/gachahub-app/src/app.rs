@@ -70,6 +70,7 @@ fn bundled_icon(game_id: &str) -> Option<&'static [u8]> {
         "endfield" => include_bytes!("../../../assets/game-icons/endfield.svg"),
         "genshin" => include_bytes!("../../../assets/game-icons/genshin.svg"),
         "gfl2" => include_bytes!("../../../assets/game-icons/gfl2.svg"),
+        "hi3" => include_bytes!("../../../assets/game-icons/hi3.svg"),
         "hsr" => include_bytes!("../../../assets/game-icons/hsr.svg"),
         "nte" => include_bytes!("../../../assets/game-icons/nte.svg"),
         "wuwa" => include_bytes!("../../../assets/game-icons/wuwa.svg"),
@@ -146,6 +147,12 @@ pub struct GachaHubApp {
     pub app_update_ready: bool,
     /// Last self-update error / "up to date" note for the settings page.
     pub app_update_status: Option<String>,
+    /// Running game sessions (for "stop game").
+    pub sessions: HashMap<String, std::sync::Arc<gachahub_core::session::GameSession>>,
+    /// Game whose uninstall confirmation dialog is open.
+    pub uninstall_confirm: Option<String>,
+    /// Text field for new mod profile names.
+    pub mod_profile_input: String,
     /// Path of the running executable, captured before any self-update.
     startup_exe: Option<PathBuf>,
 }
@@ -266,6 +273,9 @@ impl GachaHubApp {
             app_update_ready: false,
             app_update_status: None,
             startup_exe: std::env::current_exe().ok(),
+            sessions: HashMap::new(),
+            uninstall_confirm: None,
+            mod_profile_input: String::new(),
         };
         // Developer aid: open a specific page on start (used for screenshots/CI).
         if let Ok(page) = std::env::var("GACHAHUB_START_PAGE") {
@@ -460,6 +470,83 @@ impl GachaHubApp {
                 let res = gachahub_core::exe_icon::extract_png(&exe_path, &cache).map(|_| cache);
                 Msg::ExeIcon(id, res)
             });
+        }
+    }
+
+    pub fn stop_game(&mut self, game_id: &str) {
+        if let Some(session) = self.sessions.get(game_id).cloned() {
+            self.backend.blocking(move || {
+                session.kill();
+                Msg::Notice(Ok(tr("Spiel beendet", "Game stopped").into()))
+            });
+        }
+    }
+
+    pub fn open_game_folder(&mut self, game_id: &str) {
+        let r = self.cfg.resolved(game_id);
+        let dir = if !r.executable_path.is_empty() {
+            gachahub_core::expand_user(&r.executable_path)
+                .parent()
+                .map(Path::to_path_buf)
+        } else {
+            Some(gachahub_core::expand_user(&r.install_path))
+        };
+        match dir.filter(|d| d.is_dir()) {
+            Some(d) => {
+                if let Err(e) = open::that_detached(&d) {
+                    self.toast(ToastKind::Error, e.to_string());
+                }
+            }
+            None => self.toast(
+                ToastKind::Error,
+                tr(
+                    "Spielordner existiert nicht.",
+                    "Game folder does not exist.",
+                ),
+            ),
+        }
+    }
+
+    /// Can GachaHub safely delete this game's files? Only folders it installed
+    /// itself (version marker present) – never arbitrary user folders.
+    pub fn can_delete_files(&self, game_id: &str) -> bool {
+        let dir = gachahub_core::expand_user(&self.cfg.resolved(game_id).install_path);
+        dir.join(gachahub_core::download_manager::VERSION_FILE)
+            .is_file()
+    }
+
+    /// Remove a game: forget its paths and, if `delete_files`, delete the install folder.
+    pub fn uninstall_game(&mut self, game_id: &str, delete_files: bool) {
+        let r = self.cfg.resolved(game_id);
+        let gs = self.cfg.game_mut(game_id);
+        let playtime = gs.playtime_seconds;
+        *gs = Default::default();
+        gs.playtime_seconds = playtime;
+        self.dirty_since.get_or_insert(0.0);
+        self.installed_versions.remove(game_id);
+        self.latest_versions.remove(game_id);
+        self.partial_installs.remove(game_id);
+        let name = self
+            .game(game_id)
+            .map(|g| g.name.clone())
+            .unwrap_or_default();
+        if delete_files && self.can_delete_files(game_id) {
+            let dir = gachahub_core::expand_user(&r.install_path);
+            self.backend.blocking(move || {
+                Msg::Notice(
+                    std::fs::remove_dir_all(&dir)
+                        .map(|_| format!("{name}: {}", tr("deinstalliert", "uninstalled")))
+                        .map_err(|e| format!("{}: {e}", dir.display())),
+                )
+            });
+        } else {
+            self.toast(
+                ToastKind::Info,
+                format!(
+                    "{name}: {}",
+                    tr("aus GachaHub entfernt", "removed from GachaHub")
+                ),
+            );
         }
     }
 
@@ -691,8 +778,12 @@ impl GachaHubApp {
                         }
                     }
                 }
+                Msg::SessionStarted(game_id, session) => {
+                    self.sessions.insert(game_id, session);
+                }
                 Msg::SessionEnded(game_id, secs) => {
                     self.running.remove(&game_id);
+                    self.sessions.remove(&game_id);
                     self.cfg.game_mut(&game_id).playtime_seconds += secs;
                     self.mark_dirty(ctx);
                 }
@@ -869,6 +960,41 @@ impl GachaHubApp {
                     );
                     Msg::Mods(id, res)
                 });
+            }
+            PickTarget::LegacyGmmConfig(id) => {
+                match gachahub_core::mod_manager::read_legacy_config(&s) {
+                    Ok(cfg) => {
+                        let gs = self.cfg.game_mut(&id);
+                        let mut found = false;
+                        if let Some(lib) = cfg.library_path.filter(|p| !p.is_empty()) {
+                            gs.mod_library_path = Some(lib);
+                            found = true;
+                        }
+                        if let Some(active) = cfg.active_mods_path.filter(|p| !p.is_empty()) {
+                            gs.active_mods_path = Some(active);
+                            found = true;
+                        }
+                        if found {
+                            self.toast(
+                                ToastKind::Success,
+                                tr(
+                                    "Pfade aus GIMI Mod Manager übernommen",
+                                    "Paths imported from GIMI Mod Manager",
+                                ),
+                            );
+                            self.refresh_mods(&id);
+                        } else {
+                            self.toast(
+                                ToastKind::Error,
+                                tr(
+                                    "In der Datei wurden keine Mod-Pfade gefunden.",
+                                    "No mod paths found in that file.",
+                                ),
+                            );
+                        }
+                    }
+                    Err(e) => self.toast(ToastKind::Error, e),
+                }
             }
             PickTarget::GlobalInstallPath => self.cfg.global.default_install_path = s,
             PickTarget::GlobalPrefixBase => self.cfg.global.prefix_base_path = s,
@@ -1052,7 +1178,7 @@ impl GachaHubApp {
             };
             match res {
                 Ok((result, child)) => {
-                    crate::backend::track_session(sender, gid.clone(), child);
+                    crate::backend::track_session(sender, gid.clone(), child, &r.executable_path);
                     Msg::Launched(gid, Ok(result))
                 }
                 Err(e) => Msg::Launched(gid, Err(e)),
@@ -1409,64 +1535,7 @@ impl GachaHubApp {
     }
 }
 
-/// Look for a plausible game executable inside an install folder.
-pub fn find_executable(root: &Path, game_id: &str) -> Option<PathBuf> {
-    let preferred: &[&str] = match game_id {
-        "genshin" => &["GenshinImpact.exe", "YuanShen.exe"],
-        "hsr" => &["StarRail.exe"],
-        "zzz" => &["ZenlessZoneZero.exe"],
-        "wuwa" => &["Wuthering Waves.exe", "Client-Win64-Shipping.exe"],
-        "endfield" => &["Endfield.exe"],
-        "arknights" => &["Arknights.exe"],
-        "gfl2" => &["GF2_Exilium.exe"],
-        _ => &[],
-    };
-    // Fallback: the biggest plausible .exe is almost always the game binary.
-    let mut fallback: Option<(u64, PathBuf)> = None;
-    let mut stack = vec![(root.to_path_buf(), 0usize)];
-    while let Some((dir, depth)) = stack.pop() {
-        let Ok(entries) = std::fs::read_dir(&dir) else {
-            continue;
-        };
-        for entry in entries.flatten() {
-            let path = entry.path();
-            if path.is_dir() {
-                if depth < 5 {
-                    stack.push((path, depth + 1));
-                }
-                continue;
-            }
-            let name = entry.file_name().to_string_lossy().into_owned();
-            if preferred.iter().any(|p| p.eq_ignore_ascii_case(&name)) {
-                return Some(path);
-            }
-            let lower = name.to_ascii_lowercase();
-            let blocked = [
-                "unins",
-                "crash",
-                "launcher",
-                "setup",
-                "update",
-                "redist",
-                "dxsetup",
-                "cefsubprocess",
-                "helper",
-                "report",
-                "installer",
-                "repair",
-                "uploader",
-                "bugreport",
-            ];
-            if lower.ends_with(".exe") && !blocked.iter().any(|b| lower.contains(b)) {
-                let size = entry.metadata().map(|m| m.len()).unwrap_or(0);
-                if fallback.as_ref().is_none_or(|(best, _)| size > *best) {
-                    fallback = Some((size, path));
-                }
-            }
-        }
-    }
-    fallback.map(|(_, p)| p)
-}
+pub use gachahub_core::install::find_executable;
 
 impl eframe::App for GachaHubApp {
     fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {

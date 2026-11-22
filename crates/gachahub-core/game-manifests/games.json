@@ -25,7 +25,9 @@
       "logo": "/game-assets/arknights/logo.webp",
       "icon": "/game-assets/arknights/icon.webp"
     },
-    "xxmiImporter": null
+    "xxmiImporter": null,
+    "subtitleDe": "Taktische Operationen von Rhodes Island",
+    "notesDe": "Offizieller PC-Client; unter Linux laut Community mit GE-Proton/Proton Experimental."
   },
   {
     "id": "endfield",
@@ -53,7 +55,9 @@
       "logo": "/game-assets/endfield/logo.webp",
       "icon": "/game-assets/endfield/icon.webp"
     },
-    "xxmiImporter": "EFMI"
+    "xxmiImporter": "EFMI",
+    "subtitleDe": "Erkunde Talos-II",
+    "notesDe": "Proton-Builds mit Endfield/ACE-Fixes verwenden; Proton Vanilla/UMU laut aktuellen Hinweisen meiden."
   },
   {
     "id": "genshin",
@@ -82,7 +86,8 @@
       "logo": "/game-assets/genshin/logo.webp",
       "icon": "/game-assets/genshin/icon.webp"
     },
-    "xxmiImporter": "GIMI"
+    "xxmiImporter": "GIMI",
+    "subtitleDe": "Tauche ein in eine weite magische Welt"
   },
   {
     "id": "hsr",
@@ -111,7 +116,8 @@
       "logo": "/game-assets/hsr/logo.webp",
       "icon": "/game-assets/hsr/icon.webp"
     },
-    "xxmiImporter": "SRMI"
+    "xxmiImporter": "SRMI",
+    "subtitleDe": "Steig ein in den Astral-Express"
   },
   {
     "id": "zzz",
@@ -140,7 +146,8 @@
       "logo": "/game-assets/zzz/logo.webp",
       "icon": "/game-assets/zzz/icon.webp"
     },
-    "xxmiImporter": "ZZMI"
+    "xxmiImporter": "ZZMI",
+    "subtitleDe": "Willkommen in New Eridu"
   },
   {
     "id": "wuwa",
@@ -169,7 +176,8 @@
       "logo": "/game-assets/wuwa/logo.webp",
       "icon": "/game-assets/wuwa/icon.webp"
     },
-    "xxmiImporter": "WWMI"
+    "xxmiImporter": "WWMI",
+    "subtitleDe": "Erwache und reise als Rover"
   },
   {
     "id": "gfl2",
@@ -198,7 +206,9 @@
       "logo": "/game-assets/gfl2/logo.webp",
       "icon": "/game-assets/gfl2/icon.webp"
     },
-    "xxmiImporter": null
+    "xxmiImporter": null,
+    "subtitleDe": "Befehlige deine taktischen Dolls",
+    "notesDe": "Bekannte Runner-Regressionen – Runner pro Spiel wählbar lassen."
   },
   {
     "id": "nte",
@@ -226,6 +236,37 @@
       "logo": null,
       "icon": null
     },
-    "xxmiImporter": null
+    "xxmiImporter": null,
+    "subtitleDe": "Übernatürliches Open-World-RPG in der Großstadt",
+    "notesDe": "Installiere NTE mit dem offiziellen Launcher und klicke dann auf „Spiel importieren“, um den Spielordner auszuwählen. Anti-Cheat-geschützt – Mods bleiben deaktiviert."
+  },
+  {
+    "id": "hi3",
+    "name": "Honkai Impact 3rd",
+    "shortName": "HI3",
+    "subtitle": "Fight for all that is beautiful in this world",
+    "subtitleDe": "Kämpfe für alles Schöne auf dieser Welt",
+    "publisher": "HoYoverse",
+    "provider": "hoyoverse",
+    "platforms": [
+      "Windows",
+      "Linux (untested, Proton)"
+    ],
+    "installModes": [
+      "Direct provider",
+      "Official launcher import"
+    ],
+    "status": "not_installed",
+    "modPolicy": "restricted",
+    "accent": "#ff8fc8",
+    "accent2": "#6aa8ff",
+    "version": "Latest",
+    "assets": {
+      "background": null,
+      "video": null,
+      "logo": null,
+      "icon": null
+    },
+    "xxmiImporter": "HIMI"
   }
 ]

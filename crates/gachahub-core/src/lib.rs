@@ -18,6 +18,7 @@ pub mod postinstall;
 pub mod providers;
 pub mod runners;
 pub mod self_update;
+pub mod session;
 pub mod settings;
 pub mod sophon;
 pub mod xxmi;

@@ -1,3 +1,28 @@
+# GachaHub v0.17.0 — Installer & Verbesserungen
+
+## Windows-Installer
+- Neuer **`gachahub-setup.exe`**: installiert nach `%LOCALAPPDATA%\Programs\GachaHub` (ohne Adminrechte),
+  mit Startmenü-Eintrag, optionaler Desktop-Verknüpfung und Deinstallation über „Apps & Features“.
+  Der Selbst-Updater funktioniert in der installierten Version weiter.
+- Der Release-Workflow baut den Installer und testet stille Installation + Deinstallation automatisch.
+
+## Spielseite
+- **Spiel beenden** (⏹) für laufende Spiele.
+- Menü **•••**: Spielordner öffnen, Spiel-Einstellungen, **Deinstallieren**. Gelöscht werden nur Ordner,
+  die GachaHub selbst installiert hat – fremde Installationen werden nur aus GachaHub entfernt.
+
+## Spielzeit
+- Verfolgt jetzt das eigentliche Spiel, auch wenn ein Starter (umu-run, Launcher, XXMI) sich vorher beendet.
+
+## Mods
+- **Mod-Profile**: aktuelles Setup unter einem Namen speichern und später mit einem Klick anwenden.
+- **Import aus dem GIMI Mod Manager**: Bibliotheks- und Mods-Ordner aus dessen Konfiguration übernehmen.
+
+## Weiteres
+- **Honkai Impact 3rd** im Katalog (Download über HoYoPlay, XXMI/HIMI).
+- Spieltexte und Kompatibilitätshinweise auf Deutsch und Englisch.
+- Mehr Tests: EXE-Erkennung, Mod-Manager (Aktivieren, Deaktivieren, Profile, Konflikte), Prozesserkennung.
+
 # GachaHub v0.16.0 — Installieren, Updaten, Reparieren
 
 ## GachaHub aktualisiert sich selbst

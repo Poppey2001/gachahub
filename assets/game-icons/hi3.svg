@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- GachaHub original emblem for "hi3" (not an official game logo). License: same as GachaHub. -->
+  <defs>
+    <radialGradient id="ga" cx="0.2" cy="0.15" r="0.9"><stop offset="0" stop-color="#ff8fc8" stop-opacity=".55"/><stop offset="1" stop-color="#ff8fc8" stop-opacity="0"/></radialGradient>
+    <radialGradient id="gb" cx="0.9" cy="0.95" r="0.8"><stop offset="0" stop-color="#6aa8ff" stop-opacity=".6"/><stop offset="1" stop-color="#6aa8ff" stop-opacity="0"/></radialGradient>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset=".45" stop-color="#ff8fc8"/><stop offset="1" stop-color="#6aa8ff"/></linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="116" fill="#0c111c"/>
+  <rect width="512" height="512" rx="116" fill="url(#ga)"/>
+  <rect width="512" height="512" rx="116" fill="url(#gb)"/>
+  <rect x="4" y="4" width="504" height="504" rx="112" fill="none" stroke="#ff8fc8" stroke-opacity=".35" stroke-width="8"/>
+  <path d="M256 392 C150 320 104 262 104 204 C104 156 140 122 184 122 C216 122 240 140 256 166 C272 140 296 122 328 122 C372 122 408 156 408 204 C408 262 362 320 256 392 Z" fill="none" stroke="url(#g)" stroke-width="26" stroke-linejoin="round"/>
+  <path d="M256 196 C262 238 274 250 316 256 C274 262 262 274 256 316 C250 274 238 262 196 256 C238 250 250 238 256 196 Z" fill="#fff"/>
+</svg>

@@ -23,6 +23,12 @@
         "Der neue offizielle PC-Client wurde von Linux-Nutzern mit Proton/GE-Proton erfolgreich gestartet.",
         "Gamescope kann bei träger Maus-/Fensterdarstellung helfen.",
         "Da es keine offizielle Linux-Unterstützung gibt, bleibt der Status community-basiert."
+      ],
+      "labelEn": "Community: runs via Proton",
+      "notesEn": [
+        "Linux users have launched the new official PC client with Proton/GE-Proton.",
+        "Gamescope can help with sluggish mouse/window behaviour.",
+        "There is no official Linux support, so the status is community-based."
       ]
     },
     "modding": {
@@ -62,6 +68,12 @@
       "xxmiNotes": [
         "EFMI ist in XXMI vorhanden.",
         "GachaHub lässt XXMI für Endfield bewusst nur manuell aktivieren, da das Spiel als restricted markiert ist."
+      ],
+      "labelEn": "Runs with suitable Proton builds",
+      "notesEn": [
+        "Newer Proton builds include Endfield-specific Wine/ACE fixes.",
+        "Twintail still advises against Proton Vanilla or Proton UMU for Endfield.",
+        "If problems occur, switch the runner first before recreating the prefix or installation."
       ]
     },
     "modding": {
@@ -97,6 +109,12 @@
         "Aktuelle Community-Berichte zeigen Genshin auf Fedora/Bazzite/Mint über Proton als spielbar.",
         "Bei sporadischen Security-Token/Timeout-Crashes kann WINE_ENABLE_TIMEOUT_FIX=1 helfen; nicht pauschal erzwingen.",
         "Für Updates kann weiterhin der offizielle Launcher oder später der GachaHub-Provider verwendet werden."
+      ],
+      "labelEn": "Community/Twintail: playable via Proton",
+      "notesEn": [
+        "Recent community reports show Genshin playable on Fedora/Bazzite/Mint via Proton.",
+        "For sporadic security-token/timeout crashes WINE_ENABLE_TIMEOUT_FIX=1 can help; do not force it globally.",
+        "Updates can be installed through GachaHub or the official launcher."
       ]
     },
     "modding": {
@@ -130,6 +148,12 @@
         "Twintail meldete im Mai 2026, dass Star Rail wieder mit aktuellen Proton-Familien läuft.",
         "Ältere Proton-10-Builds hatten zeitweise Regressionen; deshalb nicht blind eine alte Version pinnen.",
         "Wenn ein Update Startprobleme verursacht, zuerst einen aktuellen alternativen Runner testen."
+      ],
+      "labelEn": "Twintail: current Proton builds work",
+      "notesEn": [
+        "Twintail reported in May 2026 that Star Rail runs again with current Proton families.",
+        "Older Proton 10 builds had regressions at times, so do not blindly pin an old version.",
+        "If an update causes launch problems, try a current alternative runner first."
       ]
     },
     "modding": {
@@ -167,6 +191,12 @@
       "xxmiNotes": [
         "ZZMI kann die Spieleinstellungen konfigurieren.",
         "Für ZZMI müssen Character Quality = High und High-Precision Character Animation = Disabled sein, falls die automatische Konfiguration nicht genutzt wird."
+      ],
+      "labelEn": "Generally playable; note current 3.2 regression reports",
+      "notesEn": [
+        "Twintail supports ZZZ, but after update 3.2 some instant launch crashes under Proton were reported in September 2026.",
+        "DX12/RTX/frame generation has extra bug reports on some Linux systems, so runner and rendering mode are not hard-wired.",
+        "After game updates check runner/prefix first and do not bypass protection mechanisms."
       ]
     },
     "modding": {
@@ -206,6 +236,11 @@
       "xxmiNotes": [
         "WWMI benötigt DX11. XXMI dokumentiert -DisableModule=streamline -dx11 -d3d11 als Startargumente.",
         "Diese Argumente sollten nur mit aktiviertem WWMI automatisch ergänzt werden."
+      ],
+      "labelEn": "Playable; current Proton recommended",
+      "notesEn": [
+        "Wuthering Waves is playable under Proton; current Proton versions fix older media/WebView issues.",
+        "Some VRAM/UI issues were reported on NVIDIA, so runner and Gamescope stay configurable separately."
       ]
     },
     "modding": {
@@ -245,6 +280,14 @@
         "GE-Proton 11.1–11.3 hatte gemeldete Videoprobleme; GE 10-34 war dort der letzte funktionierende Stand.",
         "Der Launcher kann WebView2 benötigen. GachaHub sollte das später als Prefix-Dependency prüfen.",
         "UMU_ID=0 ist ein optionaler Steam-Workaround und soll nicht global erzwungen werden."
+      ],
+      "labelEn": "Proton works, watch for runner regressions",
+      "notesEn": [
+        "The Steam version runs with Proton for many users; Valve still lists SteamOS as unsupported.",
+        "Proton 11 beta had a launch regression; Proton 10.0-4 worked in the related Valve report.",
+        "GE-Proton 11.1–11.3 had reported video issues; GE 10-34 was the last working version.",
+        "The launcher may need WebView2 in the prefix.",
+        "UMU_ID=0 is an optional Steam workaround and should not be forced globally."
       ]
     },
     "modding": {
@@ -275,12 +318,53 @@
       "notes": [
         "Für Linux liegen GachaHub noch keine verlässlichen Berichte vor.",
         "Spiele mit Kernel-Anti-Cheat starten unter Proton oft nicht – unter Windows läuft NTE nativ."
+      ],
+      "labelEn": "Untested – anti-cheat may block Proton",
+      "notesEn": [
+        "GachaHub has no reliable Linux reports yet.",
+        "Games with kernel anti-cheat often fail under Proton – on Windows NTE runs natively."
       ]
     },
     "modding": {
       "backend": "none",
       "label": "Keine Mods",
       "note": "Anti-Cheat-geschützt – GachaHub aktiviert hier keine Mods."
+    }
+  },
+  {
+    "gameId": "hi3",
+    "checkedAt": "2026-11-22",
+    "windows": {
+      "state": "native",
+      "label": "Nativer Windows-Client"
+    },
+    "linux": {
+      "state": "unknown",
+      "label": "Ungetestet – Status hängt von Proton und Anti-Cheat ab",
+      "labelEn": "Untested – depends on Proton and anti-cheat",
+      "recommendedRuntime": "ge-proton",
+      "recommendedRunner": "aktueller GE-Proton / Proton-CachyOS",
+      "runnerCandidates": [
+        "GE-Proton (aktuell)",
+        "Proton-CachyOS (aktuell)"
+      ],
+      "blockedRunners": [],
+      "launchArguments": "",
+      "environmentVariables": "",
+      "notes": [
+        "Für Honkai Impact 3rd liegen GachaHub noch keine aktuellen Linux-Berichte vor.",
+        "Bei Startproblemen zuerst einen anderen aktuellen Runner testen."
+      ],
+      "notesEn": [
+        "GachaHub has no current Linux reports for Honkai Impact 3rd yet.",
+        "If it fails to start, try another current runner first."
+      ]
+    },
+    "modding": {
+      "backend": "xxmi",
+      "importer": "HIMI",
+      "label": "XXMI / HIMI",
+      "note": "XXMI unterstützt Honkai Impact 3rd über HIMI; standardmäßig eingeschränkt."
     }
   }
 ]

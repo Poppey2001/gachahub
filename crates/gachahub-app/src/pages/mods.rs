@@ -142,6 +142,8 @@ impl GachaHubApp {
                                 ui.add(egui::TextEdit::singleline(&mut self.mod_filter).hint_text(tr("🔍 Suchen…", "🔍 Search…")).desired_width(180.0));
                             });
                         });
+                        ui.add_space(4.0);
+                        self.mod_profiles_row(ui, &gid);
                     });
                     ui.add_space(10.0);
 
@@ -230,6 +232,91 @@ impl GachaHubApp {
                         }
                     }
                 });
+            });
+        });
+    }
+
+    /// Save / apply / delete named sets of enabled mods, plus legacy GIMI Mod Manager import.
+    fn mod_profiles_row(&mut self, ui: &mut egui::Ui, gid: &str) {
+        let r = self.cfg.resolved(gid);
+        let profiles: Vec<String> = self
+            .cfg
+            .games
+            .get(gid)
+            .map(|g| g.mod_profiles.keys().cloned().collect())
+            .unwrap_or_default();
+        let enabled: Vec<String> = match self.mods.get(gid) {
+            Some(Ok(snap)) => snap
+                .entries
+                .iter()
+                .filter(|e| e.enabled)
+                .map(|e| e.id.clone())
+                .collect(),
+            _ => Vec::new(),
+        };
+        ui.horizontal(|ui| {
+            ui.label(RichText::new(tr("Profil", "Profile")).color(theme::MUTED));
+            let mut apply = None;
+            let mut delete = None;
+            egui::ComboBox::from_id_salt(("mod-profile", gid))
+                .selected_text(if profiles.is_empty() { tr("keine Profile", "no profiles") } else { tr("Profil wählen…", "Choose profile…") })
+                .width(180.0)
+                .show_ui(ui, |ui| {
+                    for name in &profiles {
+                        ui.horizontal(|ui| {
+                            if ui.selectable_label(false, name).on_hover_text(tr("Profil anwenden", "Apply profile")).clicked() {
+                                apply = Some(name.clone());
+                            }
+                            if ui.small_button("🗑").on_hover_text(tr("Profil löschen", "Delete profile")).clicked() {
+                                delete = Some(name.clone());
+                            }
+                        });
+                    }
+                });
+            ui.add(
+                egui::TextEdit::singleline(&mut self.mod_profile_input)
+                    .hint_text(tr("Name für aktuelles Setup", "Name for current setup"))
+                    .desired_width(190.0),
+            );
+            let name = self.mod_profile_input.trim().to_string();
+            if ui
+                .add_enabled(!name.is_empty(), egui::Button::new(tr("💾  Speichern", "💾  Save")))
+                .on_hover_text(tr("Speichert die aktuell aktiven Mods als Profil.", "Saves the currently enabled mods as a profile."))
+                .clicked()
+            {
+                self.cfg.game_mut(gid).mod_profiles.insert(name.clone(), enabled.clone());
+                self.mod_profile_input.clear();
+                self.mark_dirty(ui.ctx());
+                self.toast(crate::app::ToastKind::Success, format!("{} „{name}“ {}", tr("Profil", "Profile"), tr("gespeichert", "saved")));
+            }
+            if let Some(name) = delete {
+                self.cfg.game_mut(gid).mod_profiles.remove(&name);
+                self.mark_dirty(ui.ctx());
+            }
+            if let Some(name) = apply {
+                let ids = self.cfg.games.get(gid).and_then(|g| g.mod_profiles.get(&name).cloned()).unwrap_or_default();
+                let (g2, lib, act, mode) = (gid.to_string(), r.mod_library_path.clone(), r.active_mods_path.clone(), r.mod_deployment_mode.as_str().to_string());
+                self.busy.insert(format!("mods:{gid}"));
+                self.backend.blocking(move || {
+                    let res = gachahub_core::mod_manager::sync_profile(&g2, &ids, &lib, &act, &mode);
+                    Msg::Mods(g2, res)
+                });
+            }
+            ui.with_layout(egui::Layout::right_to_left(egui::Align::Center), |ui| {
+                if ui
+                    .button(tr("📥  GIMI-Mod-Manager importieren", "📥  Import GIMI Mod Manager"))
+                    .on_hover_text(tr(
+                        "Übernimmt Bibliotheks- und Mods-Ordner aus der Konfiguration des alten GIMI Mod Managers.",
+                        "Takes over library and mods folder from the old GIMI Mod Manager configuration.",
+                    ))
+                    .clicked()
+                {
+                    self.backend.pick_file(
+                        PickTarget::LegacyGmmConfig(gid.to_string()),
+                        tr("GIMI-Mod-Manager-Konfiguration wählen", "Choose GIMI Mod Manager config"),
+                        &[("JSON", &["json"])],
+                    );
+                }
             });
         });
     }

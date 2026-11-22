@@ -19,3 +19,17 @@ pub fn tr(de: &'static str, en: &'static str) -> &'static str {
         de
     }
 }
+
+pub fn is_german() -> bool {
+    LANG.load(Ordering::Relaxed) == 0
+}
+
+/// Translated name of a runtime kind.
+pub fn runtime_label(kind: gachahub_core::settings::RuntimeKind) -> &'static str {
+    use gachahub_core::settings::RuntimeKind::*;
+    match kind {
+        Auto => tr("Automatisch", "Automatic"),
+        Native => tr("Nativ", "Native"),
+        other => other.label(),
+    }
+}

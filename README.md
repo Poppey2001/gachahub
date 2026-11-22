@@ -2,7 +2,7 @@
 
 **Ein Launcher für alle Gacha-Spiele – komplett in Rust.**
 Schluss mit „download every gacha launcher on earth“: Genshin Impact, Honkai: Star Rail,
-Zenless Zone Zero, Wuthering Waves, Neverness to Everness (NTE), Arknights, Arknights: Endfield und GIRLS' FRONTLINE 2
+Zenless Zone Zero, Honkai Impact 3rd, Wuthering Waves, Neverness to Everness (NTE), Arknights, Arknights: Endfield und GIRLS' FRONTLINE 2
 in einer einzigen, nativen App.
 
 Ab v0.15 gibt es kein Web-Frontend mehr: Kein Node.js, kein WebView, kein Tauri. Die
@@ -39,8 +39,9 @@ Spiel-EXE wird automatisch gefunden.
 
 Fertige Builds gibt es unter **Releases** auf GitHub.
 
-**Windows:** `gachahub.exe` herunterladen und starten – portabel, keine Installation und
-kein Rust nötig. (SmartScreen-Warnung: „Weitere Informationen“ → „Trotzdem ausführen“.)
+**Windows:** `gachahub-setup.exe` herunterladen und ausführen – installiert GachaHub mit
+Startmenü-Eintrag (keine Adminrechte nötig, deinstallierbar über „Apps & Features“).
+Portabel ohne Installation: `gachahub.exe`. (SmartScreen-Warnung: „Weitere Informationen“ → „Trotzdem ausführen“.)
 
 **Linux** (x86_64), eine Zeile im Terminal:
 

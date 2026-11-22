@@ -30,6 +30,10 @@ pub struct LinuxCompat {
     #[serde(default)]
     pub notes: Vec<String>,
     #[serde(default)]
+    pub label_en: Option<String>,
+    #[serde(default)]
+    pub notes_en: Option<Vec<String>>,
+    #[serde(default)]
     pub xxmi_launch_arguments: Option<String>,
     #[serde(default)]
     pub xxmi_notes: Option<Vec<String>>,
@@ -53,6 +57,23 @@ pub struct CompatibilityPreset {
     pub windows: PlatformCompat,
     pub linux: LinuxCompat,
     pub modding: ModdingCompat,
+}
+
+impl LinuxCompat {
+    pub fn label_for(&self, german: bool) -> &str {
+        if german {
+            &self.label
+        } else {
+            self.label_en.as_deref().unwrap_or(&self.label)
+        }
+    }
+    pub fn notes_for(&self, german: bool) -> &[String] {
+        if german {
+            &self.notes
+        } else {
+            self.notes_en.as_deref().unwrap_or(&self.notes)
+        }
+    }
 }
 
 pub fn presets() -> &'static [CompatibilityPreset] {

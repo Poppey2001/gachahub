@@ -18,7 +18,6 @@ use std::{
     future::Future,
     path::PathBuf,
     sync::{mpsc, Arc},
-    time::Instant,
 };
 
 /// What a file/folder dialog result should be applied to.
@@ -33,6 +32,7 @@ pub enum PickTarget {
     GameActiveMods(String),
     ImportModFolder(String),
     ImportModArchive(String),
+    LegacyGmmConfig(String),
     GlobalInstallPath,
     GlobalPrefixBase,
     GlobalModRoot,
@@ -46,6 +46,7 @@ pub enum Msg {
     Core(CoreEvent),
     DownloadStarted(String, Result<InstallJob, String>),
     Launched(String, Result<LaunchResult, String>),
+    SessionStarted(String, Arc<gachahub_core::session::GameSession>),
     SessionEnded(String, u64),
     Runners(Vec<RunnerInfo>),
     RunnerVersions(String, Result<Vec<RunnerVersion>, String>),
@@ -161,14 +162,15 @@ impl Sender {
     }
 }
 
-/// Wait for a launched game process in the background and report its runtime.
-pub fn track_session(sender: Sender, game_id: String, mut child: std::process::Child) {
+/// Follow a launched game in the background (see `GameSession`) and report its play time.
+pub fn track_session(sender: Sender, game_id: String, child: std::process::Child, game_exe: &str) {
+    let session = Arc::new(gachahub_core::session::GameSession::new(child, game_exe));
+    sender.send(Msg::SessionStarted(game_id.clone(), session.clone()));
     std::thread::Builder::new()
         .name(format!("session-{game_id}"))
         .spawn(move || {
-            let started = Instant::now();
-            let _ = child.wait();
-            sender.send(Msg::SessionEnded(game_id, started.elapsed().as_secs()));
+            let secs = session.wait();
+            sender.send(Msg::SessionEnded(game_id, secs));
         })
         .ok();
 }

@@ -200,6 +200,8 @@ pub struct GameSettings {
     pub post_install_applied_at: Option<String>,
     /// Accumulated play time in seconds (tracked while the launched process runs).
     pub playtime_seconds: u64,
+    /// Named mod profiles: profile name → enabled mod ids.
+    pub mod_profiles: BTreeMap<String, Vec<String>>,
     pub last_played_unix: Option<u64>,
 }
 
@@ -228,6 +230,7 @@ impl Default for GameSettings {
             post_install_profile: None,
             post_install_applied_at: None,
             playtime_seconds: 0,
+            mod_profiles: BTreeMap::new(),
             last_played_unix: None,
         }
     }

@@ -114,11 +114,11 @@ fn opt_bool(ui: &mut egui::Ui, value: &mut Option<bool>, inherited: bool) -> boo
 fn runtime_combo(ui: &mut egui::Ui, id: &str, value: &mut RuntimeKind) -> bool {
     let mut changed = false;
     egui::ComboBox::from_id_salt(id)
-        .selected_text(value.label())
+        .selected_text(crate::i18n::runtime_label(*value))
         .width(180.0)
         .show_ui(ui, |ui| {
             for r in RuntimeKind::ALL {
-                changed |= ui.selectable_value(value, r, r.label()).changed();
+                changed |= ui.selectable_value(value, r, crate::i18n::runtime_label(r)).changed();
             }
         });
     changed
@@ -876,7 +876,7 @@ impl GachaHubApp {
                 theme::card().show(ui, |ui| {
                     ui.set_width(ui.available_width());
                     ui.label(
-                        RichText::new(&c.linux.label)
+                        RichText::new(c.linux.label_for(crate::i18n::is_german()))
                             .font(theme::font_semi(13.5))
                             .color(theme::TEXT),
                     );
@@ -888,7 +888,7 @@ impl GachaHubApp {
                         ))
                         .color(theme::TEXT_DIM),
                     );
-                    for n in &c.linux.notes {
+                    for n in c.linux.notes_for(crate::i18n::is_german()) {
                         ui.label(
                             RichText::new(format!("•  {n}"))
                                 .font(theme::font(12.0))

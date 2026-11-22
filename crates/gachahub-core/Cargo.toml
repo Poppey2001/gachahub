@@ -26,3 +26,4 @@ pelite = "0.10"
 image = { version = "0.25", default-features = false, features = ["png", "ico", "bmp"] }
 semver = "1"
 self-replace = "1.5"
+sysinfo = { version = "0.37", default-features = false, features = ["system"] }

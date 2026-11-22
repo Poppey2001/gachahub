@@ -779,3 +779,76 @@ pub fn read_legacy_config(raw_path: &str) -> Result<LegacyGmmConfig, String> {
         source: "legacy-gmm-json".into(),
     })
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn setup() -> (PathBuf, String, String) {
+        let root = std::env::temp_dir().join(format!("gachahub-mods-{}", uuid::Uuid::new_v4()));
+        let lib = root.join("library");
+        for (name, ini) in [("Outfit", true), ("Hair", true), ("NoIni", false)] {
+            let d = lib.join(name);
+            fs::create_dir_all(&d).unwrap();
+            fs::write(d.join("tex.dds"), b"x").unwrap();
+            if ini {
+                fs::write(d.join("mod.ini"), b"[TextureOverride]").unwrap();
+            }
+        }
+        let active = root.join("Mods");
+        (
+            root,
+            lib.to_string_lossy().into_owned(),
+            active.to_string_lossy().into_owned(),
+        )
+    }
+
+    #[test]
+    fn enable_disable_and_profiles() {
+        let (root, lib, active) = setup();
+        let snap = scan("genshin", &lib, &active).unwrap();
+        assert_eq!(snap.stats.total, 3);
+        assert_eq!(
+            snap.stats.broken, 1,
+            "mod without ini is reported as broken"
+        );
+
+        let snap = enable("genshin", "Outfit", &lib, &active, "copy").unwrap();
+        assert!(Path::new(&active).join("Outfit").join("mod.ini").exists());
+        assert!(snap
+            .entries
+            .iter()
+            .any(|e| e.id == "Outfit" && e.enabled && e.managed));
+
+        let snap = disable("genshin", "Outfit", &lib, &active).unwrap();
+        assert!(!Path::new(&active).join("Outfit").exists());
+        assert!(snap.entries.iter().all(|e| !e.enabled));
+
+        // profile = exactly these mods enabled
+        let snap = sync_profile("genshin", &["Hair".to_string()], &lib, &active, "copy").unwrap();
+        let enabled: Vec<_> = snap
+            .entries
+            .iter()
+            .filter(|e| e.enabled)
+            .map(|e| e.id.as_str())
+            .collect();
+        assert_eq!(enabled, vec!["Hair"]);
+        let _ = fs::remove_dir_all(&root);
+    }
+
+    #[test]
+    fn foreign_folder_is_a_conflict_and_not_deleted() {
+        let (root, lib, active) = setup();
+        let foreign = Path::new(&active).join("Outfit");
+        fs::create_dir_all(&foreign).unwrap();
+        fs::write(foreign.join("user.ini"), b"mine").unwrap();
+        let snap = scan("genshin", &lib, &active).unwrap();
+        let outfit = snap.entries.iter().find(|e| e.id == "Outfit").unwrap();
+        assert_eq!(outfit.status, "conflict");
+        assert!(!outfit.managed);
+        // disabling an unmanaged folder must not delete the user's files
+        let _ = disable("genshin", "Outfit", &lib, &active);
+        assert!(foreign.join("user.ini").exists());
+        let _ = fs::remove_dir_all(&root);
+    }
+}

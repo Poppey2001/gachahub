@@ -367,6 +367,12 @@ impl GachaHubApp {
                         }
                         ui.add_space(4.0);
                         let idle = !install_busy && !launch_busy && !running;
+                        if running
+                            && self.sessions.contains_key(&game.id)
+                            && theme::ghost_button(ui, "⏹", tr("Beenden", "Stop")).clicked()
+                        {
+                            self.stop_game(&game.id);
+                        }
                         if update.is_some() {
                             // Updates are optional: still allow playing the installed version.
                             if theme::ghost_button(ui, "▶", tr("Spielen", "Play")).clicked() && idle {
@@ -444,6 +450,7 @@ impl GachaHubApp {
                                 }
                             }
                         }
+                        self.game_more_menu(ui, &game, installed);
                     });
                 }
                 ui.add_space(16.0);
@@ -497,7 +504,7 @@ impl GachaHubApp {
                     notice(ui, "⚠", &err, theme::ERR, hero_w);
                     ui.add_space(8.0);
                 }
-                if let Some(notes) = &game.notes {
+                if let Some(notes) = game.notes_for(crate::i18n::is_german()) {
                     notice(ui, "ℹ", notes, theme::TEXT_DIM, hero_w);
                     ui.add_space(8.0);
                 }
@@ -534,7 +541,11 @@ impl GachaHubApp {
                                 _ => tr("unbekannt", "unknown"),
                             };
                             theme::pill(ui, &format!("Linux: {short}"), col).on_hover_text(
-                                format!("{}\n\n{}", c.linux.label, c.linux.notes.join("\n\n")),
+                                format!(
+                                    "{}\n\n{}",
+                                    c.linux.label_for(crate::i18n::is_german()),
+                                    c.linux.notes_for(crate::i18n::is_german()).join("\n\n")
+                                ),
                             );
                         }
                     }
@@ -554,7 +565,7 @@ impl GachaHubApp {
 
                 // ---------- titles
                 ui.label(
-                    RichText::new(&game.subtitle)
+                    RichText::new(game.subtitle_for(crate::i18n::is_german()))
                         .font(theme::font(19.0))
                         .color(theme::TEXT_DIM),
                 );
@@ -628,7 +639,7 @@ impl GachaHubApp {
                 } else {
                     format!(
                         "{} · {}",
-                        resolved.runtime.label(),
+                        crate::i18n::runtime_label(resolved.runtime),
                         if resolved.runner_version.is_empty() {
                             "default"
                         } else {
@@ -745,6 +756,77 @@ impl GachaHubApp {
                 .clicked()
             {
                 self.install_app_update();
+            }
+        }
+    }
+
+    /// "⋯" menu with less frequent game actions.
+    fn game_more_menu(&mut self, ui: &mut egui::Ui, game: &gachahub_core::Game, installed: bool) {
+        let resp =
+            theme::ghost_button(ui, "", "•••").on_hover_text(tr("Weitere Aktionen", "More actions"));
+        egui::Popup::menu(&resp).show(|ui| {
+            ui.set_min_width(220.0);
+            if ui
+                .button(tr("📂  Spielordner öffnen", "📂  Open game folder"))
+                .clicked()
+            {
+                self.open_game_folder(&game.id);
+            }
+            if ui
+                .button(tr("⚙  Spiel-Einstellungen", "⚙  Game settings"))
+                .clicked()
+            {
+                self.settings_game = game.id.clone();
+                self.settings_tab = SettingsTab::Game;
+                self.section = Section::Settings;
+            }
+            if installed {
+                ui.separator();
+                if ui
+                    .button(tr("🗑  Deinstallieren…", "🗑  Uninstall…"))
+                    .clicked()
+                {
+                    self.uninstall_confirm = Some(game.id.clone());
+                }
+            }
+        });
+
+        if self.uninstall_confirm.as_deref() == Some(game.id.as_str()) {
+            let can_delete = self.can_delete_files(&game.id);
+            let dir = self.cfg.resolved(&game.id).install_path;
+            let modal = egui::Modal::new(egui::Id::unique(("uninstall", game.id.as_str()))).show(ui.ctx(), |ui| {
+                ui.set_width(440.0);
+                ui.label(RichText::new(format!("{} {}", game.name, tr("deinstallieren?", "– uninstall?"))).font(theme::font_heavy(20.0)));
+                ui.add_space(6.0);
+                let mut choice = None;
+                if can_delete {
+                    ui.label(format!("{}\n{dir}", tr("Alle Spieldateien werden gelöscht:", "All game files will be deleted:")));
+                } else {
+                    ui.label(tr(
+                        "Diese Installation wurde nicht von GachaHub angelegt. Die Dateien bleiben erhalten – GachaHub vergisst nur den Pfad.",
+                        "This installation was not created by GachaHub. Files are kept – GachaHub only forgets the path.",
+                    ));
+                }
+                ui.add_space(10.0);
+                ui.horizontal(|ui| {
+                    if ui.button(tr("Abbrechen", "Cancel")).clicked() {
+                        choice = Some(None);
+                    }
+                    let label = if can_delete { tr("🗑  Dateien löschen", "🗑  Delete files") } else { tr("Aus GachaHub entfernen", "Remove from GachaHub") };
+                    if ui.add(egui::Button::new(RichText::new(label).color(theme::ERR))).clicked() {
+                        choice = Some(Some(can_delete));
+                    }
+                });
+                choice
+            });
+            match modal.inner {
+                Some(Some(delete)) => {
+                    self.uninstall_confirm = None;
+                    self.uninstall_game(&game.id, delete);
+                }
+                Some(None) => self.uninstall_confirm = None,
+                None if modal.should_close() => self.uninstall_confirm = None,
+                None => {}
             }
         }
     }

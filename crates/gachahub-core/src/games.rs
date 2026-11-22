@@ -16,6 +16,8 @@ pub struct Game {
     pub name: String,
     pub short_name: String,
     pub subtitle: String,
+    #[serde(default)]
+    pub subtitle_de: Option<String>,
     pub publisher: String,
     pub provider: String,
     pub platforms: Vec<String>,
@@ -26,6 +28,8 @@ pub struct Game {
     pub accent2: String,
     pub version: Option<String>,
     pub notes: Option<String>,
+    #[serde(default)]
+    pub notes_de: Option<String>,
     pub xxmi_importer: Option<String>,
     pub assets: Option<GameAssets>,
 }
@@ -33,6 +37,24 @@ pub struct Game {
 #[derive(Debug, Clone)]
 pub struct GameRegistry {
     pub games: Vec<Game>,
+}
+
+impl Game {
+    /// Subtitle in the UI language (`german` = true → German if available).
+    pub fn subtitle_for(&self, german: bool) -> &str {
+        if german {
+            self.subtitle_de.as_deref().unwrap_or(&self.subtitle)
+        } else {
+            &self.subtitle
+        }
+    }
+    pub fn notes_for(&self, german: bool) -> Option<&str> {
+        if german {
+            self.notes_de.as_deref().or(self.notes.as_deref())
+        } else {
+            self.notes.as_deref()
+        }
+    }
 }
 
 impl GameRegistry {
