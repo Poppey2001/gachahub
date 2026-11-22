@@ -55,8 +55,44 @@ pub struct Toast {
 #[derive(Default, Clone)]
 pub struct Artwork {
     pub background: Option<String>,
+    /// User-supplied icon (game-assets folder) – highest priority.
     pub icon: Option<String>,
     pub logo: Option<String>,
+    /// Icon extracted from the installed game executable.
+    pub exe_icon: Option<String>,
+}
+
+/// GachaHub's own emblem for each supported game (original artwork, see assets/game-icons).
+fn bundled_icon(game_id: &str) -> Option<&'static [u8]> {
+    Some(match game_id {
+        "arknights" => include_bytes!("../../../assets/game-icons/arknights.svg"),
+        "endfield" => include_bytes!("../../../assets/game-icons/endfield.svg"),
+        "genshin" => include_bytes!("../../../assets/game-icons/genshin.svg"),
+        "gfl2" => include_bytes!("../../../assets/game-icons/gfl2.svg"),
+        "hsr" => include_bytes!("../../../assets/game-icons/hsr.svg"),
+        "nte" => include_bytes!("../../../assets/game-icons/nte.svg"),
+        "wuwa" => include_bytes!("../../../assets/game-icons/wuwa.svg"),
+        "zzz" => include_bytes!("../../../assets/game-icons/zzz.svg"),
+        _ => return None,
+    })
+}
+
+fn exe_icon_cache(game_id: &str, exe: &str) -> PathBuf {
+    use std::hash::{Hash, Hasher};
+    let mut h = std::collections::hash_map::DefaultHasher::new();
+    exe.hash(&mut h);
+    if let Ok(meta) = std::fs::metadata(exe) {
+        meta.len().hash(&mut h);
+    }
+    directories::ProjectDirs::from("", "", "gachahub")
+        .map(|d| d.cache_dir().to_path_buf())
+        .unwrap_or_else(std::env::temp_dir)
+        .join("exe-icons")
+        .join(format!("{game_id}-{:016x}.png", h.finish()))
+}
+
+fn file_uri(path: &Path) -> String {
+    format!("file://{}", path.display())
 }
 
 pub struct GachaHubApp {
@@ -90,6 +126,8 @@ pub struct GachaHubApp {
 
     pub settings_tab: SettingsTab,
     pub settings_game: String,
+    /// Executable path whose icon was last requested, per game.
+    exe_icon_source: HashMap<String, String>,
 }
 
 pub fn now_unix() -> u64 {
@@ -166,6 +204,7 @@ impl GachaHubApp {
                         background: find_asset(&dirs, &g.id, "background"),
                         icon: find_asset(&dirs, &g.id, "icon"),
                         logo: find_asset(&dirs, &g.id, "logo"),
+                        exe_icon: None,
                     },
                 )
             })
@@ -197,6 +236,7 @@ impl GachaHubApp {
             mod_filter: String::new(),
             settings_tab: SettingsTab::General,
             settings_game: selected,
+            exe_icon_source: HashMap::new(),
         };
         // Developer aid: open a specific page on start (used for screenshots/CI).
         if let Ok(page) = std::env::var("GACHAHUB_START_PAGE") {
@@ -313,6 +353,85 @@ impl GachaHubApp {
                 gachahub_core::mod_manager::scan(&gid, &r.mod_library_path, &r.active_mods_path);
             Msg::Mods(gid, res)
         });
+    }
+
+    /// Paint the best available icon for a game: custom artwork, the icon of the
+    /// installed executable, GachaHub's bundled emblem, or a generated badge.
+    pub fn paint_game_icon(
+        &self,
+        ui: &egui::Ui,
+        rect: Rect,
+        game: &Game,
+        active: bool,
+        hover: f32,
+    ) {
+        let (a, b) = Self::accents(game);
+        let radius = CornerRadius::same((rect.width() * 0.26) as u8);
+        if active {
+            ui.painter().rect_filled(
+                rect.expand(3.5),
+                CornerRadius::same((rect.width() * 0.26 + 3.5) as u8),
+                alpha(a, 0.28),
+            );
+        }
+        let art = self.artwork.get(&game.id);
+        let image =
+            if let Some(uri) = art.and_then(|x| x.icon.clone().or_else(|| x.exe_icon.clone())) {
+                Some(egui::Image::new(uri))
+            } else {
+                bundled_icon(&game.id).map(|bytes| {
+                    egui::Image::from_bytes(format!("bytes://game-icons/{}.svg", game.id), bytes)
+                })
+            };
+        match image {
+            Some(image) => {
+                let level = if active { 255.0 } else { 175.0 + hover * 80.0 };
+                image
+                    .corner_radius(radius)
+                    .tint(Color32::from_gray(level as u8))
+                    .paint_at(ui, rect);
+                if active {
+                    ui.painter().rect_stroke(
+                        rect,
+                        radius,
+                        Stroke::new(1.5, alpha(a, 0.8)),
+                        StrokeKind::Inside,
+                    );
+                }
+            }
+            None => theme::paint_game_badge(ui, rect, &game.short_name, a, b, active, hover),
+        }
+    }
+
+    /// Extract icons from installed game executables (once per executable).
+    fn refresh_exe_icons(&mut self) {
+        let wanted: Vec<(String, String)> = self
+            .cfg
+            .games
+            .iter()
+            .filter_map(|(id, gs)| {
+                gs.executable_path
+                    .clone()
+                    .filter(|e| !e.is_empty())
+                    .map(|e| (id.clone(), e))
+            })
+            .filter(|(id, exe)| self.exe_icon_source.get(id) != Some(exe))
+            .collect();
+        for (id, exe) in wanted {
+            self.exe_icon_source.insert(id.clone(), exe.clone());
+            let cache = exe_icon_cache(&id, &exe);
+            if cache.is_file() {
+                if let Some(art) = self.artwork.get_mut(&id) {
+                    art.exe_icon = Some(file_uri(&cache));
+                }
+                continue;
+            }
+            self.backend.blocking(move || {
+                let exe_path = gachahub_core::expand_user(&exe);
+                let res = gachahub_core::exe_icon::extract_png(&exe_path, &cache).map(|_| cache);
+                Msg::ExeIcon(id, res)
+            });
+        }
     }
 
     // ------------------------------------------------------------ messages
@@ -500,6 +619,14 @@ impl GachaHubApp {
                     if let Some(path) = path {
                         self.apply_pick(target, path);
                         self.mark_dirty(ctx);
+                    }
+                }
+                Msg::ExeIcon(game_id, res) => {
+                    // Not every executable carries an icon – the bundled emblem stays then.
+                    if let (Ok(path), Some(art)) = (res, self.artwork.get_mut(&game_id)) {
+                        let uri = file_uri(&path);
+                        ctx.forget_image(&uri);
+                        art.exe_icon = Some(uri);
                     }
                 }
                 Msg::Notice(res) => match res {
@@ -753,7 +880,7 @@ impl GachaHubApp {
                             let Some(game) = self.game(id).cloned() else {
                                 continue;
                             };
-                            let (a, b) = Self::accents(&game);
+                            let (a, _) = Self::accents(&game);
                             let active =
                                 self.section == Section::Game && self.cfg.selected_game == *id;
                             ui.add_space(4.0);
@@ -765,26 +892,7 @@ impl GachaHubApp {
                                 r.center() + Vec2::new(hover * 2.0, 0.0),
                                 Vec2::splat(48.0),
                             );
-                            if let Some(icon) = self.artwork.get(id).and_then(|a| a.icon.clone()) {
-                                ui.painter().rect_filled(
-                                    badge.expand(3.0 * sel),
-                                    CornerRadius::same(17),
-                                    alpha(a, 0.25 * sel),
-                                );
-                                egui::Image::new(icon)
-                                    .corner_radius(CornerRadius::same(14))
-                                    .paint_at(ui, badge);
-                            } else {
-                                theme::paint_game_badge(
-                                    ui,
-                                    badge,
-                                    &game.short_name,
-                                    a,
-                                    b,
-                                    active,
-                                    hover,
-                                );
-                            }
+                            self.paint_game_icon(ui, badge, &game, active, hover);
                             // active indicator
                             if sel > 0.01 {
                                 let h = 30.0 * sel;
@@ -1101,6 +1209,7 @@ impl eframe::App for GachaHubApp {
     fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
         let ctx = ui.ctx().clone();
         self.process_messages(&ctx);
+        self.refresh_exe_icons();
 
         egui::Panel::left("rail")
             .exact_size(76.0)

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- GachaHub original emblem for "endfield" (not an official game logo). License: same as GachaHub. -->
+  <defs>
+    <radialGradient id="ga" cx="0.2" cy="0.15" r="0.9"><stop offset="0" stop-color="#f4cd58" stop-opacity=".55"/><stop offset="1" stop-color="#f4cd58" stop-opacity="0"/></radialGradient>
+    <radialGradient id="gb" cx="0.9" cy="0.95" r="0.8"><stop offset="0" stop-color="#ff7a45" stop-opacity=".6"/><stop offset="1" stop-color="#ff7a45" stop-opacity="0"/></radialGradient>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset=".45" stop-color="#f4cd58"/><stop offset="1" stop-color="#ff7a45"/></linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="116" fill="#0c111c"/>
+  <rect width="512" height="512" rx="116" fill="url(#ga)"/>
+  <rect width="512" height="512" rx="116" fill="url(#gb)"/>
+  <rect x="4" y="4" width="504" height="504" rx="112" fill="none" stroke="#f4cd58" stroke-opacity=".35" stroke-width="8"/>
+  <path d="M256 92 L398 174 L398 338 L256 420 L114 338 L114 174 Z" fill="none" stroke="url(#g)" stroke-width="24" stroke-linejoin="round"/>
+  <circle cx="256" cy="232" r="46" fill="url(#g)"/>
+  <path d="M150 300 H362" stroke="#fff" stroke-width="18" stroke-linecap="round"/>
+  <path d="M188 340 H324" stroke="#fff" stroke-opacity=".5" stroke-width="12" stroke-linecap="round"/>
+</svg>

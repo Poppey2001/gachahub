@@ -577,29 +577,6 @@ pub fn section_label(ui: &mut Ui, text: &str) {
     ui.add_space(2.0);
 }
 
-/// Rounded square avatar with short name + accent gradient (used in rail and lists).
-pub fn game_badge(
-    ui: &mut Ui,
-    size: f32,
-    short: &str,
-    a: Color32,
-    b: Color32,
-    active: bool,
-    sense: Sense,
-) -> Response {
-    let (rect, resp) = ui.allocate_exact_size(Vec2::splat(size), sense);
-    paint_game_badge(
-        ui,
-        rect,
-        short,
-        a,
-        b,
-        active,
-        ui.ctx().animate_bool(resp.id, resp.hovered()),
-    );
-    resp
-}
-
 pub fn paint_game_badge(
     ui: &Ui,
     rect: Rect,

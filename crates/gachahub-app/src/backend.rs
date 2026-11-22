@@ -56,6 +56,7 @@ pub enum Msg {
     Mods(String, Result<ModSnapshot, String>),
     PostInstall(String, Result<PostInstallResult, String>),
     Picked(PickTarget, Option<PathBuf>),
+    ExeIcon(String, Result<PathBuf, String>),
     Notice(Result<String, String>),
 }
 

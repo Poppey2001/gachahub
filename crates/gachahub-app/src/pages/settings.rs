@@ -465,20 +465,14 @@ impl GachaHubApp {
                 let Some(game) = self.game(&id).cloned() else {
                     continue;
                 };
-                let (a, b) = Self::accents(&game);
                 let active = self.settings_game == id;
                 let resp = ui
                     .scope(|ui| {
                         ui.horizontal(|ui| {
-                            let r = theme::game_badge(
-                                ui,
-                                30.0,
-                                &game.short_name,
-                                a,
-                                b,
-                                active,
-                                Sense::click(),
-                            );
+                            let (icon_rect, r) =
+                                ui.allocate_exact_size(Vec2::splat(30.0), Sense::click());
+                            let hover = ui.ctx().animate_bool(r.id, r.hovered());
+                            self.paint_game_icon(ui, icon_rect, &game, active, hover);
                             let l = ui.add(
                                 egui::Label::new(RichText::new(&game.name).color(if active {
                                     theme::TEXT

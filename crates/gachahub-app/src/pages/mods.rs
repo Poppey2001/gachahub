@@ -32,7 +32,7 @@ impl GachaHubApp {
                         ui.vertical(|ui| {
                         for id in self.cfg.library.clone() {
                             let Some(game) = self.game(&id).cloned() else { continue };
-                            let (a, b) = Self::accents(&game);
+                            let (a, _) = Self::accents(&game);
                             let active = self.mods_game == id;
                             let (rect, resp) = ui.allocate_exact_size(Vec2::new(214.0, 52.0), Sense::click());
                             let hover = ui.ctx().animate_bool(resp.id, resp.hovered());
@@ -46,7 +46,7 @@ impl GachaHubApp {
                                 );
                             }
                             let badge = egui::Rect::from_min_size(rect.min + Vec2::new(8.0, 8.0), Vec2::splat(36.0));
-                            theme::paint_game_badge(ui, badge, &game.short_name, a, b, active, hover);
+                            self.paint_game_icon(ui, badge, &game, active, hover);
                             ui.painter().text(
                                 badge.right_center() + Vec2::new(10.0, -7.0),
                                 egui::Align2::LEFT_CENTER,

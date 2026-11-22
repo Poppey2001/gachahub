@@ -62,7 +62,9 @@ impl GachaHubApp {
                 theme::card().show(ui, |ui| {
                     ui.set_width(ui.available_width());
                     ui.horizontal(|ui| {
-                        theme::game_badge(ui, 52.0, &game.short_name, a, b, true, Sense::hover());
+                        let (icon_rect, _) =
+                            ui.allocate_exact_size(Vec2::splat(52.0), Sense::hover());
+                        self.paint_game_icon(ui, icon_rect, &game, true, 0.0);
                         ui.add_space(6.0);
                         ui.vertical(|ui| {
                             ui.horizontal(|ui| {

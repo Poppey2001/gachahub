@@ -71,6 +71,13 @@ assets/
 └── game-assets/     # optionale Artworks pro Spiel
 ```
 
+## Spiel-Icons
+
+Jedes Spiel hat ein eigenes GachaHub-Icon (`assets/game-icons/*.svg`, eigene Gestaltung,
+keine offiziellen Logos). Sobald ein Spiel installiert/importiert ist, liest GachaHub das
+**offizielle Icon direkt aus der Spiel-EXE** aus (funktioniert auch unter Linux) und zeigt
+dieses an. Reihenfolge: eigenes Artwork › Icon aus der EXE › GachaHub-Icon.
+
 ## Eigene Artworks
 
 Lege Bilder unter `~/.local/share/gachahub/game-assets/<spiel-id>/` (oder `assets/game-assets/`) ab:

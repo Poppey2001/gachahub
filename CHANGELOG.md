@@ -13,6 +13,11 @@
 - NTE im Katalog (Hotta Studio / Perfect World), Import einer bestehenden Installation
   mit automatischer EXE-Erkennung.
 
+## Spiel-Icons
+
+- Eigene SVG-Icons für alle 8 Spiele in Seitenleiste, Katalog, Mods, Downloads und Einstellungen.
+- Offizielles Icon wird automatisch aus der installierten Spiel-EXE extrahiert und zwischengespeichert.
+
 ## Windows
 
 - Automatische UAC-Elevation, wenn ein Spiel Administratorrechte verlangt (Spielzeit wird weiter erfasst).

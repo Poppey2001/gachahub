@@ -44,7 +44,7 @@ impl GachaHubApp {
                 let cols = 3;
                 let gap = 14.0;
                 let card_w = (ui.available_width() - gap * (cols as f32 - 1.0)) / cols as f32;
-                let card_h = 150.0;
+                let card_h = 158.0;
                 let mut toggle: Option<String> = None;
                 let mut open: Option<String> = None;
                 for row in games.chunks(cols) {
@@ -71,12 +71,15 @@ impl GachaHubApp {
                                 StrokeKind::Inside,
                             );
                             let pad = 16.0;
-                            p.text(r.left_top() + Vec2::new(pad, pad), Align2::LEFT_TOP, game.publisher.to_uppercase(), theme::font_heavy(9.0), mix(a, Color32::WHITE, 0.25));
+                            let icon_rect = Rect::from_min_size(r.left_top() + Vec2::new(pad, pad), Vec2::splat(46.0));
+                            self.paint_game_icon(ui, icon_rect, game, in_lib, hover);
+                            p.text(icon_rect.right_center() + Vec2::new(12.0, 0.0), Align2::LEFT_CENTER, game.publisher.to_uppercase(), theme::font_heavy(9.0), mix(a, Color32::WHITE, 0.25));
                             let title = p.layout(game.name.clone(), theme::font_heavy(17.0), theme::TEXT, card_w - pad * 2.0);
                             let title_h = title.size().y;
-                            p.galley(Pos2::new(r.left() + pad, r.bottom() - pad - 30.0 - title_h), title, theme::TEXT);
+                            let title_y = (r.bottom() - pad - 30.0 - title_h).max(icon_rect.bottom() + 8.0);
+                            p.galley(Pos2::new(r.left() + pad, title_y), title, theme::TEXT);
                             p.text(
-                                Pos2::new(r.left() + pad, r.bottom() - pad - 22.0),
+                                Pos2::new(r.left() + pad, title_y + title_h + 4.0),
                                 Align2::LEFT_TOP,
                                 &game.subtitle,
                                 theme::font(11.5),

@@ -7,6 +7,7 @@
 pub mod compat;
 pub mod download_manager;
 pub mod events;
+pub mod exe_icon;
 pub mod games;
 pub mod install;
 pub mod launcher;
