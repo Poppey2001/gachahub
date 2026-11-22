@@ -245,14 +245,35 @@ impl GachaHubApp {
                                                     theme::OK,
                                                 );
                                             } else if self.busy.contains(&key) {
+                                                let status = match self
+                                                    .runner_progress
+                                                    .get(&v.tag_name)
+                                                {
+                                                    Some(p)
+                                                        if p.phase == "downloading"
+                                                            && p.total_bytes > 0 =>
+                                                    {
+                                                        format!(
+                                                            "{} {:.0}% · {} / {}",
+                                                            tr("Lädt", "Downloading"),
+                                                            p.downloaded_bytes as f64 * 100.0
+                                                                / p.total_bytes as f64,
+                                                            theme::fmt_bytes(p.downloaded_bytes),
+                                                            theme::fmt_bytes(p.total_bytes)
+                                                        )
+                                                    }
+                                                    Some(p) if p.phase == "verifying" => tr(
+                                                        "Prüfe Prüfsumme…",
+                                                        "Verifying checksum…",
+                                                    )
+                                                    .into(),
+                                                    Some(p) if p.phase == "extracting" => {
+                                                        tr("Entpacke…", "Extracting…").into()
+                                                    }
+                                                    _ => tr("Installiere…", "Installing…").into(),
+                                                };
                                                 ui.spinner();
-                                                ui.label(
-                                                    RichText::new(tr(
-                                                        "Installiere…",
-                                                        "Installing…",
-                                                    ))
-                                                    .color(theme::MUTED),
-                                                );
+                                                ui.label(RichText::new(status).color(theme::MUTED));
                                             } else if ui
                                                 .button(tr("⬇  Installieren", "⬇  Install"))
                                                 .clicked()
@@ -260,10 +281,13 @@ impl GachaHubApp {
                                                 self.busy.insert(key);
                                                 let (f, t) =
                                                     (v.family_id.clone(), v.tag_name.clone());
+                                                let sink = self.sink.clone();
                                                 self.backend.spawn(async move {
                                                     Msg::RunnerInstalled(
-                                                        gachahub_core::runners::install(&f, &t)
-                                                            .await,
+                                                        gachahub_core::runners::install(
+                                                            &f, &t, sink,
+                                                        )
+                                                        .await,
                                                     )
                                                 });
                                             }

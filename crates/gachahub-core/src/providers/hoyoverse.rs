@@ -36,12 +36,44 @@ fn package_name(url: &str, index: usize) -> String {
     }
 }
 
-pub async fn fetch_download_plan(game_id: &str) -> Result<ProviderDownloadPlan, ProviderError> {
+/// Map GachaHub game IDs to HoYoPlay identifiers (game id, biz).
+pub fn identity(game_id: &str) -> Option<(&'static str, &'static str)> {
+    game_identity(game_id)
+}
+
+fn push_package(packages: &mut Vec<PackageFile>, package: &Value, index: usize) {
+    let Some(url) = package.get("url").and_then(Value::as_str) else {
+        return;
+    };
+    if url.trim().is_empty() {
+        return;
+    }
+    // `size` is the archive (download) size. `decompressed_size` is the size after
+    // extraction and must NOT be used to validate the download.
+    let size = number(package.get("size")).max(number(package.get("package_size")));
+    let hash = package
+        .get("md5")
+        .and_then(Value::as_str)
+        .map(ToString::to_string)
+        .filter(|s| !s.is_empty());
+    packages.push(PackageFile {
+        url: url.to_string(),
+        destination: package_name(url, index),
+        size,
+        hash,
+    });
+}
+
+/// `voice_language` is a HoYoPlay language code such as `en-us`, `ja-jp`, `zh-cn`, `ko-kr`.
+pub async fn fetch_download_plan(
+    game_id: &str,
+    voice_language: &str,
+) -> Result<ProviderDownloadPlan, ProviderError> {
     let (provider_game_id, biz) =
         game_identity(game_id).ok_or_else(|| ProviderError::GameNotFound(game_id.into()))?;
 
     let client = reqwest::Client::builder()
-        .user_agent("GachaHub/0.14.0")
+        .user_agent(crate::USER_AGENT)
         .timeout(std::time::Duration::from_secs(30))
         .build()
         .map_err(|e| ProviderError::Network(e.to_string()))?;
@@ -92,26 +124,15 @@ pub async fn fetch_download_plan(game_id: &str) -> Result<ProviderDownloadPlan, 
     let mut packages = Vec::new();
     if let Some(values) = major.get("game_pkgs").and_then(Value::as_array) {
         for (index, package) in values.iter().enumerate() {
-            let Some(url) = package.get("url").and_then(Value::as_str) else {
-                continue;
-            };
-            if url.trim().is_empty() {
-                continue;
+            push_package(&mut packages, package, index);
+        }
+    }
+    if let Some(values) = major.get("audio_pkgs").and_then(Value::as_array) {
+        for package in values {
+            if package.get("language").and_then(Value::as_str) == Some(voice_language) {
+                let index = packages.len();
+                push_package(&mut packages, package, index);
             }
-            let size = number(package.get("size"))
-                .max(number(package.get("package_size")))
-                .max(number(package.get("decompressed_size")));
-            let hash = package
-                .get("md5")
-                .and_then(Value::as_str)
-                .map(ToString::to_string)
-                .filter(|s| !s.is_empty());
-            packages.push(PackageFile {
-                url: url.to_string(),
-                destination: package_name(url, index),
-                size,
-                hash,
-            });
         }
     }
 

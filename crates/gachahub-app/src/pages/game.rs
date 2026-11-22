@@ -10,7 +10,7 @@ use crate::{
 use eframe::egui::{
     self, Align2, Color32, CornerRadius, Pos2, Rect, RichText, Sense, Stroke, Vec2,
 };
-use gachahub_core::compat;
+use gachahub_core::{compat, download_manager::JobKind};
 
 impl GachaHubApp {
     pub fn page_game(&mut self, ui: &mut egui::Ui) {
@@ -321,14 +321,22 @@ impl GachaHubApp {
                         let launch_busy = self.busy.contains(&format!("launch:{}", game.id))
                             || self.busy.contains(&format!("postinstall:{}", game.id));
                         let running = self.running.contains_key(&game.id);
+                        let update = if installed { self.update_available(&game.id) } else { None };
+                        let resumable = !installed && downloadable && self.partial_installs.contains(&game.id);
+                        let update_label;
                         let (icon, label) = if launch_busy {
                             ("⏳", tr("Startet…", "Starting…"))
                         } else if install_busy {
                             ("⏳", tr("Vorbereiten…", "Preparing…"))
                         } else if running {
                             ("●", tr("Läuft", "Running"))
+                        } else if let Some(v) = &update {
+                            update_label = format!("UPDATE {v}");
+                            ("⬆", update_label.as_str())
                         } else if installed {
                             ("▶", tr("SPIELEN", "PLAY"))
+                        } else if resumable {
+                            ("⬇", tr("FORTSETZEN", "RESUME"))
                         } else if downloadable {
                             ("⬇", tr("INSTALLIEREN", "INSTALL"))
                         } else {
@@ -339,7 +347,9 @@ impl GachaHubApp {
                                 .enabled(!install_busy && !launch_busy && !running),
                         );
                         if resp.clicked() {
-                            if installed {
+                            if update.is_some() {
+                                self.start_job(&game.id, JobKind::Update);
+                            } else if installed {
                                 self.launch(&game.id);
                             } else if downloadable {
                                 self.start_install(&game.id);
@@ -355,7 +365,24 @@ impl GachaHubApp {
                             }
                         }
                         ui.add_space(4.0);
-                        if (installed || downloadable)
+                        let idle = !install_busy && !launch_busy && !running;
+                        if update.is_some() {
+                            // Updates are optional: still allow playing the installed version.
+                            if theme::ghost_button(ui, "▶", tr("Spielen", "Play")).clicked() && idle {
+                                self.launch(&game.id);
+                            }
+                        } else if installed && downloadable && self.installed_versions.contains_key(&game.id) {
+                            if theme::ghost_button(ui, "🔍", tr("Dateien prüfen", "Verify files"))
+                                .on_hover_text(tr(
+                                    "Prüft alle Spieldateien und lädt beschädigte oder fehlende neu.",
+                                    "Checks all game files and re-downloads damaged or missing ones.",
+                                ))
+                                .clicked()
+                                && idle
+                            {
+                                self.start_job(&game.id, JobKind::Verify);
+                            }
+                        } else if (installed || downloadable)
                             && theme::ghost_button(
                                 ui,
                                 "📂",
@@ -408,7 +435,7 @@ impl GachaHubApp {
                                 if !xxmi_installed {
                                     self.install_xxmi();
                                 } else if !xxmi_ready {
-                                    self.open_xxmi_gui(&importer);
+                                    self.open_xxmi_gui(&game.id);
                                 } else {
                                     let gs = self.cfg.game_mut(&game.id);
                                     gs.xxmi_enabled = !gs.xxmi_enabled;
@@ -549,8 +576,10 @@ impl GachaHubApp {
                     RichText::new(format!(
                         "{}  ·  {}",
                         game.provider.to_uppercase(),
-                        game.version
-                            .clone()
+                        self.installed_versions
+                            .get(&game.id)
+                            .map(|v| format!("v{v}"))
+                            .or_else(|| game.version.clone())
                             .unwrap_or_else(|| "stable".into())
                             .to_uppercase()
                     ))

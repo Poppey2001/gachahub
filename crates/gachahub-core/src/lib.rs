@@ -18,12 +18,14 @@ pub mod postinstall;
 pub mod providers;
 pub mod runners;
 pub mod settings;
+pub mod sophon;
 pub mod xxmi;
 
 pub use events::{CoreEvent, EventSink};
 pub use games::{Game, GameRegistry};
 
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
+pub const USER_AGENT: &str = concat!("GachaHub/", env!("CARGO_PKG_VERSION"));
 
 /// Expand a leading `~` to the user's home directory.
 pub fn expand_user(raw: &str) -> std::path::PathBuf {

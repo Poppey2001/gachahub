@@ -405,6 +405,96 @@ impl GachaHubApp {
             });
         }
 
+        theme::section_label(ui, tr("Downloads & Updates", "Downloads & updates"));
+        theme::card().show(ui, |ui| {
+            ui.set_width(ui.available_width());
+            let g = &mut self.cfg.global;
+            changed |= row(
+                ui,
+                tr("Automatische Updates", "Automatic updates"),
+                tr(
+                    "Beim Start nach neuen Spielversionen suchen und sie direkt installieren.",
+                    "Check for new game versions on start and install them right away.",
+                ),
+                |ui| theme::toggle(ui, &mut g.auto_update).changed(),
+            );
+            changed |= row(
+                ui,
+                tr("Gleichzeitige Downloads", "Parallel downloads"),
+                tr(
+                    "Anzahl Dateien, die parallel geladen werden.",
+                    "Number of files fetched at the same time.",
+                ),
+                |ui| {
+                    ui.add(egui::Slider::new(&mut g.parallel_downloads, 1..=32))
+                        .changed()
+                },
+            );
+            changed |= row(
+                ui,
+                tr("Bandbreite begrenzen", "Limit bandwidth"),
+                tr(
+                    "Maximale Download-Geschwindigkeit.",
+                    "Maximum download speed.",
+                ),
+                |ui| {
+                    let mut c = false;
+                    let mut limited = g.bandwidth_limit_mbps.is_some();
+                    if let Some(mbps) = g.bandwidth_limit_mbps.as_mut() {
+                        c |= ui
+                            .add(
+                                egui::Slider::new(mbps, 1..=1000)
+                                    .logarithmic(true)
+                                    .suffix(" Mbit/s"),
+                            )
+                            .changed();
+                    }
+                    if theme::toggle(ui, &mut limited).changed() {
+                        g.bandwidth_limit_mbps = limited.then_some(50);
+                        c = true;
+                    }
+                    c
+                },
+            );
+            changed |= row(
+                ui,
+                tr("Sprachausgabe", "Voice language"),
+                tr(
+                    "Sprachpaket für Genshin, Star Rail und ZZZ.",
+                    "Voice pack for Genshin, Star Rail and ZZZ.",
+                ),
+                |ui| {
+                    let mut c = false;
+                    let langs = [
+                        ("en-us", "English"),
+                        ("ja-jp", "日本語"),
+                        ("zh-cn", "中文"),
+                        ("ko-kr", "한국어"),
+                    ];
+                    let current = langs
+                        .iter()
+                        .find(|(code, _)| *code == g.voice_language)
+                        .map(|(_, n)| *n)
+                        .unwrap_or("English");
+                    egui::ComboBox::from_id_salt("voice-language")
+                        .selected_text(current)
+                        .width(160.0)
+                        .show_ui(ui, |ui| {
+                            for (code, name) in langs {
+                                if ui
+                                    .selectable_label(g.voice_language == code, name)
+                                    .clicked()
+                                {
+                                    g.voice_language = code.to_string();
+                                    c = true;
+                                }
+                            }
+                        });
+                    c
+                },
+            );
+        });
+
         theme::section_label(ui, "Mods");
         theme::card().show(ui, |ui| {
             ui.set_width(ui.available_width());
@@ -434,12 +524,6 @@ impl GachaHubApp {
                         .changed();
                     c
                 },
-            );
-            changed |= row(
-                ui,
-                tr("Mods standardmäßig aktiv", "Mods enabled by default"),
-                "",
-                |ui| theme::toggle(ui, &mut g.mods_enabled_by_default).changed(),
             );
         });
 
@@ -771,6 +855,19 @@ impl GachaHubApp {
             }
         }
 
+        if gachahub_core::download_manager::supports_direct_download(&gid) {
+            theme::section_label(ui, "Updates");
+            theme::card().show(ui, |ui| {
+                ui.set_width(ui.available_width());
+                changed |= row(
+                    ui,
+                    tr("Automatische Updates", "Automatic updates"),
+                    "",
+                    |ui| opt_bool(ui, &mut gs.auto_update, global.auto_update),
+                );
+            });
+        }
+
         theme::section_label(ui, "Mods");
         theme::card().show(ui, |ui| {
             ui.set_width(ui.available_width());
@@ -920,9 +1017,16 @@ impl GachaHubApp {
                         if s.installed && s.managed && ui.add_enabled(!busy, egui::Button::new(tr("🗑  Entfernen", "🗑  Remove"))).clicked() {
                             self.remove_xxmi();
                         }
-                        if s.installed && ui.button(tr("Öffnen (GUI)", "Open (GUI)")).clicked() {
-                            let imp = s.importers.first().map(|i| i.id.clone()).unwrap_or_else(|| "GIMI".into());
-                            self.open_xxmi_gui(&imp);
+                        // Open XXMI for the selected game (or the first library game with an importer),
+                        // so it runs in that game's runner and prefix.
+                        let target = std::iter::once(self.cfg.selected_game.clone())
+                            .chain(self.cfg.library.clone())
+                            .find(|id| self.game(id).is_some_and(|g| g.xxmi_importer.is_some()));
+                        if let Some(target) = target {
+                            let name = self.game(&target).map(|g| g.short_name.clone()).unwrap_or_default();
+                            if s.installed && ui.button(format!("{} ({name})", tr("Öffnen (GUI)", "Open (GUI)"))).clicked() {
+                                self.open_xxmi_gui(&target);
+                            }
                         }
                     });
                 }
@@ -966,22 +1070,6 @@ impl GachaHubApp {
                         c
                     },
                 );
-                if !cfg!(target_os = "windows") {
-                    changed |= row(ui, tr("Wine-Programm", "Wine executable"), "", |ui| {
-                        ui.add(
-                            egui::TextEdit::singleline(&mut g.xxmi_wine_executable)
-                                .desired_width(360.0),
-                        )
-                        .changed()
-                    });
-                    changed |= row(ui, tr("Wine-Prefix", "Wine prefix"), "", |ui| {
-                        ui.add(
-                            egui::TextEdit::singleline(&mut g.xxmi_wine_prefix)
-                                .desired_width(360.0),
-                        )
-                        .changed()
-                    });
-                }
                 changed |= row(
                     ui,
                     tr("Ohne GUI starten", "Launch without GUI"),

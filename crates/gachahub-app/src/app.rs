@@ -10,9 +10,10 @@ use eframe::egui::{
     self, Align2, Color32, CornerRadius, Margin, Pos2, Rect, Sense, Stroke, StrokeKind, Vec2,
 };
 use gachahub_core::{
+    download_manager::{DownloadOptions, JobKind},
     install::InstallJob,
     mod_manager::ModSnapshot,
-    runners::{RunnerInfo, RunnerVersion},
+    runners::{RunnerInfo, RunnerProgress, RunnerVersion},
     settings::Config,
     xxmi::{XxmiManagerStatus, XxmiProgress},
     CoreEvent, EventSink, Game, GameRegistry,
@@ -128,6 +129,14 @@ pub struct GachaHubApp {
     pub settings_game: String,
     /// Executable path whose icon was last requested, per game.
     exe_icon_source: HashMap<String, String>,
+    /// Installed game version per game (read from disk).
+    pub installed_versions: HashMap<String, String>,
+    /// Latest version reported by the provider.
+    pub latest_versions: HashMap<String, String>,
+    /// Games with an interrupted installation that can be resumed.
+    pub partial_installs: HashSet<String>,
+    /// Running runner installations by tag.
+    pub runner_progress: HashMap<String, RunnerProgress>,
 }
 
 pub fn now_unix() -> u64 {
@@ -237,6 +246,10 @@ impl GachaHubApp {
             settings_tab: SettingsTab::General,
             settings_game: selected,
             exe_icon_source: HashMap::new(),
+            installed_versions: HashMap::new(),
+            latest_versions: HashMap::new(),
+            partial_installs: HashSet::new(),
+            runner_progress: HashMap::new(),
         };
         // Developer aid: open a specific page on start (used for screenshots/CI).
         if let Ok(page) = std::env::var("GACHAHUB_START_PAGE") {
@@ -256,6 +269,8 @@ impl GachaHubApp {
                 app.refresh_mods(&id);
             }
         }
+        app.refresh_installed_versions();
+        app.check_updates();
         app.refresh_runners();
         app.refresh_xxmi();
         app
@@ -332,15 +347,10 @@ impl GachaHubApp {
 
     pub fn refresh_xxmi(&mut self) {
         let g = &self.cfg.global;
-        let (install, custom, wine, prefix) = (
-            g.xxmi_install_path.clone(),
-            g.xxmi_launcher_path.clone(),
-            g.xxmi_wine_executable.clone(),
-            g.xxmi_wine_prefix.clone(),
-        );
+        let (install, custom) = (g.xxmi_install_path.clone(), g.xxmi_launcher_path.clone());
         self.busy.insert("xxmi-status".into());
         self.backend.spawn(async move {
-            Msg::Xxmi(gachahub_core::xxmi::manager_status(&install, &custom, &wine, &prefix).await)
+            Msg::Xxmi(gachahub_core::xxmi::manager_status(&install, &custom).await)
         });
     }
 
@@ -434,26 +444,87 @@ impl GachaHubApp {
         }
     }
 
+    /// A download/update/repair job completed: pick up the new installation.
+    fn on_job_finished(&mut self, job: &InstallJob) {
+        let game_id = job.game_id.clone();
+        let name = self
+            .game(&game_id)
+            .map(|g| g.name.clone())
+            .unwrap_or_default();
+        let text = match job.kind.as_str() {
+            "update" => tr("Update installiert", "update installed"),
+            "verify" => tr(
+                "Dateien geprüft und repariert",
+                "files verified and repaired",
+            ),
+            _ => tr("Installation abgeschlossen", "installation finished"),
+        };
+        self.toast(ToastKind::Success, format!("{name}: {text}"));
+        if let Some(v) = &job.version {
+            self.latest_versions.insert(game_id.clone(), v.clone());
+        }
+        if self.cfg.resolved(&game_id).executable_path.is_empty() {
+            if let Some(dest) = job.destination.as_deref() {
+                if game_id == "genshin" {
+                    self.import_existing(&game_id, Path::new(dest));
+                } else if let Some(exe) = find_executable(Path::new(dest), &game_id) {
+                    let gs = self.cfg.game_mut(&game_id);
+                    gs.executable_path = Some(exe.to_string_lossy().into_owned());
+                    gs.installation_detected_at = Some(now_unix().to_string());
+                }
+            }
+        }
+        self.dirty_since.get_or_insert(0.0);
+        self.refresh_installed_versions();
+    }
+
     // ------------------------------------------------------------ messages
 
     fn process_messages(&mut self, ctx: &egui::Context) {
         for msg in self.backend.drain() {
             match msg {
                 Msg::Core(CoreEvent::Download(job)) => {
-                    if job.phase == "downloaded" {
-                        let name = self
-                            .game(&job.game_id)
-                            .map(|g| g.name.clone())
-                            .unwrap_or_default();
-                        self.toast(
-                            ToastKind::Success,
-                            format!(
-                                "{name}: {}",
-                                tr("Download abgeschlossen", "download finished")
-                            ),
-                        );
+                    let finished = job.phase == "ready"
+                        && self
+                            .jobs
+                            .iter()
+                            .any(|j| j.id == job.id && j.phase != "ready");
+                    if finished {
+                        self.on_job_finished(&job);
                     }
                     self.upsert_job(job);
+                }
+                Msg::Core(CoreEvent::Runner(progress)) => {
+                    if matches!(progress.phase.as_str(), "ready" | "error") {
+                        self.runner_progress.remove(&progress.tag_name);
+                    } else {
+                        self.runner_progress
+                            .insert(progress.tag_name.clone(), progress);
+                    }
+                }
+                Msg::LatestVersion(game_id, res) => {
+                    if let Ok(latest) = res {
+                        self.latest_versions.insert(game_id.clone(), latest);
+                        let busy = self.job_for(&game_id).is_some_and(|j| {
+                            !matches!(j.phase.as_str(), "ready" | "error" | "cancelled")
+                        });
+                        if let Some(version) = self.update_available(&game_id) {
+                            if self.cfg.resolved(&game_id).auto_update && !busy {
+                                let name = self
+                                    .game(&game_id)
+                                    .map(|g| g.name.clone())
+                                    .unwrap_or_default();
+                                self.toast(
+                                    ToastKind::Info,
+                                    format!(
+                                        "{name}: {} {version}",
+                                        tr("Update wird installiert:", "installing update")
+                                    ),
+                                );
+                                self.start_job(&game_id, JobKind::Update);
+                            }
+                        }
+                    }
                 }
                 Msg::Core(CoreEvent::Xxmi(progress)) => {
                     let done = matches!(progress.phase.as_str(), "ready" | "error");
@@ -641,7 +712,11 @@ impl GachaHubApp {
         let s = path.to_string_lossy().into_owned();
         match target {
             PickTarget::GameInstallPath(id) => self.cfg.game_mut(&id).install_path = Some(s),
-            PickTarget::ImportExisting(id) => self.import_existing(&id, &path),
+            PickTarget::ImportExisting(id) => {
+                self.import_existing(&id, &path);
+                self.refresh_installed_versions();
+                self.check_updates();
+            }
             PickTarget::GameExecutable(id) => {
                 let gs = self.cfg.game_mut(&id);
                 gs.executable_path = Some(s);
@@ -728,15 +803,98 @@ impl GachaHubApp {
     // ------------------------------------------------------------ actions
 
     pub fn start_install(&mut self, game_id: &str) {
+        self.start_job(game_id, JobKind::Install);
+    }
+
+    /// Install, update or verify a game (see `download_manager`).
+    pub fn start_job(&mut self, game_id: &str, kind: JobKind) {
         let install = self.cfg.resolved(game_id).install_path;
+        let g = &self.cfg.global;
+        let opts = DownloadOptions {
+            kind,
+            parallel: g.parallel_downloads.max(1) as usize,
+            bandwidth_limit_mbps: g.bandwidth_limit_mbps,
+            voice_language: g.voice_language.clone(),
+        };
         let sink = self.sink.clone();
         let gid = game_id.to_string();
         self.busy.insert(format!("install:{game_id}"));
         self.game_errors.remove(game_id);
         self.backend.spawn(async move {
-            let res = gachahub_core::download_manager::start(sink, gid.clone(), install).await;
+            let res =
+                gachahub_core::download_manager::start(sink, gid.clone(), install, opts).await;
             Msg::DownloadStarted(gid, res)
         });
+    }
+
+    /// Re-read installed versions (marker file / HoYoPlay config.ini) of all library games.
+    pub fn refresh_installed_versions(&mut self) {
+        for id in self.cfg.library.clone() {
+            let r = self.cfg.resolved(&id);
+            let dir = gachahub_core::expand_user(&r.install_path);
+            match gachahub_core::download_manager::installed_version(&r.install_path) {
+                Some(v) => {
+                    self.installed_versions.insert(id.clone(), v);
+                }
+                None => {
+                    self.installed_versions.remove(&id);
+                }
+            }
+            let partial = dir.join(".gachahub-downloads").exists()
+                || dir.join(".gachahub-files.json").exists();
+            if partial && !self.installed_versions.contains_key(&id) {
+                self.partial_installs.insert(id);
+            } else {
+                self.partial_installs.remove(&id);
+            }
+        }
+    }
+
+    /// Ask the provider for the newest version of every installed, updatable game.
+    pub fn check_updates(&mut self) {
+        for id in self.cfg.library.clone() {
+            if !gachahub_core::download_manager::supports_direct_download(&id)
+                || !self.installed_versions.contains_key(&id)
+            {
+                continue;
+            }
+            let gid = id.clone();
+            self.backend.spawn(async move {
+                let res = gachahub_core::download_manager::latest_version(&gid).await;
+                Msg::LatestVersion(gid, res)
+            });
+        }
+    }
+
+    /// Installed and latest version differ → update available.
+    pub fn update_available(&self, game_id: &str) -> Option<String> {
+        let installed = self.installed_versions.get(game_id)?;
+        let latest = self.latest_versions.get(game_id)?;
+        gachahub_core::download_manager::is_newer(latest, installed).then(|| latest.clone())
+    }
+
+    /// Start a Windows program for a game with the game's runtime settings
+    /// (native on Windows, Proton/Wine with the game's prefix on Linux).
+    fn spawn_for_game(
+        game_id: &str,
+        r: &gachahub_core::settings::ResolvedGameSettings,
+        exe: &str,
+        args: Vec<String>,
+    ) -> Result<(gachahub_core::launcher::LaunchResult, std::process::Child), String> {
+        gachahub_core::launcher::launch_exe(
+            game_id,
+            exe,
+            r.runtime.as_str(),
+            &r.runner_version,
+            &r.runner_path,
+            &r.prefix_path,
+            args,
+            r.environment_variables.clone(),
+            r.gamescope_enabled,
+            r.game_mode_enabled,
+            r.mango_hud_enabled,
+            r.prevent_sleep,
+        )
     }
 
     pub fn launch(&mut self, game_id: &str) {
@@ -748,45 +906,26 @@ impl GachaHubApp {
         let g = self.cfg.global.clone();
         let gid = game_id.to_string();
         let sender = self.backend.sender();
-        let use_xxmi = r.xxmi_enabled && game.xxmi_importer.is_some();
+        let xxmi_importer = game.xxmi_importer.clone().filter(|_| r.xxmi_enabled);
         self.busy.insert(format!("launch:{game_id}"));
         self.backend.blocking(move || {
-            if use_xxmi {
-                let importer = game.xxmi_importer.unwrap_or_default();
-                let res = gachahub_core::xxmi::managed_launch(
+            let res = match xxmi_importer {
+                // XXMI starts the game itself; it runs in the game's runner + prefix so
+                // the injected importer and the game share one Wine environment.
+                Some(importer) => gachahub_core::xxmi::resolve_launcher(
                     &g.xxmi_install_path,
                     &g.xxmi_launcher_path,
-                    &importer,
-                    &g.xxmi_wine_executable,
-                    &g.xxmi_wine_prefix,
-                    true,
                 )
-                .map(|s| gachahub_core::launcher::LaunchResult {
-                    pid: 0,
-                    game_id: gid.clone(),
-                    runtime: "xxmi".into(),
-                    executable_path: s.launcher_path,
-                    prefix_path: g.xxmi_wine_prefix.clone(),
-                    runner_version: String::new(),
-                    runner_path: String::new(),
-                    command_preview: s.launch_command.join(" "),
-                });
-                return Msg::Launched(gid, res);
-            }
-            let res = gachahub_core::launcher::launch(
-                &gid,
-                &r.executable_path,
-                r.runtime.as_str(),
-                &r.runner_version,
-                &r.runner_path,
-                &r.prefix_path,
-                &r.launch_arguments,
-                r.environment_variables.clone(),
-                r.gamescope_enabled,
-                r.game_mode_enabled,
-                r.mango_hud_enabled,
-                r.prevent_sleep,
-            );
+                .and_then(|launcher| {
+                    let args = gachahub_core::xxmi::launch_args(&importer, g.xxmi_no_gui)?;
+                    Self::spawn_for_game(&gid, &r, &launcher.to_string_lossy(), args)
+                }),
+                None => {
+                    let mut args = gachahub_core::launcher::split_args(&r.launch_arguments);
+                    args.retain(|a| !a.is_empty());
+                    Self::spawn_for_game(&gid, &r, &r.executable_path, args)
+                }
+            };
             match res {
                 Ok((result, child)) => {
                     crate::backend::track_session(sender, gid.clone(), child);
@@ -814,22 +953,22 @@ impl GachaHubApp {
         });
     }
 
-    /// Launch the XXMI GUI for first-time importer setup.
-    pub fn open_xxmi_gui(&mut self, importer: &str) {
+    /// Launch the XXMI GUI (first-time importer setup) in the game's environment.
+    pub fn open_xxmi_gui(&mut self, game_id: &str) {
+        let Some(importer) = self.game(game_id).and_then(|g| g.xxmi_importer.clone()) else {
+            return;
+        };
         let g = self.cfg.global.clone();
-        let importer = importer.to_string();
+        let r = self.cfg.resolved(game_id);
+        let gid = game_id.to_string();
         self.backend.blocking(move || {
-            Msg::Notice(
-                gachahub_core::xxmi::managed_launch(
-                    &g.xxmi_install_path,
-                    &g.xxmi_launcher_path,
-                    &importer,
-                    &g.xxmi_wine_executable,
-                    &g.xxmi_wine_prefix,
-                    false,
-                )
-                .map(|_| tr("XXMI wurde geöffnet", "XXMI opened").to_string()),
-            )
+            let res =
+                gachahub_core::xxmi::resolve_launcher(&g.xxmi_install_path, &g.xxmi_launcher_path)
+                    .and_then(|launcher| {
+                        let args = gachahub_core::xxmi::launch_args(&importer, false)?;
+                        Self::spawn_for_game(&gid, &r, &launcher.to_string_lossy(), args)
+                    });
+            Msg::Notice(res.map(|_| tr("XXMI wurde geöffnet", "XXMI opened").to_string()))
         });
     }
 

@@ -40,7 +40,7 @@ fn infer_prefix_from_exe(exe: &str) -> Option<String> {
     None
 }
 
-fn split_args(value: &str) -> Vec<String> {
+pub fn split_args(value: &str) -> Vec<String> {
     // Small shell-like parser for the launcher UI. Supports quoted arguments and backslash escapes.
     let mut out = Vec::new();
     let mut current = String::new();
@@ -93,14 +93,15 @@ fn command_exists(program: &str) -> bool {
 }
 
 #[cfg(target_os = "windows")]
-pub fn launch(
+#[allow(clippy::too_many_arguments)]
+pub fn launch_exe(
     game_id: &str,
     executable_path: &str,
     _runtime: &str,
     runner_version: &str,
     runner_path: &str,
     prefix_path: &str,
-    launch_arguments: &str,
+    args_in: Vec<String>,
     environment_variables: HashMap<String, String>,
     _gamescope_enabled: bool,
     _game_mode_enabled: bool,
@@ -117,7 +118,7 @@ pub fn launch(
     if !Path::new(&exe).is_file() {
         return Err(format!("Game executable not found: {exe}"));
     }
-    let args = split_args(launch_arguments);
+    let args = args_in;
     let workdir = Path::new(&exe).parent().map(|p| p.to_path_buf());
 
     let mut cmd = Command::new(&exe);
@@ -183,14 +184,15 @@ pub fn launch(
 }
 
 #[cfg(not(target_os = "windows"))]
-pub fn launch(
+#[allow(clippy::too_many_arguments)]
+pub fn launch_exe(
     game_id: &str,
     executable_path: &str,
     runtime: &str,
     runner_version: &str,
     runner_path: &str,
     prefix_path: &str,
-    launch_arguments: &str,
+    args_in: Vec<String>,
     environment_variables: HashMap<String, String>,
     gamescope_enabled: bool,
     game_mode_enabled: bool,
@@ -236,7 +238,7 @@ pub fn launch(
 
     let mut program = base_program;
     let mut args = vec![exe.clone()];
-    args.extend(split_args(launch_arguments));
+    args.extend(args_in);
 
     if game_mode_enabled && command_exists("gamemoderun") {
         args.insert(0, program);
@@ -291,9 +293,15 @@ pub fn launch(
     cmd.stdout(Stdio::null()).stderr(Stdio::null());
 
     let preview = format!("{} {}", program, args.join(" "));
-    let child = cmd
-        .spawn()
-        .map_err(|e| format!("failed to start game: {e}"))?;
+    let child = cmd.spawn().map_err(|e| {
+        format!(
+            "failed to start {}: {e}",
+            Path::new(&exe)
+                .file_name()
+                .map(|n| n.to_string_lossy())
+                .unwrap_or_default()
+        )
+    })?;
     Ok((
         LaunchResult {
             pid: child.id(),
@@ -307,4 +315,50 @@ pub fn launch(
         },
         child,
     ))
+}
+
+/// Start a game executable with the user's launch arguments (see [`launch_exe`]).
+#[allow(clippy::too_many_arguments)]
+pub fn launch(
+    game_id: &str,
+    executable_path: &str,
+    runtime: &str,
+    runner_version: &str,
+    runner_path: &str,
+    prefix_path: &str,
+    launch_arguments: &str,
+    environment_variables: HashMap<String, String>,
+    gamescope_enabled: bool,
+    game_mode_enabled: bool,
+    mango_hud_enabled: bool,
+    prevent_sleep: bool,
+) -> Result<(LaunchResult, std::process::Child), String> {
+    launch_exe(
+        game_id,
+        executable_path,
+        runtime,
+        runner_version,
+        runner_path,
+        prefix_path,
+        split_args(launch_arguments),
+        environment_variables,
+        gamescope_enabled,
+        game_mode_enabled,
+        mango_hud_enabled,
+        prevent_sleep,
+    )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::split_args;
+
+    #[test]
+    fn splits_quoted_arguments() {
+        assert_eq!(
+            split_args(r#"-screen-width 1920 "-name=Hello World" 'a b' c\ d"#),
+            vec!["-screen-width", "1920", "-name=Hello World", "a b", "c d"]
+        );
+        assert!(split_args("   ").is_empty());
+    }
 }

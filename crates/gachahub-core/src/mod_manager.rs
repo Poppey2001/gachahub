@@ -539,13 +539,24 @@ fn extract_zip(archive_path: &Path, destination: &Path) -> Result<(), String> {
     Ok(())
 }
 
-fn find_7zip() -> Option<String> {
-    for candidate in ["7zz", "7z", "7za"] {
-        if Command::new(candidate).arg("i").output().is_ok() {
-            return Some(candidate.to_string());
+pub(crate) fn find_7zip() -> Option<String> {
+    let mut candidates: Vec<String> = ["7zz", "7z", "7za"].iter().map(|s| s.to_string()).collect();
+    if cfg!(windows) {
+        for var in ["ProgramFiles", "ProgramFiles(x86)"] {
+            if let Some(dir) = std::env::var_os(var) {
+                candidates.push(
+                    PathBuf::from(dir)
+                        .join("7-Zip")
+                        .join("7z.exe")
+                        .to_string_lossy()
+                        .into_owned(),
+                );
+            }
         }
     }
-    None
+    candidates
+        .into_iter()
+        .find(|candidate| Command::new(candidate).arg("i").output().is_ok())
 }
 
 fn extract_with_7zip(archive_path: &Path, destination: &Path) -> Result<(), String> {

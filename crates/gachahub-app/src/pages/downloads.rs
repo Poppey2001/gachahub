@@ -74,6 +74,15 @@ impl GachaHubApp {
                                         .color(theme::TEXT),
                                 );
                                 theme::pill(ui, phase_label(&job.phase), a);
+                                match job.kind.as_str() {
+                                    "update" => {
+                                        theme::pill(ui, "Update", theme::BRAND);
+                                    }
+                                    "verify" => {
+                                        theme::pill(ui, tr("Prüfen", "Verify"), theme::BRAND);
+                                    }
+                                    _ => {}
+                                }
                                 if let Some(v) = &job.version {
                                     ui.label(
                                         RichText::new(format!("v{v}"))

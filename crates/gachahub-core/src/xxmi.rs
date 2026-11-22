@@ -6,7 +6,6 @@ use std::{
     env, fs,
     io::{self, Read, Write},
     path::{Path, PathBuf},
-    process::Command,
     time::{SystemTime, UNIX_EPOCH},
 };
 use tokio::{fs as async_fs, io::AsyncWriteExt};
@@ -280,32 +279,9 @@ fn importer_statuses(root: &Path) -> Vec<XxmiImporterStatus> {
         .collect()
 }
 
-fn launcher_command(
-    launcher: &Path,
-    importer: &str,
-    wine_executable: &str,
-    no_gui: bool,
-) -> Vec<String> {
-    let mut command = Vec::new();
-    if cfg!(target_os = "linux") {
-        command.push(if wine_executable.trim().is_empty() {
-            "wine".into()
-        } else {
-            wine_executable.trim().into()
-        });
-    }
-    command.push(launcher.to_string_lossy().into_owned());
-    if no_gui {
-        command.push("--nogui".into());
-    }
-    command.push("--xxmi".into());
-    command.push(importer.to_string());
-    command
-}
-
 async fn latest_release() -> Result<XxmiReleaseInfo, String> {
     let client = Client::builder()
-        .user_agent("GachaHub/0.10 (XXMI managed installer)")
+        .user_agent(crate::USER_AGENT)
         .build()
         .map_err(|e| e.to_string())?;
 
@@ -343,34 +319,9 @@ async fn latest_release() -> Result<XxmiReleaseInfo, String> {
     })
 }
 
-fn linux_wine_warning(wine_executable: &str) -> Option<String> {
-    if !cfg!(target_os = "linux") {
-        return None;
-    }
-    let wine = if wine_executable.trim().is_empty() {
-        "wine"
-    } else {
-        wine_executable.trim()
-    };
-    let output = Command::new(wine).arg("--version").output().ok()?;
-    if !output.status.success() {
-        return Some(format!("{wine} is present but --version failed"));
-    }
-    let version = String::from_utf8_lossy(&output.stdout).trim().to_string();
-    if version.is_empty() {
-        None
-    } else {
-        Some(format!(
-            "Linux XXMI uses {version}; upstream recommends Wine 9.22 or newer for Portable mode."
-        ))
-    }
-}
-
 pub async fn manager_status(
     install_path: &str,
     custom_launcher_path: &str,
-    wine_executable: &str,
-    wine_prefix: &str,
 ) -> Result<XxmiManagerStatus, String> {
     let root = managed_root(install_path);
     let custom = if custom_launcher_path.trim().is_empty() {
@@ -399,19 +350,9 @@ pub async fn manager_status(
         );
     }
     if cfg!(target_os = "linux") {
-        if let Some(warning) = linux_wine_warning(wine_executable) {
-            warnings.push(warning);
-        } else {
-            warnings.push(
-                "Wine executable could not be detected. XXMI Portable needs Wine on Linux.".into(),
-            );
-        }
-        if !wine_prefix.trim().is_empty() {
-            warnings.push(format!(
-                "XXMI Wine prefix: {}",
-                expand_user(wine_prefix).display()
-            ));
-        }
+        warnings.push(
+            "On Linux XXMI runs with the same Proton/Wine runner and prefix as the game.".into(),
+        );
     }
 
     let latest = match latest_release().await {
@@ -481,7 +422,7 @@ async fn download_asset(
     destination: &Path,
 ) -> Result<(), String> {
     let client = Client::builder()
-        .user_agent("GachaHub/0.10 (XXMI managed installer)")
+        .user_agent(crate::USER_AGENT)
         .build()
         .map_err(|e| e.to_string())?;
 
@@ -709,7 +650,7 @@ pub async fn install_managed(
                 release.size,
                 format!("XXMI {} installed", release.version),
             );
-            manager_status(install_path, "", "wine", "").await
+            manager_status(install_path, "").await
         }
         Err(error) => {
             emit_progress(&app, "error", 0.0, 0, release.size, error.clone());
@@ -735,111 +676,36 @@ pub async fn remove_managed(install_path: &str) -> Result<(), String> {
     Ok(())
 }
 
-pub fn status(
-    launcher_path: &str,
-    importer: &str,
-    wine_executable: &str,
-    no_gui: bool,
-) -> Result<XxmiStatus, String> {
-    let importer = validate_importer(importer)?;
-    let launcher = expand_user(launcher_path);
-    Ok(XxmiStatus {
-        importer: importer.clone(),
-        launcher_path: launcher.to_string_lossy().into_owned(),
-        exists: launcher.is_file(),
-        platform: platform_name().into(),
-        launch_command: launcher_command(&launcher, &importer, wine_executable, no_gui),
-    })
-}
-
-pub fn managed_launch(
-    install_path: &str,
-    custom_launcher_path: &str,
-    importer: &str,
-    wine_executable: &str,
-    wine_prefix: &str,
-    no_gui: bool,
-) -> Result<XxmiStatus, String> {
-    let root = managed_root(install_path);
-    let launcher = if !custom_launcher_path.trim().is_empty() {
+/// Locate the XXMI launcher: a custom path if configured, else the managed install.
+pub fn resolve_launcher(install_path: &str, custom_launcher_path: &str) -> Result<PathBuf, String> {
+    if !custom_launcher_path.trim().is_empty() {
         let path = expand_user(custom_launcher_path);
-        if path.is_file() {
-            path
+        return if path.is_file() {
+            Ok(path)
         } else {
-            return Err(format!(
+            Err(format!(
                 "custom XXMI Launcher not found: {}",
                 path.display()
-            ));
-        }
-    } else {
-        find_launcher(&root).ok_or_else(|| {
-            format!(
-                "managed XXMI Launcher not found in {}. Install XXMI from GachaHub first.",
-                root.display()
-            )
-        })?
-    };
-
-    launch_path(&launcher, importer, wine_executable, wine_prefix, no_gui)
-}
-
-fn launch_path(
-    launcher: &Path,
-    importer: &str,
-    wine_executable: &str,
-    wine_prefix: &str,
-    no_gui: bool,
-) -> Result<XxmiStatus, String> {
-    let importer = validate_importer(importer)?;
-    let mut command = if cfg!(target_os = "windows") {
-        Command::new(launcher)
-    } else if cfg!(target_os = "linux") {
-        let wine = if wine_executable.trim().is_empty() {
-            "wine"
-        } else {
-            wine_executable.trim()
+            ))
         };
-        let mut cmd = Command::new(wine);
-        if !wine_prefix.trim().is_empty() {
-            cmd.env("WINEPREFIX", expand_user(wine_prefix));
-        }
-        cmd.arg(launcher);
-        cmd
-    } else {
-        return Err(
-            "XXMI launching is currently implemented for Windows and Linux/Wine only".into(),
-        );
-    };
-
-    if no_gui {
-        command.arg("--nogui");
     }
-    command.arg("--xxmi").arg(&importer);
-    if let Some(parent) = launcher.parent() {
-        command.current_dir(parent);
-    }
-    command
-        .spawn()
-        .map_err(|e| format!("failed to launch XXMI: {e}"))?;
-
-    Ok(XxmiStatus {
-        importer: importer.clone(),
-        launcher_path: launcher.to_string_lossy().into_owned(),
-        exists: launcher.is_file(),
-        platform: platform_name().into(),
-        launch_command: launcher_command(launcher, &importer, wine_executable, no_gui),
+    let root = managed_root(install_path);
+    find_launcher(&root).ok_or_else(|| {
+        format!(
+            "managed XXMI Launcher not found in {}. Install XXMI from GachaHub first.",
+            root.display()
+        )
     })
 }
 
-pub fn launch(
-    launcher_path: &str,
-    importer: &str,
-    wine_executable: &str,
-    no_gui: bool,
-) -> Result<XxmiStatus, String> {
-    let launcher = expand_user(launcher_path);
-    if !launcher.is_file() {
-        return Err(format!("XXMI Launcher not found: {}", launcher.display()));
+/// Command line arguments that make XXMI start a specific model importer.
+pub fn launch_args(importer: &str, no_gui: bool) -> Result<Vec<String>, String> {
+    let importer = validate_importer(importer)?;
+    let mut args = Vec::new();
+    if no_gui {
+        args.push("--nogui".to_string());
     }
-    launch_path(&launcher, importer, wine_executable, "", no_gui)
+    args.push("--xxmi".to_string());
+    args.push(importer);
+    Ok(args)
 }

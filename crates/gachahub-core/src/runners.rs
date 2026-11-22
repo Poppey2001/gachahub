@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use std::{
     collections::BTreeMap,
     env, fs,
-    io::{Cursor, Read},
+    io::Read,
     path::{Path, PathBuf},
     process::Command,
 };
@@ -69,6 +69,19 @@ pub struct RunnerVersion {
     pub prerelease: bool,
     pub installed: bool,
     pub installed_path: String,
+    /// URL of a published `.sha512sum` / `.sha256sum` file for the archive, if any.
+    #[serde(default)]
+    pub checksum_url: String,
+}
+
+/// Progress of a runner download/installation.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RunnerProgress {
+    pub tag_name: String,
+    pub phase: String,
+    pub downloaded_bytes: u64,
+    pub total_bytes: u64,
 }
 
 #[derive(Debug, Clone)]
@@ -640,7 +653,7 @@ fn installed_match(tag: &str) -> Option<String> {
 
 async fn get_text(url: &str) -> Result<String, String> {
     let client = reqwest::Client::builder()
-        .user_agent("GachaHub/0.14.0 runner-manager")
+        .user_agent(crate::USER_AGENT)
         .build()
         .map_err(|e| e.to_string())?;
     let response = client
@@ -684,6 +697,7 @@ pub async fn versions(family_id: &str) -> Result<Vec<RunnerVersion>, String> {
                 prerelease: false,
                 installed: true,
                 installed_path: r.path.clone(),
+                checksum_url: String::new(),
             })
             .collect());
     }
@@ -707,6 +721,15 @@ pub async fn versions(family_id: &str) -> Result<Vec<RunnerVersion>, String> {
                     continue;
                 }
             }
+            let checksum_url = rel
+                .assets
+                .iter()
+                .find(|a| {
+                    let n = a.name.to_ascii_lowercase();
+                    n.ends_with(".sha512sum") || n.ends_with(".sha256sum")
+                })
+                .map(|a| a.browser_download_url.clone())
+                .unwrap_or_default();
             let Some(asset) = rel
                 .assets
                 .into_iter()
@@ -733,6 +756,7 @@ pub async fn versions(family_id: &str) -> Result<Vec<RunnerVersion>, String> {
                 prerelease: rel.prerelease,
                 installed: installed.is_some(),
                 installed_path: installed.unwrap_or_default(),
+                checksum_url,
             });
         }
     } else {
@@ -748,6 +772,15 @@ pub async fn versions(family_id: &str) -> Result<Vec<RunnerVersion>, String> {
                     continue;
                 }
             }
+            let checksum_url = rel
+                .assets
+                .iter()
+                .find(|a| {
+                    let n = a.name.to_ascii_lowercase();
+                    n.ends_with(".sha512sum") || n.ends_with(".sha256sum")
+                })
+                .map(|a| a.browser_download_url.clone())
+                .unwrap_or_default();
             let Some(asset) = rel
                 .assets
                 .into_iter()
@@ -774,6 +807,7 @@ pub async fn versions(family_id: &str) -> Result<Vec<RunnerVersion>, String> {
                 prerelease: rel.prerelease,
                 installed: installed.is_some(),
                 installed_path: installed.unwrap_or_default(),
+                checksum_url,
             });
         }
     }
@@ -803,22 +837,26 @@ fn unpack_tar<R: Read>(reader: R, dst: &Path) -> Result<(), String> {
     Ok(())
 }
 
-fn extract_archive(bytes: &[u8], asset: &str, dst: &Path) -> Result<(), String> {
+fn extract_archive(archive: &Path, asset: &str, dst: &Path) -> Result<(), String> {
     let l = asset.to_ascii_lowercase();
     fs::create_dir_all(dst).map_err(|e| e.to_string())?;
+    let open = || {
+        fs::File::open(archive)
+            .map(std::io::BufReader::new)
+            .map_err(|e| format!("cannot open {}: {e}", archive.display()))
+    };
     if l.ends_with(".tar.gz") || l.ends_with(".tgz") {
-        return unpack_tar(GzDecoder::new(Cursor::new(bytes)), dst);
+        return unpack_tar(GzDecoder::new(open()?), dst);
     }
     if l.ends_with(".tar.xz") || l.ends_with(".txz") {
-        return unpack_tar(XzDecoder::new(Cursor::new(bytes)), dst);
+        return unpack_tar(XzDecoder::new(open()?), dst);
     }
     if l.ends_with(".tar.zst") {
-        let decoder =
-            zstd::stream::read::Decoder::new(Cursor::new(bytes)).map_err(|e| e.to_string())?;
+        let decoder = zstd::stream::read::Decoder::new(open()?).map_err(|e| e.to_string())?;
         return unpack_tar(decoder, dst);
     }
     if l.ends_with(".zip") {
-        let mut archive = ZipArchive::new(Cursor::new(bytes)).map_err(|e| e.to_string())?;
+        let mut archive = ZipArchive::new(open()?).map_err(|e| e.to_string())?;
         for i in 0..archive.len() {
             let mut file = archive.by_index(i).map_err(|e| e.to_string())?;
             let Some(rel) = file.enclosed_name().map(|p| p.to_owned()) else {
@@ -838,6 +876,45 @@ fn extract_archive(bytes: &[u8], asset: &str, dst: &Path) -> Result<(), String> 
         return Ok(());
     }
     Err(format!("unsupported runner archive: {asset}"))
+}
+
+/// Compare a file against a `sha512sum`/`sha256sum` style checksum file.
+fn verify_checksum(file: &Path, checksum_text: &str, sha512: bool) -> Result<(), String> {
+    use sha2::Digest;
+    let expected = checksum_text
+        .split_whitespace()
+        .next()
+        .ok_or("checksum file is empty")?
+        .to_ascii_lowercase();
+    let mut reader = fs::File::open(file).map_err(|e| e.to_string())?;
+    let mut buf = vec![0u8; 1 << 20];
+    let actual = if sha512 {
+        let mut h = sha2::Sha512::new();
+        loop {
+            let n = reader.read(&mut buf).map_err(|e| e.to_string())?;
+            if n == 0 {
+                break;
+            }
+            h.update(&buf[..n]);
+        }
+        format!("{:x}", h.finalize())
+    } else {
+        let mut h = sha2::Sha256::new();
+        loop {
+            let n = reader.read(&mut buf).map_err(|e| e.to_string())?;
+            if n == 0 {
+                break;
+            }
+            h.update(&buf[..n]);
+        }
+        format!("{:x}", h.finalize())
+    };
+    if actual != expected {
+        return Err(format!(
+            "runner checksum mismatch: expected {expected}, got {actual}"
+        ));
+    }
+    Ok(())
 }
 
 fn find_proton_root(base: &Path, depth: usize) -> Option<PathBuf> {
@@ -876,7 +953,13 @@ fn copy_dir_all(src: &Path, dst: &Path) -> Result<(), String> {
     Ok(())
 }
 
-pub async fn install(family_id: &str, tag_name: &str) -> Result<RunnerInfo, String> {
+pub async fn install(
+    family_id: &str,
+    tag_name: &str,
+    sink: crate::EventSink,
+) -> Result<RunnerInfo, String> {
+    use tokio::io::AsyncWriteExt;
+
     let version = versions(family_id)
         .await?
         .into_iter()
@@ -885,42 +968,110 @@ pub async fn install(family_id: &str, tag_name: &str) -> Result<RunnerInfo, Stri
     if version.download_url.is_empty() {
         return Err("this runner is managed externally".into());
     }
+    let report = |phase: &str, downloaded: u64, total: u64| {
+        sink(crate::CoreEvent::Runner(RunnerProgress {
+            tag_name: version.tag_name.clone(),
+            phase: phase.into(),
+            downloaded_bytes: downloaded,
+            total_bytes: total,
+        }))
+    };
     let client = reqwest::Client::builder()
-        .user_agent("GachaHub/0.14.0 runner-manager")
+        .user_agent(crate::USER_AGENT)
+        .connect_timeout(std::time::Duration::from_secs(20))
         .build()
         .map_err(|e| e.to_string())?;
-    let response = client
-        .get(&version.download_url)
-        .send()
-        .await
-        .map_err(|e| e.to_string())?;
-    if !response.status().is_success() {
-        return Err(format!("download failed with HTTP {}", response.status()));
-    }
-    let bytes = response.bytes().await.map_err(|e| e.to_string())?;
-    if version.size > 0 && bytes.len() as u64 != version.size {
-        return Err(format!(
-            "runner download size mismatch: expected {} bytes, received {} bytes",
-            version.size,
-            bytes.len()
-        ));
-    }
-    let root = managed_root()?;
-    fs::create_dir_all(&root).map_err(|e| e.to_string())?;
+
     let cache = cache_root()?;
     fs::create_dir_all(&cache).map_err(|e| e.to_string())?;
+    let archive = cache.join(safe_name(&version.asset_name));
     let staging = cache.join(format!("extract-{}", Uuid::new_v4()));
-    fs::create_dir_all(&staging).map_err(|e| e.to_string())?;
-    extract_archive(&bytes, &version.asset_name, &staging)?;
-    let proton_root = find_proton_root(&staging, 3).ok_or_else(|| {
-        "downloaded archive does not contain a Proton compatibility tool".to_string()
-    })?;
-    let final_dir = root.join(safe_name(&version.tag_name));
-    if final_dir.exists() {
-        fs::remove_dir_all(&final_dir).map_err(|e| e.to_string())?;
+
+    let result: Result<PathBuf, String> = async {
+        // Stream the archive to disk instead of buffering hundreds of MB in RAM.
+        let mut response = client
+            .get(&version.download_url)
+            .send()
+            .await
+            .and_then(|r| r.error_for_status())
+            .map_err(|e| format!("runner download failed: {e}"))?;
+        let total = response.content_length().unwrap_or(version.size);
+        let mut file = tokio::fs::File::create(&archive)
+            .await
+            .map_err(|e| format!("cannot create {}: {e}", archive.display()))?;
+        let mut downloaded = 0u64;
+        let mut last = std::time::Instant::now();
+        report("downloading", 0, total);
+        while let Some(chunk) = response
+            .chunk()
+            .await
+            .map_err(|e| format!("runner download interrupted: {e}"))?
+        {
+            file.write_all(&chunk).await.map_err(|e| e.to_string())?;
+            downloaded += chunk.len() as u64;
+            if last.elapsed().as_millis() > 200 {
+                report("downloading", downloaded, total);
+                last = std::time::Instant::now();
+            }
+        }
+        file.flush().await.map_err(|e| e.to_string())?;
+        drop(file);
+        if version.size > 0 && downloaded != version.size {
+            return Err(format!(
+                "runner download size mismatch: expected {} bytes, received {downloaded} bytes",
+                version.size
+            ));
+        }
+
+        if !version.checksum_url.is_empty() {
+            report("verifying", downloaded, total);
+            let text = get_text(&version.checksum_url).await?;
+            let sha512 = version
+                .checksum_url
+                .to_ascii_lowercase()
+                .ends_with(".sha512sum");
+            let path = archive.clone();
+            tokio::task::spawn_blocking(move || verify_checksum(&path, &text, sha512))
+                .await
+                .map_err(|e| e.to_string())??;
+        }
+
+        report("extracting", downloaded, total);
+        let (a, asset, st) = (archive.clone(), version.asset_name.clone(), staging.clone());
+        tokio::task::spawn_blocking(move || extract_archive(&a, &asset, &st))
+            .await
+            .map_err(|e| e.to_string())??;
+
+        let root = managed_root()?;
+        fs::create_dir_all(&root).map_err(|e| e.to_string())?;
+        let proton_root = find_proton_root(&staging, 3).ok_or_else(|| {
+            "downloaded archive does not contain a Proton compatibility tool".to_string()
+        })?;
+        let final_dir = root.join(safe_name(&version.tag_name));
+        if final_dir.exists() {
+            fs::remove_dir_all(&final_dir).map_err(|e| e.to_string())?;
+        }
+        // Same filesystem in the normal case -> instant rename; copy as fallback.
+        if fs::rename(&proton_root, &final_dir).is_err() {
+            let (src, dst) = (proton_root.clone(), final_dir.clone());
+            tokio::task::spawn_blocking(move || copy_dir_all(&src, &dst))
+                .await
+                .map_err(|e| e.to_string())??;
+        }
+        Ok(final_dir)
     }
-    copy_dir_all(&proton_root, &final_dir)?;
+    .await;
+
     let _ = fs::remove_dir_all(&staging);
+    let _ = fs::remove_file(&archive);
+    let final_dir = match result {
+        Ok(dir) => dir,
+        Err(e) => {
+            report("error", 0, 0);
+            return Err(e);
+        }
+    };
+    report("ready", version.size, version.size);
     detect()
         .into_iter()
         .find(|r| Path::new(&r.path) == final_dir.as_path())

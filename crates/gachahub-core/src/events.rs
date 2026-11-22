@@ -6,12 +6,13 @@
 
 use std::sync::Arc;
 
-use crate::{install::InstallJob, xxmi::XxmiProgress};
+use crate::{install::InstallJob, runners::RunnerProgress, xxmi::XxmiProgress};
 
 #[derive(Debug, Clone)]
 pub enum CoreEvent {
     Download(InstallJob),
     Xxmi(XxmiProgress),
+    Runner(RunnerProgress),
 }
 
 pub type EventSink = Arc<dyn Fn(CoreEvent) + Send + Sync>;

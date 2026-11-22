@@ -1,3 +1,33 @@
+# GachaHub v0.16.0 — Installieren, Updaten, Reparieren
+
+## Spiele wirklich installieren
+- **Sophon-Downloader** für Genshin Impact, Honkai: Star Rail und ZZZ (HoYoPlay-Chunk-Verteilung):
+  Dateien werden aus MD5-geprüften, zstd-komprimierten Chunks zusammengesetzt, mehrere parallel.
+- **Updates**: Beim Start wird die neueste Version abgefragt. Ein Update lädt nur geänderte Dateien;
+  „Automatische Updates“ (global oder pro Spiel) installiert es direkt.
+- **Dateien prüfen**: vergleicht alle Spieldateien mit dem Manifest und lädt beschädigte neu.
+- **Direkte Pakete** werden nach dem Download entpackt (auch aufgeteilte `.zip.001…`, `.7z` über 7-Zip),
+  der Download-Cache wird gelöscht und die Spiel-EXE automatisch eingetragen.
+- Abgebrochene Installationen lassen sich mit **„Fortsetzen“** weiterführen.
+- Netzwerkfehler werden bis zu 5× automatisch wiederholt; einstellbare Parallelität und Bandbreitenlimit.
+- Sprachpaket (Englisch, Japanisch, Chinesisch, Koreanisch) wählbar.
+
+## Fehlerbehebungen
+- HoYoverse-Downloads schlugen am Ende wegen einer falschen Größenprüfung fehl (entpackte statt Download-Größe).
+
+## Runner
+- Proton-Archive werden auf die Festplatte gestreamt statt komplett in den RAM geladen,
+  mit Fortschrittsanzeige und SHA-512-Prüfung (sofern veröffentlicht). Entpacken blockiert nichts mehr.
+
+## XXMI
+- Startet unter Linux mit dem Proton/Runner und Prefix des jeweiligen Spiels (statt eines separaten Wine-Setups).
+- „Ohne GUI starten“ wird jetzt beachtet; Spielzeit wird auch beim Start über XXMI erfasst.
+
+## Aufgeräumt
+- Einstellungen ohne Funktion entfernt (Download-Ordner, Preloads, Update-Kanal, Prüfen vor Start,
+  Debug-Log, Mod-Profil, Mods standardmäßig aktiv, XXMI-Wine-Pfade).
+- Einheitlicher User-Agent; neue Tests (Sophon-Install/Update/Reparatur und Direkt-Download gegen lokalen Testserver).
+
 # GachaHub v0.15.0 — Rust rewrite
 
 ## Komplett auf Rust umgebaut

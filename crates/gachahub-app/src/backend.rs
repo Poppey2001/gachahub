@@ -57,6 +57,7 @@ pub enum Msg {
     PostInstall(String, Result<PostInstallResult, String>),
     Picked(PickTarget, Option<PathBuf>),
     ExeIcon(String, Result<PathBuf, String>),
+    LatestVersion(String, Result<String, String>),
     Notice(Result<String, String>),
 }
 

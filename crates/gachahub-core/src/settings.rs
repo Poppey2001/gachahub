@@ -81,14 +81,6 @@ impl ModDeploymentMode {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[serde(rename_all = "lowercase")]
-pub enum UpdateChannel {
-    #[default]
-    Stable,
-    Beta,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
-#[serde(rename_all = "lowercase")]
 pub enum Language {
     #[default]
     De,
@@ -101,7 +93,6 @@ pub struct GlobalSettings {
     pub language: Language,
     pub animated_backgrounds: bool,
     pub background_dim: u8,
-    pub download_path: String,
     pub default_install_path: String,
     pub parallel_downloads: u8,
     pub bandwidth_limit_mbps: Option<u32>,
@@ -113,19 +104,14 @@ pub struct GlobalSettings {
     pub default_game_mode_enabled: bool,
     pub default_mango_hud_enabled: bool,
     pub default_prevent_sleep: bool,
+    /// Check for game updates on start and install them automatically.
     pub auto_update: bool,
-    pub allow_preloads: bool,
-    pub update_channel: UpdateChannel,
-    pub mods_enabled_by_default: bool,
-    pub default_mod_profile: String,
+    /// Voice pack for HoYoverse games (`en-us`, `ja-jp`, `zh-cn`, `ko-kr`).
+    pub voice_language: String,
     pub mod_root_path: String,
     pub default_mod_deployment_mode: ModDeploymentMode,
-    pub verify_before_launch: bool,
-    pub debug_logging: bool,
     pub xxmi_install_path: String,
     pub xxmi_launcher_path: String,
-    pub xxmi_wine_executable: String,
-    pub xxmi_wine_prefix: String,
     pub xxmi_no_gui: bool,
     pub xxmi_auto_update: bool,
 }
@@ -136,7 +122,6 @@ impl Default for GlobalSettings {
             language: Language::De,
             animated_backgrounds: true,
             background_dim: 58,
-            download_path: "~/Games/GachaHub/Downloads".into(),
             default_install_path: "~/Games/GachaHub/Games".into(),
             parallel_downloads: 8,
             bandwidth_limit_mbps: None,
@@ -158,10 +143,7 @@ impl Default for GlobalSettings {
             default_mango_hud_enabled: false,
             default_prevent_sleep: true,
             auto_update: true,
-            allow_preloads: true,
-            update_channel: UpdateChannel::Stable,
-            mods_enabled_by_default: false,
-            default_mod_profile: "Default".into(),
+            voice_language: "en-us".into(),
             mod_root_path: if cfg!(windows) {
                 "~/AppData/Local/GachaHub/mods"
             } else {
@@ -169,12 +151,8 @@ impl Default for GlobalSettings {
             }
             .into(),
             default_mod_deployment_mode: ModDeploymentMode::Copy,
-            verify_before_launch: false,
-            debug_logging: false,
             xxmi_install_path: String::new(),
             xxmi_launcher_path: String::new(),
-            xxmi_wine_executable: "wine".into(),
-            xxmi_wine_prefix: "~/.local/share/gachahub/prefixes/xxmi".into(),
             xxmi_no_gui: true,
             xxmi_auto_update: true,
         }
@@ -200,11 +178,9 @@ pub struct GameSettings {
     pub mango_hud_enabled: Option<bool>,
     pub prevent_sleep: Option<bool>,
     pub auto_update: Option<bool>,
-    pub mods_enabled: Option<bool>,
     pub mod_library_path: Option<String>,
     pub active_mods_path: Option<String>,
     pub mod_deployment_mode: Option<ModDeploymentMode>,
-    pub verify_before_launch: Option<bool>,
     pub xxmi_enabled: bool,
     pub post_install_profile: Option<String>,
     pub post_install_applied_at: Option<String>,
@@ -231,11 +207,9 @@ impl Default for GameSettings {
             mango_hud_enabled: None,
             prevent_sleep: None,
             auto_update: None,
-            mods_enabled: None,
             mod_library_path: None,
             active_mods_path: None,
             mod_deployment_mode: None,
-            verify_before_launch: None,
             xxmi_enabled: false,
             post_install_profile: None,
             post_install_applied_at: None,
@@ -277,11 +251,6 @@ impl GameSettings {
         fill_bool(&mut self.mango_hud_enabled, detected.mango_hud_enabled);
         fill_bool(&mut self.prevent_sleep, detected.prevent_sleep);
         fill_bool(&mut self.auto_update, detected.auto_update);
-        fill_bool(&mut self.mods_enabled, detected.mods_enabled);
-        fill_bool(
-            &mut self.verify_before_launch,
-            detected.verify_before_launch,
-        );
         self.post_install_profile = Some(detected.post_install_profile.clone());
         self.post_install_applied_at = Some(detected.post_install_applied_at.clone());
     }
@@ -302,11 +271,11 @@ pub struct ResolvedGameSettings {
     pub game_mode_enabled: bool,
     pub mango_hud_enabled: bool,
     pub prevent_sleep: bool,
-    pub mods_enabled: bool,
     pub mod_library_path: String,
     pub active_mods_path: String,
     pub mod_deployment_mode: ModDeploymentMode,
     pub xxmi_enabled: bool,
+    pub auto_update: bool,
 }
 
 pub fn parse_environment_variables(value: &str) -> HashMap<String, String> {
@@ -363,7 +332,6 @@ pub fn resolve(
         game_mode_enabled: pick_bool(|g| g.game_mode_enabled, global.default_game_mode_enabled),
         mango_hud_enabled: pick_bool(|g| g.mango_hud_enabled, global.default_mango_hud_enabled),
         prevent_sleep: pick_bool(|g| g.prevent_sleep, global.default_prevent_sleep),
-        mods_enabled: pick_bool(|g| g.mods_enabled, global.mods_enabled_by_default),
         mod_library_path: pick_str(
             |g| &g.mod_library_path,
             format!("{}/{game_id}/library", global.mod_root_path),
@@ -374,6 +342,7 @@ pub fn resolve(
             .unwrap_or(global.default_mod_deployment_mode),
         // XXMI is a per-game launch toggle independent from the override switch.
         xxmi_enabled: game.map(|g| g.xxmi_enabled).unwrap_or(false),
+        auto_update: pick_bool(|g| g.auto_update, global.auto_update),
     }
 }
 

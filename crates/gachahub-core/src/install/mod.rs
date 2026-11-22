@@ -16,6 +16,9 @@ pub struct InstallJob {
     pub provider_mode: Option<String>,
     pub destination: Option<String>,
     pub message: Option<String>,
+    /// "install", "update" or "verify".
+    #[serde(default)]
+    pub kind: String,
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -40,5 +43,6 @@ pub fn create_install_job(game_id: &str) -> Result<InstallJob, InstallError> {
         provider_mode: None,
         destination: None,
         message: Some(format!("Queued for provider {provider_id}")),
+        kind: "install".into(),
     })
 }
