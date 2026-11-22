@@ -1,3 +1,21 @@
+# GachaHub v0.15.0 — Rust rewrite
+
+## Komplett auf Rust umgebaut
+
+- Das React/TypeScript-Frontend und Tauri wurden entfernt. GachaHub ist jetzt eine
+  native Rust-App (egui/eframe) ohne Node.js, WebView oder npm.
+- Backend-Logik als eigenständige Bibliothek `gachahub-core` (Cargo-Workspace).
+  Fortschritts-Events laufen über ein `EventSink` statt `AppHandle::emit`.
+- Einstellungen werden als JSON im Konfigurationsordner gespeichert statt im `localStorage`.
+
+## Neue Oberfläche
+
+- Animierte, farbige Spiel-Bühne mit Glow, Partikeln und großem Gradient-Play-Button.
+- Seitenleiste mit Spiele-Bibliothek (Sortieren/Entfernen per Rechtsklick) und Katalog-Dialog.
+- Überarbeitete Seiten für Downloads (inkl. ETA), Mods (Toggles, Suche), Runner und Einstellungen.
+- Inter-Schrift, Toast-Benachrichtigungen, Deutsch/Englisch umschaltbar.
+- Spielzeit-Tracking und automatische EXE-Erkennung beim Import bestehender Installationen.
+
 # GachaHub v0.14.2
 
 ## Upgrade repair

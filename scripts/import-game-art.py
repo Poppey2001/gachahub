@@ -22,7 +22,7 @@ parser.add_argument('--video', type=Path)
 args = parser.parse_args()
 
 root = Path(__file__).resolve().parents[1]
-out = root / 'public' / 'game-assets' / args.game_id
+out = root / 'assets' / 'game-assets' / args.game_id
 out.mkdir(parents=True, exist_ok=True)
 
 

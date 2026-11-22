@@ -1,50 +1,44 @@
-# GachaHub v0.11 architecture
-
-## XXMI
+# GachaHub architecture (v0.15, pure Rust)
 
 ```text
-React UI
-  |
-  +-- useXxmiStore
-  |     +-- local status
-  |     +-- install / update / repair / remove
-  |     +-- progress
-  |     +-- quick launch
-  |
-Tauri commands
-  |
-  +-- xxmi_manager_status
-  +-- install_xxmi
-  +-- repair_xxmi
-  +-- remove_xxmi
-  +-- launch_managed_xxmi
-  |
-Rust XXMI Manager
-  |
-  +-- official GitHub latest-release API
-  +-- Portable ZIP selector
-  +-- streaming download
-  +-- optional SHA-256 verification
-  +-- safe ZIP extraction
-  +-- managed state file
-  +-- importer detection
-  +-- Windows native launch / Linux Wine launch
+┌───────────────────────────── gachahub (crates/gachahub-app) ─────────────────────────────┐
+│  eframe/egui immediate-mode UI                                                            │
+│                                                                                           │
+│  app.rs        state, message loop, game rail, toasts, debounced config saving            │
+│  pages/        game stage · downloads · mods · runners · settings · catalog modal         │
+│  theme.rs      palette, Inter fonts, gradient/glow painters, custom widgets               │
+│  backend.rs    Tokio runtime + mpsc channel  ──►  Msg  ──►  UI (drained once per frame)   │
+└───────────────────────────────────────────┬───────────────────────────────────────────────┘
+                                            │ plain function calls / async fns
+┌───────────────────────────── gachahub-core (crates/gachahub-core) ───────────────────────┐
+│  games / compat      built-in manifests (games.json, compatibility.json)                  │
+│  providers           HoYoverse metadata (direct packages), other publishers stubbed       │
+│  download_manager    resumable HTTP-Range downloader, pause/cancel, MD5 verification      │
+│  launcher            native (Windows) / umu-run · wine (+ gamemode, gamescope, inhibit)  │
+│  runners             detect + install GE/DW/CachyOS/EM/Sarek Proton builds                │
+│  mod_manager         library ↔ active folder, copy/symlink, archives, conflicts           │
+│  xxmi                managed XXMI Launcher install/update + importer detection            │
+│  postinstall         per-game detection profiles (Genshin)                                │
+│  settings            Config { global, games, library } persisted as JSON                  │
+│  events              CoreEvent + EventSink (replaces Tauri's AppHandle::emit)             │
+└───────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-The official XXMI GUI remains responsible for the documented first-time Model Importer installation. Once GIMI/SRMI/ZZMI/WWMI/EFMI/HIMI is detected, GachaHub can use `--nogui --xxmi <IMPORTER>`.
+## Threading model
+
+- The UI thread never blocks. Network work runs as Tokio tasks, filesystem scans and process
+  spawns use `spawn_blocking`, file dialogs use `rfd`'s async API.
+- Every result is a `backend::Msg` sent through a channel; the sender also calls
+  `Context::request_repaint`, so the UI wakes up immediately.
+- Long-running jobs (downloads, XXMI install) report progress through an `EventSink`
+  closure that forwards `CoreEvent`s the same way.
+- Launched games are tracked by a small thread waiting on the child process; when it exits
+  the play time is added to the game's settings.
 
 ## Settings precedence
 
 ```text
-manual game value
-      >
-post-install detection (only fills unset fields)
-      >
-compatibility/global defaults
+manual per-game value  >  post-install detection (only fills unset fields)  >  global defaults
 ```
 
-Game-specific settings are enabled by default in v0.11.
-
-## Game download path
-
-The game provider/downloader is separate from XXMI. Genshin's current provider integration can resolve HoYo package metadata and direct packages; Sophon chunk assembly is still a later milestone.
+Per-game overrides are `Option<_>` fields; `None` means "inherit".

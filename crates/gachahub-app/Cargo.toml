@@ -1,0 +1,22 @@
+[package]
+name = "gachahub"
+description = "GachaHub – one native launcher for all your gacha games"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[[bin]]
+name = "gachahub"
+path = "src/main.rs"
+
+[dependencies]
+gachahub-core = { path = "../gachahub-core" }
+eframe = { version = "0.37", default-features = false, features = ["default_fonts", "glow", "wayland", "x11", "persistence"] }
+egui = { version = "0.37", features = ["monochrome_emoji_fonts"] }
+egui_extras = { version = "0.37", features = ["image", "file"] }
+image = { version = "0.25", default-features = false, features = ["png", "jpeg", "webp"] }
+rfd = { version = "0.18", default-features = false, features = ["xdg-portal", "pollster"] }
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "time", "sync"] }
+open = "5"
+directories = "6"

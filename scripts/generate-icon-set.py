@@ -9,7 +9,7 @@ if len(sys.argv) < 2:
 source = Path(sys.argv[1])
 root = Path(__file__).resolve().parents[1]
 icons = root / 'src-tauri' / 'icons'
-branding = root / 'public' / 'branding'
+branding = root / 'assets' / 'branding'
 icons.mkdir(parents=True, exist_ok=True)
 branding.mkdir(parents=True, exist_ok=True)
 

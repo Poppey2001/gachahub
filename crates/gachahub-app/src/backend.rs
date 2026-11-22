@@ -1,0 +1,166 @@
+//! Bridge between the immediate-mode UI thread and async core work.
+//!
+//! The UI never blocks: every slow operation (network, disk, process spawn,
+//! file dialogs) runs on a Tokio runtime and reports back through a channel
+//! that the UI drains once per frame.
+
+use eframe::egui;
+use gachahub_core::{
+    install::InstallJob,
+    launcher::LaunchResult,
+    mod_manager::ModSnapshot,
+    postinstall::PostInstallResult,
+    runners::{RunnerInfo, RunnerVersion},
+    xxmi::XxmiManagerStatus,
+    CoreEvent, EventSink,
+};
+use std::{
+    future::Future,
+    path::PathBuf,
+    sync::{mpsc, Arc},
+    time::Instant,
+};
+
+/// What a file/folder dialog result should be applied to.
+#[derive(Debug, Clone, PartialEq)]
+pub enum PickTarget {
+    GameInstallPath(String),
+    ImportExisting(String),
+    GameExecutable(String),
+    GamePrefix(String),
+    GameRunnerPath(String),
+    GameModLibrary(String),
+    GameActiveMods(String),
+    ImportModFolder(String),
+    ImportModArchive(String),
+    GlobalInstallPath,
+    GlobalPrefixBase,
+    GlobalModRoot,
+    GlobalRunnerPath,
+    XxmiInstallPath,
+    XxmiLauncherPath,
+}
+
+#[derive(Debug)]
+pub enum Msg {
+    Core(CoreEvent),
+    DownloadStarted(String, Result<InstallJob, String>),
+    Launched(String, Result<LaunchResult, String>),
+    SessionEnded(String, u64),
+    Runners(Vec<RunnerInfo>),
+    RunnerVersions(String, Result<Vec<RunnerVersion>, String>),
+    RunnerInstalled(Result<RunnerInfo, String>),
+    RunnerRemoved(Result<(), String>),
+    Xxmi(Result<XxmiManagerStatus, String>),
+    XxmiRemoved(Result<(), String>),
+    Mods(String, Result<ModSnapshot, String>),
+    PostInstall(String, Result<PostInstallResult, String>),
+    Picked(PickTarget, Option<PathBuf>),
+    Notice(Result<String, String>),
+}
+
+pub struct Backend {
+    rt: tokio::runtime::Runtime,
+    tx: mpsc::Sender<Msg>,
+    rx: mpsc::Receiver<Msg>,
+    ctx: egui::Context,
+}
+
+impl Backend {
+    pub fn new(ctx: egui::Context) -> Self {
+        let rt = tokio::runtime::Builder::new_multi_thread()
+            .worker_threads(4)
+            .enable_all()
+            .thread_name("gachahub-worker")
+            .build()
+            .expect("failed to start async runtime");
+        let (tx, rx) = mpsc::channel();
+        Self { rt, tx, rx, ctx }
+    }
+
+    pub fn drain(&self) -> Vec<Msg> {
+        self.rx.try_iter().collect()
+    }
+
+    pub fn sender(&self) -> Sender {
+        Sender {
+            tx: self.tx.clone(),
+            ctx: self.ctx.clone(),
+        }
+    }
+
+    pub fn event_sink(&self) -> EventSink {
+        let s = self.sender();
+        Arc::new(move |ev| s.send(Msg::Core(ev)))
+    }
+
+    /// Run an async task and deliver its message to the UI.
+    pub fn spawn<F>(&self, fut: F)
+    where
+        F: Future<Output = Msg> + Send + 'static,
+    {
+        let s = self.sender();
+        self.rt.spawn(async move { s.send(fut.await) });
+    }
+
+    /// Run blocking work (filesystem scans, process spawns) off the UI thread.
+    pub fn blocking<F>(&self, work: F)
+    where
+        F: FnOnce() -> Msg + Send + 'static,
+    {
+        let s = self.sender();
+        self.rt.spawn_blocking(move || s.send(work()));
+    }
+
+    pub fn pick_folder(&self, target: PickTarget, title: &str) {
+        let title = title.to_string();
+        self.spawn(async move {
+            let picked = rfd::AsyncFileDialog::new()
+                .set_title(title)
+                .pick_folder()
+                .await;
+            Msg::Picked(target, picked.map(|h| h.path().to_path_buf()))
+        });
+    }
+
+    pub fn pick_file(&self, target: PickTarget, title: &str, filters: &[(&str, &[&str])]) {
+        let title = title.to_string();
+        let filters: Vec<(String, Vec<String>)> = filters
+            .iter()
+            .map(|(n, e)| (n.to_string(), e.iter().map(|x| x.to_string()).collect()))
+            .collect();
+        self.spawn(async move {
+            let mut dialog = rfd::AsyncFileDialog::new().set_title(title);
+            for (name, exts) in &filters {
+                dialog = dialog.add_filter(name, exts);
+            }
+            let picked = dialog.pick_file().await;
+            Msg::Picked(target, picked.map(|h| h.path().to_path_buf()))
+        });
+    }
+}
+
+#[derive(Clone)]
+pub struct Sender {
+    tx: mpsc::Sender<Msg>,
+    ctx: egui::Context,
+}
+
+impl Sender {
+    pub fn send(&self, msg: Msg) {
+        let _ = self.tx.send(msg);
+        self.ctx.request_repaint();
+    }
+}
+
+/// Wait for a launched game process in the background and report its runtime.
+pub fn track_session(sender: Sender, game_id: String, mut child: std::process::Child) {
+    std::thread::Builder::new()
+        .name(format!("session-{game_id}"))
+        .spawn(move || {
+            let started = Instant::now();
+            let _ = child.wait();
+            sender.send(Msg::SessionEnded(game_id, started.elapsed().as_secs()));
+        })
+        .ok();
+}
