@@ -13,6 +13,12 @@
 - NTE im Katalog (Hotta Studio / Perfect World), Import einer bestehenden Installation
   mit automatischer EXE-Erkennung.
 
+## Releases
+
+- Release-Workflow baut bei jedem `v*`-Tag eine Windows-EXE (+ ZIP) und ein Linux-Paket
+  mit `install.sh`/`uninstall.sh`, Desktop-Eintrag und Icon und veröffentlicht sie als GitHub-Release.
+- Linux-Ein-Zeilen-Installer: `packaging/linux/get.sh`.
+
 ## Spiel-Icons
 
 - Eigene SVG-Icons für alle 8 Spiele in Seitenleiste, Katalog, Mods, Downloads und Einstellungen.

@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=GachaHub
+GenericName=Game Launcher
+Comment=One launcher for all your gacha games
+Exec=gachahub
+Icon=gachahub
+Terminal=false
+Categories=Game;
+Keywords=gacha;launcher;genshin;starrail;zzz;wuthering;nte;
+StartupWMClass=gachahub

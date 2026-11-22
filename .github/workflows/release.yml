@@ -1,25 +1,97 @@
-name: Desktop builds
+name: Release
 
+# Builds the Windows EXE and the Linux install package.
+#  - Push a tag like `v0.15.0`  -> builds and publishes a GitHub Release.
+#  - Run manually (Actions tab) -> builds and attaches the files as workflow artifacts.
 on:
+  push:
+    tags: ["v*"]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
+env:
+  CARGO_TERM_COLOR: always
+
 jobs:
-  build:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: ubuntu-latest
-            bin: target/release/gachahub
-          - os: windows-latest
-            bin: target/release/gachahub.exe
-    runs-on: ${{ matrix.os }}
+  windows:
+    name: Windows (EXE)
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
-      - run: cargo build --release -p gachahub
+      - name: Build
+        run: cargo build --release --locked -p gachahub
+      - name: Package
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force dist/gachahub-windows-x64 | Out-Null
+          Copy-Item target/release/gachahub.exe dist/gachahub.exe
+          Copy-Item target/release/gachahub.exe dist/gachahub-windows-x64/
+          Copy-Item README.md, CHANGELOG.md dist/gachahub-windows-x64/
+          Compress-Archive -Path dist/gachahub-windows-x64/* -DestinationPath dist/gachahub-windows-x64.zip
       - uses: actions/upload-artifact@v4
         with:
-          name: gachahub-${{ matrix.os }}
-          path: ${{ matrix.bin }}
+          name: gachahub-windows
+          path: |
+            dist/gachahub.exe
+            dist/gachahub-windows-x64.zip
+
+  linux:
+    name: Linux (install package)
+    # Older Ubuntu = older glibc, so the binary also runs on older distributions.
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Build
+        run: cargo build --release --locked -p gachahub
+      - name: Package
+        run: |
+          PKG=dist/gachahub-linux-x86_64
+          mkdir -p "$PKG"
+          install -m755 target/release/gachahub "$PKG/gachahub"
+          install -m644 assets/branding/gachahub-icon.png "$PKG/gachahub.png"
+          install -m644 packaging/linux/gachahub.desktop "$PKG/"
+          install -m755 packaging/linux/install.sh packaging/linux/uninstall.sh "$PKG/"
+          install -m644 README.md CHANGELOG.md "$PKG/"
+          tar -C dist -czf dist/gachahub-linux-x86_64.tar.gz gachahub-linux-x86_64
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gachahub-linux
+          path: dist/gachahub-linux-x86_64.tar.gz
+
+  publish:
+    name: Publish GitHub Release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [windows, linux]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - uses: softprops/action-gh-release@v2
+        with:
+          name: GachaHub ${{ github.ref_name }}
+          generate_release_notes: true
+          files: |
+            dist/gachahub.exe
+            dist/gachahub-windows-x64.zip
+            dist/gachahub-linux-x86_64.tar.gz
+          body: |
+            ## Download
+
+            **Windows:** `gachahub.exe` herunterladen und starten (portabel, keine Installation nötig).
+            Alternativ `gachahub-windows-x64.zip`.
+
+            **Linux:** im Terminal
+
+            ```bash
+            curl -fsSL https://raw.githubusercontent.com/Poppey2001/gachahub/main/packaging/linux/get.sh | bash
+            ```
+
+            oder `gachahub-linux-x86_64.tar.gz` entpacken und `./install.sh` ausführen.

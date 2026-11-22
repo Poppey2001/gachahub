@@ -35,7 +35,33 @@ Spiele ohne eigenen GachaHub-Downloader (z. B. NTE, Wuthering Waves, Arknights) 
 du einmal mit dem offiziellen Launcher und klickst dann auf **Spiel importieren** – die
 Spiel-EXE wird automatisch gefunden.
 
-## Bauen & Starten
+## Download & Installation
+
+Fertige Builds gibt es unter **Releases** auf GitHub.
+
+**Windows:** `gachahub.exe` herunterladen und starten – portabel, keine Installation und
+kein Rust nötig. (SmartScreen-Warnung: „Weitere Informationen“ → „Trotzdem ausführen“.)
+
+**Linux** (x86_64), eine Zeile im Terminal:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Poppey2001/gachahub/main/packaging/linux/get.sh | bash
+```
+
+Oder `gachahub-linux-x86_64.tar.gz` herunterladen, entpacken und `./install.sh` ausführen
+(`sudo ./install.sh --system` für alle Benutzer). GachaHub erscheint danach im Anwendungsmenü.
+Deinstallieren: `~/.local/share/gachahub/uninstall.sh`.
+
+### Neues Release erstellen
+
+```bash
+git tag v0.15.0 && git push origin v0.15.0
+```
+
+Der Workflow *Release* baut dann EXE + Linux-Paket und veröffentlicht sie als GitHub-Release.
+Manuell gestartet (Actions → Release → *Run workflow*) landen die Dateien als Artefakte am Lauf.
+
+## Selbst bauen
 
 Voraussetzung: [Rust](https://rustup.rs) (stable).
 
