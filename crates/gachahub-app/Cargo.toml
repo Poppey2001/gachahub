@@ -10,6 +10,9 @@ authors.workspace = true
 name = "gachahub"
 path = "src/main.rs"
 
+[build-dependencies]
+winresource = "0.1"
+
 [dependencies]
 gachahub-core = { path = "../gachahub-core" }
 eframe = { version = "0.37", default-features = false, features = ["default_fonts", "glow", "wayland", "x11", "persistence"] }

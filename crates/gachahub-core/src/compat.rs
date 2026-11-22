@@ -74,7 +74,11 @@ mod tests {
         let games = crate::GameRegistry::builtin().games;
         assert!(!games.is_empty());
         for game in &games {
-            assert!(super::preset_for(&game.id).is_some(), "missing compatibility preset for {}", game.id);
+            assert!(
+                super::preset_for(&game.id).is_some(),
+                "missing compatibility preset for {}",
+                game.id
+            );
         }
     }
 }

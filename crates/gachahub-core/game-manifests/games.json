@@ -199,5 +199,33 @@
       "icon": "/game-assets/gfl2/icon.webp"
     },
     "xxmiImporter": null
+  },
+  {
+    "id": "nte",
+    "name": "Neverness to Everness",
+    "shortName": "NTE",
+    "subtitle": "Supernatural urban open-world RPG",
+    "publisher": "Hotta Studio / Perfect World",
+    "provider": "perfectworld",
+    "platforms": [
+      "Windows",
+      "Linux (untested, Proton)"
+    ],
+    "installModes": [
+      "Official launcher import"
+    ],
+    "status": "not_installed",
+    "modPolicy": "disabled",
+    "accent": "#b48cff",
+    "accent2": "#ff6fb5",
+    "version": "Latest",
+    "notes": "Install NTE with its official launcher, then click “Import game” and select the game folder. Anti-cheat protected – mods stay disabled.",
+    "assets": {
+      "background": null,
+      "video": null,
+      "logo": null,
+      "icon": null
+    },
+    "xxmiImporter": null
   }
 ]

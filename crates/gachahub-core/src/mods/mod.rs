@@ -12,6 +12,7 @@ pub fn policy_for(game_id: &str) -> Option<ModPolicy> {
     Some(match game_id {
         "endfield" | "hsr" => ModPolicy::Restricted,
         "arknights" | "genshin" | "zzz" | "wuwa" | "gfl2" => ModPolicy::Supported,
+        "nte" => ModPolicy::Disabled,
         _ => return None,
     })
 }

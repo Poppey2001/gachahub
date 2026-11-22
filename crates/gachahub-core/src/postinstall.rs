@@ -134,7 +134,9 @@ fn run_script(
         extension
     ));
     fs::write(&file, script).map_err(|e| format!("post-install script write failed: {e}"))?;
+    use std::os::windows::process::CommandExt;
     let output = Command::new("powershell")
+        .creation_flags(0x0800_0000) // CREATE_NO_WINDOW
         .args(["-NoProfile", "-ExecutionPolicy", "Bypass", "-File"])
         .arg(&file)
         .arg("-InstallPath")

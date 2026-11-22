@@ -83,6 +83,12 @@ fn safe_file_name(raw: &str, index: usize) -> String {
     }
 }
 
+/// Whether GachaHub can download this game itself (otherwise: import an
+/// installation made with the publisher's official launcher).
+pub fn supports_direct_download(game_id: &str) -> bool {
+    matches!(game_id, "genshin" | "hsr" | "zzz" | "hi3")
+}
+
 pub async fn resolve_plan(game_id: &str) -> Result<ProviderDownloadPlan, String> {
     match game_id {
         "genshin" | "hsr" | "zzz" | "hi3" => providers::hoyoverse::fetch_download_plan(game_id)

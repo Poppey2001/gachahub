@@ -2,6 +2,7 @@ mod gryphline;
 pub mod hoyoverse;
 mod hypergryph;
 mod kuro;
+mod perfectworld;
 mod sunborn;
 
 use serde::{Deserialize, Serialize};
@@ -50,6 +51,7 @@ pub fn provider_for(game_id: &str) -> Option<Box<dyn GameProvider>> {
         Box::new(gryphline::GryphlineProvider),
         Box::new(kuro::KuroProvider),
         Box::new(sunborn::SunbornProvider),
+        Box::new(perfectworld::PerfectWorldProvider),
     ];
     providers.into_iter().find(|p| p.supports(game_id))
 }

@@ -252,5 +252,35 @@
       "label": "Library only",
       "note": "Kein XXMI-Importer hinterlegt. Mod-Library/Import kann genutzt werden; automatisches Deployment benötigt später einen eigenen Adapter."
     }
+  },
+  {
+    "gameId": "nte",
+    "checkedAt": "2026-11-22",
+    "windows": {
+      "state": "native",
+      "label": "Nativer PC-Client"
+    },
+    "linux": {
+      "state": "unknown",
+      "label": "Noch ungetestet – Anti-Cheat kann Proton blockieren",
+      "recommendedRuntime": "ge-proton",
+      "recommendedRunner": "GE-Proton (aktuell)",
+      "runnerCandidates": [
+        "GE-Proton (aktuell)",
+        "Proton Experimental"
+      ],
+      "blockedRunners": [],
+      "launchArguments": "",
+      "environmentVariables": "",
+      "notes": [
+        "Für Linux liegen GachaHub noch keine verlässlichen Berichte vor.",
+        "Spiele mit Kernel-Anti-Cheat starten unter Proton oft nicht – unter Windows läuft NTE nativ."
+      ]
+    },
+    "modding": {
+      "backend": "none",
+      "label": "Keine Mods",
+      "note": "Anti-Cheat-geschützt – GachaHub aktiviert hier keine Mods."
+    }
   }
 ]

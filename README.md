@@ -2,7 +2,7 @@
 
 **Ein Launcher für alle Gacha-Spiele – komplett in Rust.**
 Schluss mit „download every gacha launcher on earth“: Genshin Impact, Honkai: Star Rail,
-Zenless Zone Zero, Wuthering Waves, Arknights, Arknights: Endfield und GIRLS' FRONTLINE 2
+Zenless Zone Zero, Wuthering Waves, Neverness to Everness (NTE), Arknights, Arknights: Endfield und GIRLS' FRONTLINE 2
 in einer einzigen, nativen App.
 
 Ab v0.15 gibt es kein Web-Frontend mehr: Kein Node.js, kein WebView, kein Tauri. Die
@@ -24,6 +24,17 @@ eigenständige Rust-Bibliothek.
 - **XXMI** – XXMI Launcher automatisch installieren/aktualisieren, Spiele mit GIMI/SRMI/ZZMI/WWMI/EFMI starten.
 - **Spielzeit-Tracking**, **Deutsch/Englisch**, Einstellungen global und pro Spiel.
 
+## Windows & Linux
+
+- **Windows**: Spiele starten nativ. Verlangt ein Spiel Administratorrechte (Anti-Cheat),
+  fragt GachaHub automatisch per UAC nach. Die `gachahub.exe` enthält das App-Icon und
+  öffnet kein Konsolenfenster.
+- **Linux**: Start über `umu-run`/Proton oder Wine, optional mit GameMode, Gamescope, MangoHud.
+
+Spiele ohne eigenen GachaHub-Downloader (z. B. NTE, Wuthering Waves, Arknights) installierst
+du einmal mit dem offiziellen Launcher und klickst dann auf **Spiel importieren** – die
+Spiel-EXE wird automatisch gefunden.
+
 ## Bauen & Starten
 
 Voraussetzung: [Rust](https://rustup.rs) (stable).
@@ -32,7 +43,9 @@ Voraussetzung: [Rust](https://rustup.rs) (stable).
 cargo run --release
 ```
 
-Das Binary liegt danach unter `target/release/gachahub` (Windows: `gachahub.exe`).
+Das Binary liegt danach unter `target/release/gachahub` (Windows: `target\release\gachahub.exe`).
+Unter Windows reicht die Rust-Installation mit den MSVC Build Tools (Visual Studio Installer →
+„Desktopentwicklung mit C++“).
 
 Unter Linux werden zur Laufzeit die üblichen Grafik-/Fenster-Bibliotheken
 (X11 oder Wayland, OpenGL) benötigt – auf jedem Desktop-System sind diese vorhanden.

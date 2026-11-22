@@ -1,3 +1,4 @@
+#![cfg_attr(windows, allow(dead_code))]
 use serde::Serialize;
 use std::{
     collections::HashMap,
@@ -106,31 +107,76 @@ pub fn launch(
     _mango_hud_enabled: bool,
     _prevent_sleep: bool,
 ) -> Result<(LaunchResult, std::process::Child), String> {
-    let exe = expand_home(executable_path);
+    use std::os::windows::process::CommandExt;
+    const CREATE_NO_WINDOW: u32 = 0x0800_0000;
+    const ERROR_ELEVATION_REQUIRED: i32 = 740;
+
+    let exe = crate::expand_user(executable_path)
+        .to_string_lossy()
+        .into_owned();
     if !Path::new(&exe).is_file() {
         return Err(format!("Game executable not found: {exe}"));
     }
+    let args = split_args(launch_arguments);
+    let workdir = Path::new(&exe).parent().map(|p| p.to_path_buf());
+
     let mut cmd = Command::new(&exe);
-    cmd.args(split_args(launch_arguments));
-    for (key, value) in environment_variables {
+    cmd.args(&args);
+    for (key, value) in &environment_variables {
         cmd.env(key, value);
     }
-    if let Some(parent) = Path::new(&exe).parent() {
-        cmd.current_dir(parent);
+    if let Some(dir) = &workdir {
+        cmd.current_dir(dir);
     }
-    let child = cmd
-        .spawn()
-        .map_err(|e| format!("failed to start game: {e}"))?;
+    let (child, preview) = match cmd.spawn() {
+        Ok(child) => (child, "native executable".to_string()),
+        // Most gacha clients (anti-cheat) demand administrator rights. CreateProcess
+        // cannot trigger UAC, so ask PowerShell to start it elevated and wait for it,
+        // which keeps play-time tracking working.
+        Err(e) if e.raw_os_error() == Some(ERROR_ELEVATION_REQUIRED) => {
+            let quote = |v: &str| format!("'{}'", v.replace('\'', "''"));
+            let mut script = format!("Start-Process -FilePath {} -Verb RunAs -Wait", quote(&exe));
+            if !args.is_empty() {
+                let list: Vec<String> = args.iter().map(|a| quote(a)).collect();
+                script.push_str(&format!(" -ArgumentList {}", list.join(",")));
+            }
+            if let Some(dir) = &workdir {
+                script.push_str(&format!(
+                    " -WorkingDirectory {}",
+                    quote(&dir.to_string_lossy())
+                ));
+            }
+            let mut elevated = Command::new("powershell");
+            elevated
+                .args([
+                    "-NoProfile",
+                    "-NonInteractive",
+                    "-WindowStyle",
+                    "Hidden",
+                    "-Command",
+                    &script,
+                ])
+                .creation_flags(CREATE_NO_WINDOW);
+            for (key, value) in &environment_variables {
+                elevated.env(key, value);
+            }
+            let child = elevated
+                .spawn()
+                .map_err(|e| format!("failed to start game with administrator rights: {e}"))?;
+            (child, "elevated (UAC) native executable".to_string())
+        }
+        Err(e) => return Err(format!("failed to start game: {e}")),
+    };
     Ok((
         LaunchResult {
             pid: child.id(),
             game_id: game_id.into(),
             runtime: "native".into(),
             executable_path: exe,
-            prefix_path: expand_home(prefix_path),
+            prefix_path: prefix_path.into(),
             runner_version: runner_version.into(),
-            runner_path: expand_home(runner_path),
-            command_preview: "native executable".into(),
+            runner_path: runner_path.into(),
+            command_preview: preview,
         },
         child,
     ))

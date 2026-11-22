@@ -1,3 +1,4 @@
+#![cfg_attr(windows, allow(dead_code))]
 use flate2::read::GzDecoder;
 use serde::{Deserialize, Serialize};
 use std::{

@@ -8,6 +8,17 @@
   Fortschritts-Events laufen über ein `EventSink` statt `AppHandle::emit`.
 - Einstellungen werden als JSON im Konfigurationsordner gespeichert statt im `localStorage`.
 
+## Neu: Neverness to Everness (NTE)
+
+- NTE im Katalog (Hotta Studio / Perfect World), Import einer bestehenden Installation
+  mit automatischer EXE-Erkennung.
+
+## Windows
+
+- Automatische UAC-Elevation, wenn ein Spiel Administratorrechte verlangt (Spielzeit wird weiter erfasst).
+- Windows-Standardpfade (`%LOCALAPPDATA%\GachaHub`), App-Icon in der EXE, kein Konsolenfenster.
+- CI baut und testet unter Windows und Linux.
+
 ## Neue Oberfläche
 
 - Animierte, farbige Spiel-Bühne mit Glow, Partikeln und großem Gradient-Play-Button.

@@ -233,6 +233,7 @@ impl GachaHubApp {
         let compat = compat::preset_for(&game.id);
         let job = self.job_for(&game.id).cloned();
         let installed = !resolved.executable_path.is_empty();
+        let downloadable = gachahub_core::download_manager::supports_direct_download(&game.id);
         let xxmi_ready = game
             .xxmi_importer
             .as_ref()
@@ -328,8 +329,10 @@ impl GachaHubApp {
                             ("●", tr("Läuft", "Running"))
                         } else if installed {
                             ("▶", tr("SPIELEN", "PLAY"))
-                        } else {
+                        } else if downloadable {
                             ("⬇", tr("INSTALLIEREN", "INSTALL"))
+                        } else {
+                            ("📂", tr("SPIEL IMPORTIEREN", "IMPORT GAME"))
                         };
                         let resp = ui.add(
                             CtaButton::new(icon, label, a, b)
@@ -338,17 +341,27 @@ impl GachaHubApp {
                         if resp.clicked() {
                             if installed {
                                 self.launch(&game.id);
-                            } else {
+                            } else if downloadable {
                                 self.start_install(&game.id);
+                            } else {
+                                self.backend.pick_folder(
+                                    PickTarget::ImportExisting(game.id.clone()),
+                                    &format!(
+                                        "{}: {}",
+                                        game.name,
+                                        tr("Installationsordner wählen", "choose install folder")
+                                    ),
+                                );
                             }
                         }
                         ui.add_space(4.0);
-                        if theme::ghost_button(
-                            ui,
-                            "📂",
-                            tr("Vorhandene Installation", "Existing install"),
-                        )
-                        .clicked()
+                        if (installed || downloadable)
+                            && theme::ghost_button(
+                                ui,
+                                "📂",
+                                tr("Vorhandene Installation", "Existing install"),
+                            )
+                            .clicked()
                         {
                             self.backend.pick_folder(
                                 PickTarget::ImportExisting(game.id.clone()),
@@ -580,15 +593,19 @@ impl GachaHubApp {
             ),
             (
                 tr("LAUFZEIT", "RUNTIME"),
-                format!(
-                    "{} · {}",
-                    resolved.runtime.label(),
-                    if resolved.runner_version.is_empty() {
-                        "default"
-                    } else {
-                        &resolved.runner_version
-                    }
-                ),
+                if cfg!(windows) {
+                    tr("Nativ (Windows)", "Native (Windows)").to_string()
+                } else {
+                    format!(
+                        "{} · {}",
+                        resolved.runtime.label(),
+                        if resolved.runner_version.is_empty() {
+                            "default"
+                        } else {
+                            &resolved.runner_version
+                        }
+                    )
+                },
             ),
             (tr("SPIELZEIT", "PLAYTIME"), theme::fmt_duration(playtime)),
         ];

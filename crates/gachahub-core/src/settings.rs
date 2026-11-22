@@ -140,10 +140,19 @@ impl Default for GlobalSettings {
             default_install_path: "~/Games/GachaHub/Games".into(),
             parallel_downloads: 8,
             bandwidth_limit_mbps: None,
-            default_runtime: RuntimeKind::Auto,
-            default_runner_version: "GE-Proton".into(),
+            default_runtime: if cfg!(windows) {
+                RuntimeKind::Native
+            } else {
+                RuntimeKind::Auto
+            },
+            default_runner_version: if cfg!(windows) { "" } else { "GE-Proton" }.into(),
             default_runner_path: String::new(),
-            prefix_base_path: "~/.local/share/gachahub/prefixes".into(),
+            prefix_base_path: if cfg!(windows) {
+                "~/AppData/Local/GachaHub/prefixes"
+            } else {
+                "~/.local/share/gachahub/prefixes"
+            }
+            .into(),
             default_gamescope_enabled: false,
             default_game_mode_enabled: false,
             default_mango_hud_enabled: false,
@@ -153,7 +162,12 @@ impl Default for GlobalSettings {
             update_channel: UpdateChannel::Stable,
             mods_enabled_by_default: false,
             default_mod_profile: "Default".into(),
-            mod_root_path: "~/.local/share/gachahub/mods".into(),
+            mod_root_path: if cfg!(windows) {
+                "~/AppData/Local/GachaHub/mods"
+            } else {
+                "~/.local/share/gachahub/mods"
+            }
+            .into(),
             default_mod_deployment_mode: ModDeploymentMode::Copy,
             verify_before_launch: false,
             debug_logging: false,

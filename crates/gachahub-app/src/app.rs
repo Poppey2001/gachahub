@@ -123,7 +123,12 @@ fn find_asset(dirs: &[PathBuf], game_id: &str, stem: &str) -> Option<String> {
         for ext in ["webp", "png", "jpg", "jpeg"] {
             let path = dir.join(game_id).join(format!("{stem}.{ext}"));
             if path.is_file() {
-                let path = path.canonicalize().unwrap_or(path);
+                // (canonicalize would add a `\\?\` prefix on Windows)
+                let path = if cfg!(windows) {
+                    path
+                } else {
+                    path.canonicalize().unwrap_or(path)
+                };
                 return Some(format!("file://{}", path.display()));
             }
         }
@@ -1045,7 +1050,8 @@ pub fn find_executable(root: &Path, game_id: &str) -> Option<PathBuf> {
         "gfl2" => &["GF2_Exilium.exe"],
         _ => &[],
     };
-    let mut fallback = None;
+    // Fallback: the biggest plausible .exe is almost always the game binary.
+    let mut fallback: Option<(u64, PathBuf)> = None;
     let mut stack = vec![(root.to_path_buf(), 0usize)];
     while let Some((dir, depth)) = stack.pop() {
         let Ok(entries) = std::fs::read_dir(&dir) else {
@@ -1054,7 +1060,7 @@ pub fn find_executable(root: &Path, game_id: &str) -> Option<PathBuf> {
         for entry in entries.flatten() {
             let path = entry.path();
             if path.is_dir() {
-                if depth < 4 {
+                if depth < 5 {
                     stack.push((path, depth + 1));
                 }
                 continue;
@@ -1064,25 +1070,31 @@ pub fn find_executable(root: &Path, game_id: &str) -> Option<PathBuf> {
                 return Some(path);
             }
             let lower = name.to_ascii_lowercase();
-            if fallback.is_none()
-                && lower.ends_with(".exe")
-                && ![
-                    "unins",
-                    "crash",
-                    "launcher",
-                    "setup",
-                    "update",
-                    "vc_redist",
-                    "dxsetup",
-                ]
-                .iter()
-                .any(|b| lower.contains(b))
-            {
-                fallback = Some(path);
+            let blocked = [
+                "unins",
+                "crash",
+                "launcher",
+                "setup",
+                "update",
+                "redist",
+                "dxsetup",
+                "cefsubprocess",
+                "helper",
+                "report",
+                "installer",
+                "repair",
+                "uploader",
+                "bugreport",
+            ];
+            if lower.ends_with(".exe") && !blocked.iter().any(|b| lower.contains(b)) {
+                let size = entry.metadata().map(|m| m.len()).unwrap_or(0);
+                if fallback.as_ref().is_none_or(|(best, _)| size > *best) {
+                    fallback = Some((size, path));
+                }
             }
         }
     }
-    fallback
+    fallback.map(|(_, p)| p)
 }
 
 impl eframe::App for GachaHubApp {
