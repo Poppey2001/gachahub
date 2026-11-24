@@ -1212,6 +1212,19 @@ impl GachaHubApp {
     // ------------------------------------------------------------ actions
 
     pub fn start_install(&mut self, game_id: &str) {
+        let needs_edition = self
+            .game(game_id)
+            .is_some_and(|g| !g.official_launchers.is_empty())
+            && self
+                .cfg
+                .games
+                .get(game_id)
+                .and_then(|g| g.edition.as_ref())
+                .is_none();
+        if needs_edition {
+            self.edition_picker = Some(game_id.to_string());
+            return;
+        }
         self.start_job(game_id, JobKind::Install);
     }
 
@@ -1224,6 +1237,7 @@ impl GachaHubApp {
             parallel: g.parallel_downloads.max(1) as usize,
             bandwidth_limit_mbps: g.bandwidth_limit_mbps,
             voice_language: g.voice_language.clone(),
+            edition: self.cfg.games.get(game_id).and_then(|g| g.edition.clone()),
         };
         let sink = self.sink.clone();
         let gid = game_id.to_string();
@@ -1268,8 +1282,11 @@ impl GachaHubApp {
                 continue;
             }
             let gid = id.clone();
+            let edition = self.cfg.games.get(&id).and_then(|g| g.edition.clone());
             self.backend.spawn(async move {
-                let res = gachahub_core::download_manager::latest_version(&gid).await;
+                let res =
+                    gachahub_core::download_manager::latest_version_for(&gid, edition.as_deref())
+                        .await;
                 Msg::LatestVersion(gid, res)
             });
         }

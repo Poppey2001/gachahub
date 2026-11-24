@@ -29,9 +29,8 @@ eigenständige Rust-Bibliothek.
 
 | Weg | Spiele |
 |---|---|
-| Direkt in GachaHub herunterladen | Genshin Impact, Honkai: Star Rail, Zenless Zone Zero, Honkai Impact 3rd (HoYoPlay/Sophon), Wuthering Waves (Kuro) |
+| Direkt in GachaHub herunterladen | Genshin Impact, Honkai: Star Rail, Zenless Zone Zero, Honkai Impact 3rd (HoYoPlay/Sophon), Wuthering Waves (Kuro), GFL2 – Global (Darkwinter) oder Asien (Haoplay) |
 | Über Steam (GachaHub öffnet Steam, erkennt die Installation und startet über Steam) | GFL2, Wuthering Waves, Blue Archive, Limbus Company, Snowbreak, Reverse: 1999, Tower of Fantasy, Punishing: Gray Raven |
-| Offizieller Installer über GachaHub (Version wählbar, Spiel wird danach automatisch erkannt) | GFL2: Global (Darkwinter) oder Asien (Haoplay) |
 | Offizieller Launcher + „Spiel importieren“ | alle übrigen, z. B. NTE, Arknights |
 
 Bereits über Steam installierte Spiele findet GachaHub beim Start automatisch.

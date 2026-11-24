@@ -68,6 +68,8 @@ pub struct DownloadOptions {
     pub bandwidth_limit_mbps: Option<u32>,
     /// Voice pack language, HoYoPlay code like `en-us`, `ja-jp`, `zh-cn`, `ko-kr`.
     pub voice_language: String,
+    /// Edition for games with several official builds (GFL2: "darkwinter" / "haoplay").
+    pub edition: Option<String>,
 }
 
 impl Default for DownloadOptions {
@@ -77,6 +79,7 @@ impl Default for DownloadOptions {
             parallel: 8,
             bandwidth_limit_mbps: None,
             voice_language: "en-us".into(),
+            edition: None,
         }
     }
 }
@@ -280,7 +283,9 @@ where
 /// Whether GachaHub can download this game itself (otherwise: import an
 /// installation made with the publisher's official launcher).
 pub fn supports_direct_download(game_id: &str) -> bool {
-    matches!(game_id, "genshin" | "hsr" | "zzz" | "hi3") || crate::kuro::supports(game_id)
+    matches!(game_id, "genshin" | "hsr" | "zzz" | "hi3")
+        || crate::kuro::supports(game_id)
+        || crate::sunborn::supports(game_id)
 }
 
 pub async fn resolve_plan(
@@ -318,10 +323,20 @@ pub fn installed_version(install_path: &str) -> Option<String> {
 
 /// Latest version published by the provider.
 pub async fn latest_version(game_id: &str) -> Result<String, String> {
+    latest_version_for(game_id, None).await
+}
+
+/// Latest version of a specific edition (GFL2: Darkwinter / Haoplay).
+pub async fn latest_version_for(game_id: &str, edition: Option<&str>) -> Result<String, String> {
     if !supports_direct_download(game_id) {
         return Err(format!("no update source for {game_id}"));
     }
     let client = http_client(Some(Duration::from_secs(30)))?;
+    if crate::sunborn::supports(game_id) {
+        return crate::sunborn::fetch_plug(&client, crate::sunborn::config_url(edition))
+            .await
+            .map(|p| p.version());
+    }
     if crate::kuro::supports(game_id) {
         return crate::kuro::fetch_index(&client, game_id)
             .await
@@ -364,6 +379,10 @@ enum Source {
     Direct {
         plan: ProviderDownloadPlan,
     },
+    /// GFL2: client zip + asset bundles.
+    Gf2 {
+        build: crate::sunborn::Build,
+    },
 }
 
 pub async fn start(
@@ -376,7 +395,12 @@ pub async fn start(
 
     // Kuro games: file list from the Kuro launcher index.
     // HoYoverse: prefer Sophon; fall back to classic packages for fresh installs.
-    let source = if crate::kuro::supports(&game_id) {
+    let source = if crate::sunborn::supports(&game_id) {
+        let url = crate::sunborn::config_url(opts.edition.as_deref());
+        Ok(Source::Gf2 {
+            build: crate::sunborn::fetch_build(&client, url).await?,
+        })
+    } else if crate::kuro::supports(&game_id) {
         Ok(Source::Files {
             build: crate::kuro::fetch_build(&client, &game_id).await?,
         })
@@ -433,6 +457,7 @@ pub async fn start(
             "files",
             build.files.iter().map(|f| f.size).sum(),
         ),
+        Source::Gf2 { build } => (build.version(), "gf2", build.bundle_bytes()),
     };
     let job = InstallJob {
         id: id.clone(),
@@ -486,6 +511,7 @@ pub async fn start(
                 Source::Files { build } => {
                     run_files(&tracker, &build.files, &destination, &opts).await?
                 }
+                Source::Gf2 { build } => run_gf2(&tracker, &build, &destination, &opts).await?,
             }
             fs::write(destination.join(VERSION_FILE), &version)
                 .await
@@ -871,6 +897,54 @@ async fn run_files(
         .await;
     save_index(root, &index).await;
     result
+}
+
+/// GFL2: (re)install the client when its version changed, then the bundles.
+async fn run_gf2(
+    tracker: &Arc<Tracker>,
+    build: &crate::sunborn::Build,
+    root: &Path,
+    opts: &DownloadOptions,
+) -> Result<(), String> {
+    use crate::sunborn;
+    let client_version = &build.plug.client_version;
+    if sunborn::installed_client(root).as_deref() != Some(client_version.as_str()) {
+        let mut plan = ProviderDownloadPlan {
+            game_id: "gfl2".into(),
+            provider: "sunborn".into(),
+            version: client_version.clone(),
+            mode: "client".into(),
+            packages: vec![crate::providers::PackageFile {
+                url: build.plug.client_url(),
+                destination: sunborn::CLIENT_PACKAGE.into(),
+                size: 0,
+                hash: None,
+            }],
+            total_bytes: 0,
+            resource_list_url: None,
+            notes: Vec::new(),
+        };
+        let client = http_client(Some(Duration::from_secs(30)))?;
+        fill_missing_sizes(&client, &mut plan).await;
+        tracker.total.store(plan.total_bytes, Ordering::Relaxed);
+        tracker.done.store(0, Ordering::Relaxed);
+        run_direct(tracker, &plan, root).await?;
+        if !root.join(sunborn::EXE).is_file() {
+            return Err(format!(
+                "the GFL2 client {client_version} was unpacked without {} – please retry",
+                sunborn::EXE
+            ));
+        }
+        fs::write(root.join(sunborn::CLIENT_MARKER), client_version)
+            .await
+            .map_err(|e| format!("cannot write client marker: {e}"))?;
+    }
+    tracker.done.store(0, Ordering::Relaxed);
+    run_files(tracker, &build.files(), root, opts).await?;
+    let (root, build) = (root.to_path_buf(), build.clone());
+    tokio::task::spawn_blocking(move || sunborn::write_local_manifest(&root, &build))
+        .await
+        .map_err(|e| format!("manifest task failed: {e}"))?
 }
 
 async fn plain_file(
@@ -1699,6 +1773,131 @@ mod tests {
             std::fs::read(root.join("Client/Content/Paks/a.pak")).unwrap(),
             pak
         );
+        let _ = std::fs::remove_dir_all(&root);
+    }
+
+    #[tokio::test]
+    async fn gf2_client_and_bundles_install_update_and_repair() {
+        use std::io::Write;
+        std::env::set_var("NO_PROXY", "127.0.0.1");
+        std::env::set_var("no_proxy", "127.0.0.1");
+        let mut zip_bytes = std::io::Cursor::new(Vec::new());
+        {
+            let mut zip = zip::ZipWriter::new(&mut zip_bytes);
+            let o = zip::write::SimpleFileOptions::default();
+            zip.start_file("GF2_Exilium.exe", o).unwrap();
+            zip.write_all(&vec![3u8; 30_000]).unwrap();
+            zip.start_file("UnityPlayer.dll", o).unwrap();
+            zip.write_all(b"unity").unwrap();
+            zip.finish().unwrap();
+        }
+        let a = b"bundle a".to_vec();
+        let b = vec![9u8; 5000];
+        let voice = b"voice".to_vec();
+        let line = |name: &str, data: &[u8], bucket: &str| {
+            format!(
+                "{{0}}/{name}#{:X}#{}#{bucket}\n",
+                md5::compute(data),
+                data.len()
+            )
+        };
+        let voice_name = "JA0123456789abcdef0123456789abcdef.pck";
+        let version_txt = format!(
+            "{}{}{}",
+            line("a.bundle", &a, "27767"),
+            line("b.bundle", &b, "27700"),
+            line(voice_name, &voice, "27700")
+        );
+        let mut served = HashMap::new();
+        served.insert(
+            "/client/1.0.3/GF2_Exilium_Origin.zip".to_string(),
+            zip_bytes.into_inner(),
+        );
+        served.insert(
+            "/res/AssetBundles_Windows/27767/Version.txt".to_string(),
+            version_txt.into_bytes(),
+        );
+        served.insert(
+            "/res/AssetBundles_Windows/27767/a.bundle".to_string(),
+            a.clone(),
+        );
+        served.insert(
+            "/res/AssetBundles_Windows/27700/b.bundle".to_string(),
+            b.clone(),
+        );
+        let base = serve(served).await;
+        let plug = serde_json::json!({
+            "game_client_version": "1.0.3",
+            "game_download_addr": format!("{base}/client"),
+            "ab_resource_version": "1.5.27767",
+            "ab_resource_addr": format!("{base}/res/"),
+        });
+        let doc = serde_json::json!({"code": 0, "data": {"flexible_config": {"nexon_plug": plug.to_string()}}});
+        let mut build = crate::sunborn::Build {
+            plug: crate::sunborn::parse_plug(&doc).unwrap(),
+            bundles: Vec::new(),
+        };
+        let client = http_client(Some(Duration::from_secs(10))).unwrap();
+        let text = client
+            .get(build.plug.manifest_url())
+            .send()
+            .await
+            .unwrap()
+            .text()
+            .await
+            .unwrap();
+        build.bundles = crate::sunborn::parse_manifest(&text);
+        assert_eq!(build.bundles.len(), 3);
+        assert_eq!(build.files().len(), 2, "voice packs are left to the game");
+
+        let root = std::env::temp_dir().join(format!("gachahub-gf2-{}", Uuid::new_v4()));
+        std::fs::create_dir_all(&root).unwrap();
+        let mut opts = DownloadOptions::default();
+        run_gf2(&tracker(), &build, &root, &opts).await.unwrap();
+        let ab = root.join(crate::sunborn::AB_DIR);
+        assert_eq!(
+            std::fs::read(root.join("GF2_Exilium.exe")).unwrap().len(),
+            30_000
+        );
+        assert_eq!(std::fs::read(ab.join("a.bundle")).unwrap(), a);
+        assert_eq!(std::fs::read(ab.join("b.bundle")).unwrap(), b);
+        assert_eq!(
+            crate::sunborn::installed_client(&root).as_deref(),
+            Some("1.0.3")
+        );
+        let local = std::fs::read_to_string(ab.join("Version.txt")).unwrap();
+        assert_eq!(local.lines().count(), 2);
+        assert!(local.contains("{0}/a.bundle#"));
+
+        // the game fetched its voice pack and recorded it → kept on rewrite
+        std::fs::write(ab.join(voice_name), &voice).unwrap();
+        std::fs::write(
+            ab.join("Version.txt"),
+            format!("{local}{}", line(voice_name, &voice, "27700")),
+        )
+        .unwrap();
+        // damage a bundle; verify repairs it without re-downloading the client
+        std::fs::write(ab.join("b.bundle"), b"broken").unwrap();
+        std::fs::remove_file(root.join("UnityPlayer.dll")).unwrap();
+        opts.kind = JobKind::Verify;
+        run_gf2(&tracker(), &build, &root, &opts).await.unwrap();
+        assert_eq!(std::fs::read(ab.join("b.bundle")).unwrap(), b);
+        assert!(
+            !root.join("UnityPlayer.dll").exists(),
+            "client is current → not re-extracted"
+        );
+        let local = std::fs::read_to_string(ab.join("Version.txt")).unwrap();
+        assert_eq!(
+            local.lines().count(),
+            3,
+            "game-recorded voice pack kept: {local}"
+        );
+
+        // missing exe → client counts as not installed (re-extracted on next run)
+        std::fs::remove_file(root.join("GF2_Exilium.exe")).unwrap();
+        assert_eq!(crate::sunborn::installed_client(&root), None);
+        run_gf2(&tracker(), &build, &root, &opts).await.unwrap();
+        assert!(root.join("UnityPlayer.dll").exists());
         let _ = std::fs::remove_dir_all(&root);
     }
 }

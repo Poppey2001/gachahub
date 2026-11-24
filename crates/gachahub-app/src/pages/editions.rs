@@ -32,6 +32,26 @@ impl GachaHubApp {
             .cloned()
     }
 
+    /// Download `edition` directly with GachaHub. Each edition gets its own
+    /// folder; switching edition starts a fresh install there.
+    pub fn download_edition(&mut self, game_id: &str, edition: &str) {
+        let previous = self.cfg.games.get(game_id).and_then(|g| g.edition.clone());
+        let default_dir = format!(
+            "{}/{game_id}-{edition}",
+            self.cfg.global.default_install_path
+        );
+        let gs = self.cfg.game_mut(game_id);
+        let switched = previous.as_deref().is_some_and(|p| p != edition);
+        if switched || gs.install_path.is_none() {
+            gs.install_path = Some(default_dir);
+            gs.executable_path = None;
+            gs.steam_app_id = None;
+        }
+        gs.edition = Some(edition.to_string());
+        self.dirty_now();
+        self.start_job(game_id, gachahub_core::download_manager::JobKind::Install);
+    }
+
     /// Download and run the official installer of `edition`.
     pub fn install_official(&mut self, game_id: &str, edition: &str) {
         let Some(launcher) = self.edition(game_id, edition) else {
@@ -206,7 +226,9 @@ impl GachaHubApp {
         let (a, b) = Self::accents(&game);
         let german = is_german();
         let current = self.cfg.games.get(&game_id).and_then(|g| g.edition.clone());
+        let direct = gachahub_core::download_manager::supports_direct_download(&game_id);
         let mut chosen: Option<String> = None;
+        let mut official: Option<String> = None;
         let mut steam = false;
         let modal = egui::Modal::new(egui::Id::unique(("editions", game_id.as_str())))
             .backdrop_color(Color32::from_black_alpha(170))
@@ -227,10 +249,17 @@ impl GachaHubApp {
                 );
                 ui.label(RichText::new(&game.name).font(theme::font_heavy(22.0)).color(theme::TEXT));
                 ui.label(
-                    RichText::new(tr(
-                        "Dein Konto gehört zu einem Server – wähle die passende Version. GachaHub lädt den offiziellen Installer, startet ihn und übernimmt das Spiel danach automatisch.",
-                        "Your account belongs to one server – pick the matching edition. GachaHub downloads the official installer, runs it and picks the game up automatically afterwards.",
-                    ))
+                    RichText::new(if direct {
+                        tr(
+                            "Dein Konto gehört zu einem Server – wähle die passende Version. GachaHub lädt das Spiel direkt von den offiziellen Servern herunter (fortsetzbar, mit Updates und Dateiprüfung).",
+                            "Your account belongs to one server – pick the matching edition. GachaHub downloads the game straight from the official servers (resumable, with updates and file verification).",
+                        )
+                    } else {
+                        tr(
+                            "Dein Konto gehört zu einem Server – wähle die passende Version. GachaHub lädt den offiziellen Installer, startet ihn und übernimmt das Spiel danach automatisch.",
+                            "Your account belongs to one server – pick the matching edition. GachaHub downloads the official installer, runs it and picks the game up automatically afterwards.",
+                        )
+                    })
                     .color(theme::MUTED),
                 );
                 ui.add_space(14.0);
@@ -260,7 +289,9 @@ impl GachaHubApp {
                         theme::font(11.5),
                         theme::MUTED,
                     );
-                    let hint = if l.installer_urls.is_empty() {
+                    let hint = if direct {
+                        tr("⬇ Direkt herunterladen", "⬇ Download")
+                    } else if l.installer_urls.is_empty() {
                         tr("Offizielle Seite ↗", "Official site ↗")
                     } else {
                         tr("⬇ Installer laden", "⬇ Get installer")
@@ -276,6 +307,20 @@ impl GachaHubApp {
                         chosen = Some(l.id.clone());
                     }
                     ui.add_space(8.0);
+                }
+                if direct {
+                    ui.horizontal_wrapped(|ui| {
+                        ui.label(
+                            RichText::new(tr("Alternativ offizieller Launcher:", "Or the official launcher:"))
+                                .font(theme::font(11.5))
+                                .color(theme::MUTED),
+                        );
+                        for l in &game.official_launchers {
+                            if ui.small_button(l.label_for(german)).clicked() {
+                                official = Some(l.id.clone());
+                            }
+                        }
+                    });
                 }
                 ui.add_space(6.0);
                 ui.horizontal(|ui| {
@@ -295,6 +340,13 @@ impl GachaHubApp {
             self.edition_picker = None;
         }
         if let Some(ed) = chosen {
+            self.edition_picker = None;
+            if direct {
+                self.download_edition(&game_id, &ed);
+            } else {
+                self.install_official(&game_id, &ed);
+            }
+        } else if let Some(ed) = official {
             self.edition_picker = None;
             self.install_official(&game_id, &ed);
         } else if steam {

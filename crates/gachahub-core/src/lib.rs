@@ -24,6 +24,7 @@ pub mod session;
 pub mod settings;
 pub mod sophon;
 pub mod steam;
+pub mod sunborn;
 pub mod xxmi;
 
 pub use events::{CoreEvent, EventSink};

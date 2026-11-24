@@ -201,16 +201,16 @@
       "Linux (Proton with runner caveats)"
     ],
     "installModes": [
-      "Official launcher (Darkwinter / Haoplay)",
+      "Direct download (Darkwinter / Haoplay)",
       "Steam",
-      "Official launcher import"
+      "Official launcher"
     ],
     "status": "not_installed",
     "modPolicy": "restricted",
     "accent": "#ff8d72",
     "accent2": "#ff4f7a",
     "version": "Latest",
-    "notes": "Pick your edition: GachaHub downloads the official Darkwinter (Global) or Haoplay (Asia) installer, runs it and detects the game afterwards. Steam works too.",
+    "notes": "Pick your edition – Global (Darkwinter) or Asia (Haoplay) – and GachaHub downloads the game straight from the official servers, with updates and file verification. Steam and the official launchers work too.",
     "assets": {
       "background": "/game-assets/gfl2/background.webp",
       "video": "/game-assets/gfl2/background.mp4",
@@ -219,7 +219,7 @@
     },
     "xxmiImporter": null,
     "subtitleDe": "Befehlige deine taktischen Dolls",
-    "notesDe": "Version wählen: GachaHub lädt den offiziellen Installer von Darkwinter (Global) oder Haoplay (Asien), startet ihn und erkennt das Spiel danach automatisch. Steam geht auch.",
+    "notesDe": "Version wählen – Global (Darkwinter) oder Asien (Haoplay) – und GachaHub lädt das Spiel direkt von den offiziellen Servern, mit Updates und Dateiprüfung. Steam und die offiziellen Launcher gehen auch.",
     "steamNames": [
       "GIRLS' FRONTLINE 2: EXILIUM",
       "Girls Frontline 2"

@@ -203,3 +203,37 @@ mod tests {
         assert!(parse_index(&serde_json::json!({})).is_err());
     }
 }
+
+/// Real-server check: `cargo test -- --ignored live_`.
+#[cfg(test)]
+mod live {
+    #[tokio::test]
+    #[ignore]
+    async fn live_wuwa_index() {
+        let client = reqwest::Client::builder()
+            .user_agent(crate::USER_AGENT)
+            .build()
+            .unwrap();
+        for url in super::WUWA_INDEX_URLS {
+            match client.get(*url).send().await {
+                Ok(r) => {
+                    let status = r.status();
+                    let text = r.text().await.unwrap_or_default();
+                    println!("LIVE wuwa {url}: HTTP {status}, {} bytes", text.len());
+                    println!(
+                        "LIVE wuwa body: {}",
+                        &text.chars().take(3000).collect::<String>()
+                    );
+                }
+                Err(e) => println!("LIVE wuwa {url}: {e}"),
+            }
+        }
+        let build = super::fetch_build(&client, "wuwa").await.unwrap();
+        println!(
+            "LIVE wuwa: version {} with {} files",
+            build.version,
+            build.files.len()
+        );
+        assert!(!build.files.is_empty());
+    }
+}

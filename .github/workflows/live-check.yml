@@ -1,0 +1,24 @@
+name: Live check
+
+# Talks to the real game servers (GFL2 Darkwinter/Haoplay, Wuthering Waves)
+# to make sure the direct downloaders still match the publishers' APIs.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "crates/gachahub-core/src/sunborn.rs"
+      - "crates/gachahub-core/src/kuro.rs"
+      - ".github/workflows/live-check.yml"
+  schedule:
+    - cron: "17 5 * * 1"
+
+jobs:
+  live:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Live server tests
+        run: cargo test -p gachahub-core --lib -- --ignored live_ --nocapture --test-threads 1

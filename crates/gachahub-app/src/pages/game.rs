@@ -810,8 +810,8 @@ impl GachaHubApp {
             if !game.official_launchers.is_empty()
                 && ui
                     .button(tr(
-                        "⬇  Offiziellen Launcher installieren…",
-                        "⬇  Install official launcher…",
+                        "🔀  Version / Download-Quelle wählen…",
+                        "🔀  Choose edition / download source…",
                     ))
                     .clicked()
             {
