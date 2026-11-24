@@ -10,6 +10,7 @@ pub mod events;
 pub mod exe_icon;
 pub mod games;
 pub mod install;
+pub mod kuro;
 pub mod launcher;
 pub mod mod_manager;
 pub mod mods;
@@ -21,6 +22,7 @@ pub mod self_update;
 pub mod session;
 pub mod settings;
 pub mod sophon;
+pub mod steam;
 pub mod xxmi;
 
 pub use events::{CoreEvent, EventSink};

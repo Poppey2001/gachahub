@@ -41,12 +41,30 @@ impl GachaHubApp {
                 });
                 ui.add_space(18.0);
 
+                ui.add(
+                    egui::TextEdit::singleline(&mut self.catalog_filter)
+                        .hint_text(tr("🔍  Spiel suchen…", "🔍  Search games…"))
+                        .desired_width(f32::INFINITY),
+                );
+                ui.add_space(12.0);
+                let filter = self.catalog_filter.to_lowercase();
+                let games: Vec<_> = games
+                    .into_iter()
+                    .filter(|g| {
+                        filter.is_empty()
+                            || g.name.to_lowercase().contains(&filter)
+                            || g.short_name.to_lowercase().contains(&filter)
+                            || g.publisher.to_lowercase().contains(&filter)
+                    })
+                    .collect();
                 let cols = 3;
                 let gap = 14.0;
                 let card_w = (ui.available_width() - gap * (cols as f32 - 1.0)) / cols as f32;
                 let card_h = 158.0;
                 let mut toggle: Option<String> = None;
                 let mut open: Option<String> = None;
+                let max_h = (ui.ctx().content_rect().height() - 300.0).max(220.0);
+                egui::ScrollArea::vertical().max_height(max_h).auto_shrink([false, true]).show(ui, |ui| {
                 for row in games.chunks(cols) {
                     ui.horizontal(|ui| {
                         ui.spacing_mut().item_spacing.x = gap;
@@ -114,6 +132,7 @@ impl GachaHubApp {
                     });
                     ui.add_space(gap);
                 }
+                });
                 if let Some(id) = toggle {
                     if self.cfg.library.contains(&id) {
                         if self.cfg.library.len() > 1 {

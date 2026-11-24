@@ -2,7 +2,8 @@
 
 **Ein Launcher für alle Gacha-Spiele – komplett in Rust.**
 Schluss mit „download every gacha launcher on earth“: Genshin Impact, Honkai: Star Rail,
-Zenless Zone Zero, Honkai Impact 3rd, Wuthering Waves, Neverness to Everness (NTE), Arknights, Arknights: Endfield und GIRLS' FRONTLINE 2
+Zenless Zone Zero, Honkai Impact 3rd, Wuthering Waves, Punishing: Gray Raven, Blue Archive, Limbus Company,
+Snowbreak, Reverse: 1999, Tower of Fantasy, Neverness to Everness (NTE), Arknights, Arknights: Endfield und GIRLS' FRONTLINE 2
 in einer einzigen, nativen App.
 
 Ab v0.15 gibt es kein Web-Frontend mehr: Kein Node.js, kein WebView, kein Tauri. Die
@@ -23,6 +24,16 @@ eigenständige Rust-Bibliothek.
   Konflikterkennung.
 - **XXMI** – XXMI Launcher automatisch installieren/aktualisieren, Spiele mit GIMI/SRMI/ZZMI/WWMI/EFMI starten.
 - **Spielzeit-Tracking**, **Deutsch/Englisch**, Einstellungen global und pro Spiel.
+
+## Wie kommen die Spiele auf den PC?
+
+| Weg | Spiele |
+|---|---|
+| Direkt in GachaHub herunterladen | Genshin Impact, Honkai: Star Rail, Zenless Zone Zero, Honkai Impact 3rd (HoYoPlay/Sophon), Wuthering Waves (Kuro) |
+| Über Steam (GachaHub öffnet Steam, erkennt die Installation und startet über Steam) | GFL2, Wuthering Waves, Blue Archive, Limbus Company, Snowbreak, Reverse: 1999, Tower of Fantasy, Punishing: Gray Raven |
+| Offizieller Launcher + „Spiel importieren“ | alle übrigen, z. B. NTE, Arknights, GFL2 (Sunborn-Launcher) |
+
+Bereits über Steam installierte Spiele findet GachaHub beim Start automatisch.
 
 ## Windows & Linux
 

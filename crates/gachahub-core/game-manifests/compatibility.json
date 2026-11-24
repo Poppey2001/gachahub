@@ -366,5 +366,215 @@
       "label": "XXMI / HIMI",
       "note": "XXMI unterstützt Honkai Impact 3rd über HIMI; standardmäßig eingeschränkt."
     }
+  },
+  {
+    "gameId": "bluearchive",
+    "checkedAt": "2026-11-24",
+    "windows": {
+      "state": "native",
+      "label": "Nativer PC-Client"
+    },
+    "linux": {
+      "state": "unknown",
+      "label": "Ungetestet – Steam/Proton, Bewertung auf ProtonDB prüfen",
+      "labelEn": "Untested – Steam/Proton, check ProtonDB",
+      "recommendedRuntime": "auto",
+      "recommendedRunner": "Steam-Proton (aktuell)",
+      "runnerCandidates": [
+        "Proton Experimental",
+        "GE-Proton (aktuell)"
+      ],
+      "blockedRunners": [],
+      "launchArguments": "",
+      "environmentVariables": "",
+      "notes": [
+        "Für Blue Archive hat GachaHub noch keine eigenen Testergebnisse.",
+        "Die Steam-Version startet über Steam mit dem dort eingestellten Proton."
+      ],
+      "notesEn": [
+        "GachaHub has no own test results for Blue Archive yet.",
+        "The Steam version starts through Steam with the Proton version selected there."
+      ]
+    },
+    "modding": {
+      "backend": "library-only",
+      "label": "Library only",
+      "note": "Kein Mod-Loader hinterlegt; Anti-Cheat beachten."
+    }
+  },
+  {
+    "gameId": "limbus",
+    "checkedAt": "2026-11-24",
+    "windows": {
+      "state": "native",
+      "label": "Nativer PC-Client"
+    },
+    "linux": {
+      "state": "unknown",
+      "label": "Ungetestet – Steam/Proton, Bewertung auf ProtonDB prüfen",
+      "labelEn": "Untested – Steam/Proton, check ProtonDB",
+      "recommendedRuntime": "auto",
+      "recommendedRunner": "Steam-Proton (aktuell)",
+      "runnerCandidates": [
+        "Proton Experimental",
+        "GE-Proton (aktuell)"
+      ],
+      "blockedRunners": [],
+      "launchArguments": "",
+      "environmentVariables": "",
+      "notes": [
+        "Für Limbus Company hat GachaHub noch keine eigenen Testergebnisse.",
+        "Die Steam-Version startet über Steam mit dem dort eingestellten Proton."
+      ],
+      "notesEn": [
+        "GachaHub has no own test results for Limbus Company yet.",
+        "The Steam version starts through Steam with the Proton version selected there."
+      ]
+    },
+    "modding": {
+      "backend": "library-only",
+      "label": "Library only",
+      "note": "Kein Mod-Loader hinterlegt; Anti-Cheat beachten."
+    }
+  },
+  {
+    "gameId": "pgr",
+    "checkedAt": "2026-11-24",
+    "windows": {
+      "state": "native",
+      "label": "Nativer PC-Client"
+    },
+    "linux": {
+      "state": "unknown",
+      "label": "Ungetestet – Steam/Proton, Bewertung auf ProtonDB prüfen",
+      "labelEn": "Untested – Steam/Proton, check ProtonDB",
+      "recommendedRuntime": "auto",
+      "recommendedRunner": "Steam-Proton (aktuell)",
+      "runnerCandidates": [
+        "Proton Experimental",
+        "GE-Proton (aktuell)"
+      ],
+      "blockedRunners": [],
+      "launchArguments": "",
+      "environmentVariables": "",
+      "notes": [
+        "Für Punishing: Gray Raven hat GachaHub noch keine eigenen Testergebnisse.",
+        "Die Steam-Version startet über Steam mit dem dort eingestellten Proton."
+      ],
+      "notesEn": [
+        "GachaHub has no own test results for Punishing: Gray Raven yet.",
+        "The Steam version starts through Steam with the Proton version selected there."
+      ]
+    },
+    "modding": {
+      "backend": "library-only",
+      "label": "Library only",
+      "note": "Kein Mod-Loader hinterlegt; Anti-Cheat beachten."
+    }
+  },
+  {
+    "gameId": "snowbreak",
+    "checkedAt": "2026-11-24",
+    "windows": {
+      "state": "native",
+      "label": "Nativer PC-Client"
+    },
+    "linux": {
+      "state": "unknown",
+      "label": "Ungetestet – Steam/Proton, Bewertung auf ProtonDB prüfen",
+      "labelEn": "Untested – Steam/Proton, check ProtonDB",
+      "recommendedRuntime": "auto",
+      "recommendedRunner": "Steam-Proton (aktuell)",
+      "runnerCandidates": [
+        "Proton Experimental",
+        "GE-Proton (aktuell)"
+      ],
+      "blockedRunners": [],
+      "launchArguments": "",
+      "environmentVariables": "",
+      "notes": [
+        "Für Snowbreak: Containment Zone hat GachaHub noch keine eigenen Testergebnisse.",
+        "Die Steam-Version startet über Steam mit dem dort eingestellten Proton."
+      ],
+      "notesEn": [
+        "GachaHub has no own test results for Snowbreak: Containment Zone yet.",
+        "The Steam version starts through Steam with the Proton version selected there."
+      ]
+    },
+    "modding": {
+      "backend": "library-only",
+      "label": "Library only",
+      "note": "Kein Mod-Loader hinterlegt; Anti-Cheat beachten."
+    }
+  },
+  {
+    "gameId": "reverse1999",
+    "checkedAt": "2026-11-24",
+    "windows": {
+      "state": "native",
+      "label": "Nativer PC-Client"
+    },
+    "linux": {
+      "state": "unknown",
+      "label": "Ungetestet – Steam/Proton, Bewertung auf ProtonDB prüfen",
+      "labelEn": "Untested – Steam/Proton, check ProtonDB",
+      "recommendedRuntime": "auto",
+      "recommendedRunner": "Steam-Proton (aktuell)",
+      "runnerCandidates": [
+        "Proton Experimental",
+        "GE-Proton (aktuell)"
+      ],
+      "blockedRunners": [],
+      "launchArguments": "",
+      "environmentVariables": "",
+      "notes": [
+        "Für Reverse: 1999 hat GachaHub noch keine eigenen Testergebnisse.",
+        "Die Steam-Version startet über Steam mit dem dort eingestellten Proton."
+      ],
+      "notesEn": [
+        "GachaHub has no own test results for Reverse: 1999 yet.",
+        "The Steam version starts through Steam with the Proton version selected there."
+      ]
+    },
+    "modding": {
+      "backend": "library-only",
+      "label": "Library only",
+      "note": "Kein Mod-Loader hinterlegt; Anti-Cheat beachten."
+    }
+  },
+  {
+    "gameId": "tof",
+    "checkedAt": "2026-11-24",
+    "windows": {
+      "state": "native",
+      "label": "Nativer PC-Client"
+    },
+    "linux": {
+      "state": "unknown",
+      "label": "Ungetestet – Steam/Proton, Bewertung auf ProtonDB prüfen",
+      "labelEn": "Untested – Steam/Proton, check ProtonDB",
+      "recommendedRuntime": "auto",
+      "recommendedRunner": "Steam-Proton (aktuell)",
+      "runnerCandidates": [
+        "Proton Experimental",
+        "GE-Proton (aktuell)"
+      ],
+      "blockedRunners": [],
+      "launchArguments": "",
+      "environmentVariables": "",
+      "notes": [
+        "Für Tower of Fantasy hat GachaHub noch keine eigenen Testergebnisse.",
+        "Die Steam-Version startet über Steam mit dem dort eingestellten Proton."
+      ],
+      "notesEn": [
+        "GachaHub has no own test results for Tower of Fantasy yet.",
+        "The Steam version starts through Steam with the Proton version selected there."
+      ]
+    },
+    "modding": {
+      "backend": "library-only",
+      "label": "Library only",
+      "note": "Kein Mod-Loader hinterlegt; Anti-Cheat beachten."
+    }
   }
 ]

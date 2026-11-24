@@ -27,7 +27,10 @@
     },
     "xxmiImporter": null,
     "subtitleDe": "Taktische Operationen von Rhodes Island",
-    "notesDe": "Offizieller PC-Client; unter Linux laut Community mit GE-Proton/Proton Experimental."
+    "notesDe": "Offizieller PC-Client; unter Linux laut Community mit GE-Proton/Proton Experimental.",
+    "steamNames": [
+      "Arknights"
+    ]
   },
   {
     "id": "endfield",
@@ -57,7 +60,10 @@
     },
     "xxmiImporter": "EFMI",
     "subtitleDe": "Erkunde Talos-II",
-    "notesDe": "Proton-Builds mit Endfield/ACE-Fixes verwenden; Proton Vanilla/UMU laut aktuellen Hinweisen meiden."
+    "notesDe": "Proton-Builds mit Endfield/ACE-Fixes verwenden; Proton Vanilla/UMU laut aktuellen Hinweisen meiden.",
+    "steamNames": [
+      "Arknights: Endfield"
+    ]
   },
   {
     "id": "genshin",
@@ -161,7 +167,8 @@
       "Linux (compatibility layer)"
     ],
     "installModes": [
-      "Direct provider",
+      "Direct provider (Kuro)",
+      "Steam",
       "Official launcher import"
     ],
     "status": "not_installed",
@@ -177,7 +184,10 @@
       "icon": "/game-assets/wuwa/icon.webp"
     },
     "xxmiImporter": "WWMI",
-    "subtitleDe": "Erwache und reise als Rover"
+    "subtitleDe": "Erwache und reise als Rover",
+    "steamNames": [
+      "Wuthering Waves"
+    ]
   },
   {
     "id": "gfl2",
@@ -192,14 +202,14 @@
     ],
     "installModes": [
       "Steam",
-      "Standalone import"
+      "Official launcher import"
     ],
     "status": "not_installed",
     "modPolicy": "restricted",
     "accent": "#ff8d72",
     "accent2": "#ff4f7a",
     "version": "Latest",
-    "notes": "Known runner regressions exist; keep per-game runner selection available.",
+    "notes": "Install via Steam with one click, or import a folder from the official launcher. GachaHub finds Steam installs automatically.",
     "assets": {
       "background": "/game-assets/gfl2/background.webp",
       "video": "/game-assets/gfl2/background.mp4",
@@ -208,7 +218,11 @@
     },
     "xxmiImporter": null,
     "subtitleDe": "Befehlige deine taktischen Dolls",
-    "notesDe": "Bekannte Runner-Regressionen – Runner pro Spiel wählbar lassen."
+    "notesDe": "Mit einem Klick über Steam installieren oder einen Ordner aus dem offiziellen Launcher importieren. Steam-Installationen findet GachaHub automatisch.",
+    "steamNames": [
+      "GIRLS' FRONTLINE 2: EXILIUM",
+      "Girls Frontline 2"
+    ]
   },
   {
     "id": "nte",
@@ -238,7 +252,10 @@
     },
     "xxmiImporter": null,
     "subtitleDe": "Übernatürliches Open-World-RPG in der Großstadt",
-    "notesDe": "Installiere NTE mit dem offiziellen Launcher und klicke dann auf „Spiel importieren“, um den Spielordner auszuwählen. Anti-Cheat-geschützt – Mods bleiben deaktiviert."
+    "notesDe": "Installiere NTE mit dem offiziellen Launcher und klicke dann auf „Spiel importieren“, um den Spielordner auszuwählen. Anti-Cheat-geschützt – Mods bleiben deaktiviert.",
+    "steamNames": [
+      "Neverness to Everness"
+    ]
   },
   {
     "id": "hi3",
@@ -268,5 +285,207 @@
       "icon": null
     },
     "xxmiImporter": "HIMI"
+  },
+  {
+    "id": "bluearchive",
+    "name": "Blue Archive",
+    "shortName": "BA",
+    "subtitle": "Join the students of Kivotos",
+    "subtitleDe": "Begleite die Schülerinnen von Kivotos",
+    "publisher": "NEXON / Yostar",
+    "provider": "nexon",
+    "platforms": [
+      "Windows",
+      "Linux (Steam/Proton)"
+    ],
+    "installModes": [
+      "Steam"
+    ],
+    "status": "not_installed",
+    "modPolicy": "restricted",
+    "accent": "#4fc3ff",
+    "accent2": "#ff9ccf",
+    "version": "Latest",
+    "notes": "Install via Steam with one click – GachaHub detects the installation automatically and launches it through Steam.",
+    "notesDe": "Mit einem Klick über Steam installieren – GachaHub erkennt die Installation automatisch und startet das Spiel über Steam.",
+    "assets": {
+      "background": null,
+      "video": null,
+      "logo": null,
+      "icon": null
+    },
+    "xxmiImporter": null,
+    "steamNames": [
+      "Blue Archive"
+    ]
+  },
+  {
+    "id": "limbus",
+    "name": "Limbus Company",
+    "shortName": "LC",
+    "subtitle": "Lead the sinners into the depths",
+    "subtitleDe": "Führe die Sünder in die Tiefe",
+    "publisher": "Project Moon",
+    "provider": "projectmoon",
+    "platforms": [
+      "Windows",
+      "Linux (Steam/Proton)"
+    ],
+    "installModes": [
+      "Steam"
+    ],
+    "status": "not_installed",
+    "modPolicy": "restricted",
+    "accent": "#e04a3a",
+    "accent2": "#f2c14e",
+    "version": "Latest",
+    "notes": "Install via Steam with one click – GachaHub detects the installation automatically and launches it through Steam.",
+    "notesDe": "Mit einem Klick über Steam installieren – GachaHub erkennt die Installation automatisch und startet das Spiel über Steam.",
+    "assets": {
+      "background": null,
+      "video": null,
+      "logo": null,
+      "icon": null
+    },
+    "xxmiImporter": null,
+    "steamNames": [
+      "Limbus Company"
+    ]
+  },
+  {
+    "id": "pgr",
+    "name": "Punishing: Gray Raven",
+    "shortName": "PGR",
+    "subtitle": "Fight for the last of humanity",
+    "subtitleDe": "Kämpfe für die letzten Menschen",
+    "publisher": "Kuro Games",
+    "provider": "kuro",
+    "platforms": [
+      "Windows",
+      "Linux (Steam/Proton)"
+    ],
+    "installModes": [
+      "Steam",
+      "Official launcher import"
+    ],
+    "status": "not_installed",
+    "modPolicy": "restricted",
+    "accent": "#ff5a4f",
+    "accent2": "#ffb347",
+    "version": "Latest",
+    "notes": "Install via Steam with one click – GachaHub detects the installation automatically and launches it through Steam.",
+    "notesDe": "Mit einem Klick über Steam installieren – GachaHub erkennt die Installation automatisch und startet das Spiel über Steam.",
+    "assets": {
+      "background": null,
+      "video": null,
+      "logo": null,
+      "icon": null
+    },
+    "xxmiImporter": null,
+    "steamNames": [
+      "Punishing: Gray Raven"
+    ]
+  },
+  {
+    "id": "snowbreak",
+    "name": "Snowbreak: Containment Zone",
+    "shortName": "SB",
+    "subtitle": "Contain the Titans",
+    "subtitleDe": "Dämme die Titanen ein",
+    "publisher": "Seasun Games",
+    "provider": "seasun",
+    "platforms": [
+      "Windows",
+      "Linux (Steam/Proton)"
+    ],
+    "installModes": [
+      "Steam",
+      "Official launcher import"
+    ],
+    "status": "not_installed",
+    "modPolicy": "restricted",
+    "accent": "#9fe3ff",
+    "accent2": "#5a7bff",
+    "version": "Latest",
+    "notes": "Install via Steam with one click – GachaHub detects the installation automatically and launches it through Steam.",
+    "notesDe": "Mit einem Klick über Steam installieren – GachaHub erkennt die Installation automatisch und startet das Spiel über Steam.",
+    "assets": {
+      "background": null,
+      "video": null,
+      "logo": null,
+      "icon": null
+    },
+    "xxmiImporter": null,
+    "steamNames": [
+      "Snowbreak: Containment Zone"
+    ]
+  },
+  {
+    "id": "reverse1999",
+    "name": "Reverse: 1999",
+    "shortName": "R99",
+    "subtitle": "Weather the Storm",
+    "subtitleDe": "Trotze dem Sturm",
+    "publisher": "Bluepoch",
+    "provider": "bluepoch",
+    "platforms": [
+      "Windows",
+      "Linux (Steam/Proton)"
+    ],
+    "installModes": [
+      "Steam",
+      "Official launcher import"
+    ],
+    "status": "not_installed",
+    "modPolicy": "restricted",
+    "accent": "#e6c27a",
+    "accent2": "#b06a4a",
+    "version": "Latest",
+    "notes": "Install via Steam with one click – GachaHub detects the installation automatically and launches it through Steam.",
+    "notesDe": "Mit einem Klick über Steam installieren – GachaHub erkennt die Installation automatisch und startet das Spiel über Steam.",
+    "assets": {
+      "background": null,
+      "video": null,
+      "logo": null,
+      "icon": null
+    },
+    "xxmiImporter": null,
+    "steamNames": [
+      "Reverse: 1999"
+    ]
+  },
+  {
+    "id": "tof",
+    "name": "Tower of Fantasy",
+    "shortName": "ToF",
+    "subtitle": "Explore the world of Aida",
+    "subtitleDe": "Erkunde die Welt von Aida",
+    "publisher": "Hotta Studio / Level Infinite",
+    "provider": "levelinfinite",
+    "platforms": [
+      "Windows",
+      "Linux (Steam/Proton)"
+    ],
+    "installModes": [
+      "Steam",
+      "Official launcher import"
+    ],
+    "status": "not_installed",
+    "modPolicy": "restricted",
+    "accent": "#7ad7ff",
+    "accent2": "#b28cff",
+    "version": "Latest",
+    "notes": "Install via Steam with one click – GachaHub detects the installation automatically and launches it through Steam.",
+    "notesDe": "Mit einem Klick über Steam installieren – GachaHub erkennt die Installation automatisch und startet das Spiel über Steam.",
+    "assets": {
+      "background": null,
+      "video": null,
+      "logo": null,
+      "icon": null
+    },
+    "xxmiImporter": null,
+    "steamNames": [
+      "Tower of Fantasy"
+    ]
   }
 ]

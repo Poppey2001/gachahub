@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- GachaHub original emblem for "reverse1999" (not an official game logo). License: same as GachaHub. -->
+  <defs>
+    <radialGradient id="ga" cx="0.2" cy="0.15" r="0.9"><stop offset="0" stop-color="#e6c27a" stop-opacity=".55"/><stop offset="1" stop-color="#e6c27a" stop-opacity="0"/></radialGradient>
+    <radialGradient id="gb" cx="0.9" cy="0.95" r="0.8"><stop offset="0" stop-color="#b06a4a" stop-opacity=".6"/><stop offset="1" stop-color="#b06a4a" stop-opacity="0"/></radialGradient>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset=".45" stop-color="#e6c27a"/><stop offset="1" stop-color="#b06a4a"/></linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="116" fill="#0c111c"/>
+  <rect width="512" height="512" rx="116" fill="url(#ga)"/>
+  <rect width="512" height="512" rx="116" fill="url(#gb)"/>
+  <rect x="4" y="4" width="504" height="504" rx="112" fill="none" stroke="#e6c27a" stroke-opacity=".35" stroke-width="8"/>
+  <circle cx="256" cy="256" r="146" fill="none" stroke="url(#g)" stroke-width="16"/>
+  <circle cx="256" cy="256" r="100" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="8"/>
+  <circle cx="256" cy="256" r="30" fill="url(#g)"/>
+  <path d="M256 130 C286 180 300 200 300 222 C300 246 280 262 256 262" fill="none" stroke="#fff" stroke-width="14" stroke-linecap="round"/>
+</svg>

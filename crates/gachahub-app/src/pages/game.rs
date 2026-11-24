@@ -324,6 +324,7 @@ impl GachaHubApp {
                         let running = self.running.contains_key(&game.id);
                         let update = if installed { self.update_available(&game.id) } else { None };
                         let resumable = !installed && downloadable && self.partial_installs.contains(&game.id);
+                        let steam_only = !downloadable && !game.steam_names.is_empty();
                         let update_label;
                         let (icon, label) = if launch_busy {
                             ("⏳", tr("Startet…", "Starting…"))
@@ -340,6 +341,8 @@ impl GachaHubApp {
                             ("⬇", tr("FORTSETZEN", "RESUME"))
                         } else if downloadable {
                             ("⬇", tr("INSTALLIEREN", "INSTALL"))
+                        } else if steam_only {
+                            ("🎮", tr("ÜBER STEAM INSTALLIEREN", "INSTALL VIA STEAM"))
                         } else {
                             ("📂", tr("SPIEL IMPORTIEREN", "IMPORT GAME"))
                         };
@@ -354,6 +357,9 @@ impl GachaHubApp {
                                 self.launch(&game.id);
                             } else if downloadable {
                                 self.start_install(&game.id);
+                            } else if steam_only {
+                                let now = self.now;
+                                self.install_via_steam(&game, now);
                             } else {
                                 self.backend.pick_folder(
                                     PickTarget::ImportExisting(game.id.clone()),
@@ -389,7 +395,7 @@ impl GachaHubApp {
                             {
                                 self.start_job(&game.id, JobKind::Verify);
                             }
-                        } else if (installed || downloadable)
+                        } else if (installed || downloadable || steam_only)
                             && theme::ghost_button(
                                 ui,
                                 "📂",
@@ -630,11 +636,17 @@ impl GachaHubApp {
             (tr("STATUS", "STATUS"), status),
             (
                 tr("INSTALLATIONSART", "INSTALL TYPE"),
-                game.install_modes.first().cloned().unwrap_or_default(),
+                if self.is_steam_game(&game.id) {
+                    "Steam".to_string()
+                } else {
+                    game.install_modes.first().cloned().unwrap_or_default()
+                },
             ),
             (
                 tr("LAUFZEIT", "RUNTIME"),
-                if cfg!(windows) {
+                if self.is_steam_game(&game.id) {
+                    tr("Steam (eigenes Proton)", "Steam (its own Proton)").to_string()
+                } else if cfg!(windows) {
                     tr("Nativ (Windows)", "Native (Windows)").to_string()
                 } else {
                     format!(
@@ -762,8 +774,8 @@ impl GachaHubApp {
 
     /// "⋯" menu with less frequent game actions.
     fn game_more_menu(&mut self, ui: &mut egui::Ui, game: &gachahub_core::Game, installed: bool) {
-        let resp =
-            theme::ghost_button(ui, "", "•••").on_hover_text(tr("Weitere Aktionen", "More actions"));
+        let resp = theme::ghost_button(ui, "", "•••")
+            .on_hover_text(tr("Weitere Aktionen", "More actions"));
         egui::Popup::menu(&resp).show(|ui| {
             ui.set_min_width(220.0);
             if ui
@@ -771,6 +783,29 @@ impl GachaHubApp {
                 .clicked()
             {
                 self.open_game_folder(&game.id);
+            }
+            if !game.steam_names.is_empty() {
+                if !installed
+                    && gachahub_core::download_manager::supports_direct_download(&game.id)
+                    && ui
+                        .button(tr(
+                            "🎮  Stattdessen über Steam installieren",
+                            "🎮  Install via Steam instead",
+                        ))
+                        .clicked()
+                {
+                    let now = self.now;
+                    self.install_via_steam(game, now);
+                }
+                if ui
+                    .button(tr(
+                        "⟳  Steam-Bibliothek durchsuchen",
+                        "⟳  Scan Steam library",
+                    ))
+                    .clicked()
+                {
+                    self.refresh_steam();
+                }
             }
             if ui
                 .button(tr("⚙  Spiel-Einstellungen", "⚙  Game settings"))

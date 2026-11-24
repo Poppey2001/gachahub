@@ -48,6 +48,7 @@ pub enum Msg {
     Launched(String, Result<LaunchResult, String>),
     SessionStarted(String, Arc<gachahub_core::session::GameSession>),
     SessionEnded(String, u64),
+    SteamApps(Vec<gachahub_core::steam::SteamApp>),
     Runners(Vec<RunnerInfo>),
     RunnerVersions(String, Result<Vec<RunnerVersion>, String>),
     RunnerInstalled(Result<RunnerInfo, String>),
@@ -165,6 +166,19 @@ impl Sender {
 /// Follow a launched game in the background (see `GameSession`) and report its play time.
 pub fn track_session(sender: Sender, game_id: String, child: std::process::Child, game_exe: &str) {
     let session = Arc::new(gachahub_core::session::GameSession::new(child, game_exe));
+    sender.send(Msg::SessionStarted(game_id.clone(), session.clone()));
+    std::thread::Builder::new()
+        .name(format!("session-{game_id}"))
+        .spawn(move || {
+            let secs = session.wait();
+            sender.send(Msg::SessionEnded(game_id, secs));
+        })
+        .ok();
+}
+
+/// Follow a game that another program (the Steam client) starts.
+pub fn track_detached(sender: Sender, game_id: String, game_exe: &str) {
+    let session = Arc::new(gachahub_core::session::GameSession::detached(game_exe));
     sender.send(Msg::SessionStarted(game_id.clone(), session.clone()));
     std::thread::Builder::new()
         .name(format!("session-{game_id}"))

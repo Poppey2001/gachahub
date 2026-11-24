@@ -1,3 +1,22 @@
+# GachaHub v0.18.0 — Steam, Wuthering Waves & neue Spiele
+
+## Steam-Integration
+- GachaHub liest die lokalen Steam-Bibliotheken (`libraryfolders.vdf`, `appmanifest_*.acf`) und
+  **erkennt installierte Steam-Spiele automatisch** – sie landen mit Pfad und EXE in der Bibliothek.
+- Steam-Spiele starten **über Steam** (Spielzeit wird über den Spielprozess erfasst).
+- **„Über Steam installieren“** öffnet das Spiel im Steam-Client; danach sucht GachaHub
+  zwei Stunden lang automatisch nach der neuen Installation.
+- Gilt u. a. für GFL2, Wuthering Waves, Blue Archive, Limbus Company.
+
+## Wuthering Waves direkt herunterladen
+- Neuer Kuro-Downloader: Dateiliste aus dem offiziellen Launcher-Index, paralleler Download mit
+  MD5-Prüfung und Fortsetzen; derselbe Weg macht Updates (nur geänderte Dateien) und „Dateien prüfen“.
+
+## Neue Spiele
+- Blue Archive, Limbus Company, Punishing: Gray Raven, Snowbreak: Containment Zone,
+  Reverse: 1999, Tower of Fantasy – jeweils mit eigenem Icon.
+- Katalog mit Suchfeld und Scrollen.
+
 # GachaHub v0.17.0 — Installer & Verbesserungen
 
 ## Windows-Installer

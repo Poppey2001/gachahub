@@ -280,7 +280,7 @@ where
 /// Whether GachaHub can download this game itself (otherwise: import an
 /// installation made with the publisher's official launcher).
 pub fn supports_direct_download(game_id: &str) -> bool {
-    matches!(game_id, "genshin" | "hsr" | "zzz" | "hi3")
+    matches!(game_id, "genshin" | "hsr" | "zzz" | "hi3") || crate::kuro::supports(game_id)
 }
 
 pub async fn resolve_plan(
@@ -322,6 +322,11 @@ pub async fn latest_version(game_id: &str) -> Result<String, String> {
         return Err(format!("no update source for {game_id}"));
     }
     let client = http_client(Some(Duration::from_secs(30)))?;
+    if crate::kuro::supports(game_id) {
+        return crate::kuro::fetch_index(&client, game_id)
+            .await
+            .map(|i| i.version);
+    }
     match sophon::branch(&client, game_id).await {
         Ok(b) if !b.tag.is_empty() => Ok(b.tag),
         _ => resolve_plan(game_id, "en-us").await.map(|p| p.version),
@@ -349,8 +354,16 @@ pub fn is_newer(latest: &str, installed: &str) -> bool {
 }
 
 enum Source {
-    Sophon { build: sophon::Build },
-    Direct { plan: ProviderDownloadPlan },
+    Sophon {
+        build: sophon::Build,
+    },
+    /// Plain per-file distribution with MD5 (Kuro launcher).
+    Files {
+        build: crate::kuro::KuroBuild,
+    },
+    Direct {
+        plan: ProviderDownloadPlan,
+    },
 }
 
 pub async fn start(
@@ -361,13 +374,20 @@ pub async fn start(
 ) -> Result<InstallJob, String> {
     let client = http_client(Some(Duration::from_secs(30)))?;
 
-    // Prefer Sophon; fall back to classic packages for fresh installs.
-    let source = match sophon::branch(&client, &game_id).await {
-        Ok(branch) => match sophon::build(&client, &branch).await {
-            Ok(build) => Ok(Source::Sophon { build }),
+    // Kuro games: file list from the Kuro launcher index.
+    // HoYoverse: prefer Sophon; fall back to classic packages for fresh installs.
+    let source = if crate::kuro::supports(&game_id) {
+        Ok(Source::Files {
+            build: crate::kuro::fetch_build(&client, &game_id).await?,
+        })
+    } else {
+        match sophon::branch(&client, &game_id).await {
+            Ok(branch) => match sophon::build(&client, &branch).await {
+                Ok(build) => Ok(Source::Sophon { build }),
+                Err(e) => Err(e),
+            },
             Err(e) => Err(e),
-        },
-        Err(e) => Err(e),
+        }
     };
     let source = match source {
         Ok(s) => s,
@@ -408,6 +428,11 @@ pub async fn start(
                 .sum(),
         ),
         Source::Direct { plan } => (plan.version.clone(), "direct", plan.total_bytes),
+        Source::Files { build } => (
+            build.version.clone(),
+            "files",
+            build.files.iter().map(|f| f.size).sum(),
+        ),
     };
     let job = InstallJob {
         id: id.clone(),
@@ -458,6 +483,9 @@ pub async fn start(
                     run_sophon(&tracker, &build, &destination, &opts).await?
                 }
                 Source::Direct { plan } => run_direct(&tracker, &plan, &destination).await?,
+                Source::Files { build } => {
+                    run_files(&tracker, &build.files, &destination, &opts).await?
+                }
             }
             fs::write(destination.join(VERSION_FILE), &version)
                 .await
@@ -794,6 +822,131 @@ async fn sophon_asset(
         .map_err(|e| format!("cannot finalize {}: {e}", path.display()))?;
     if let Ok(mut i) = index.lock() {
         i.insert(asset.name.clone(), expected);
+    }
+    Ok(())
+}
+
+// ============================================================ plain file lists (Kuro)
+
+async fn run_files(
+    tracker: &Arc<Tracker>,
+    files: &[crate::kuro::KuroFile],
+    root: &Path,
+    opts: &DownloadOptions,
+) -> Result<(), String> {
+    let client = http_client(Some(Duration::from_secs(300)))?;
+    tracker
+        .total
+        .store(files.iter().map(|f| f.size).sum(), Ordering::Relaxed);
+    let index_path = root.join(INDEX_FILE);
+    let index: HashMap<String, String> = fs::read(&index_path)
+        .await
+        .ok()
+        .and_then(|b| serde_json::from_slice(&b).ok())
+        .unwrap_or_default();
+    let index = Arc::new(Mutex::new(index));
+    let verify = opts.kind == JobKind::Verify;
+    tracker.set_phase(
+        if verify { "verifying" } else { "downloading" },
+        format!("{} files", files.len()),
+    );
+    let processed = Arc::new(AtomicU64::new(0));
+    let result = stream::iter(files.iter().cloned().map(Ok::<_, String>))
+        .try_for_each_concurrent(opts.parallel.clamp(1, 32), |file| {
+            let (client, tracker, index, processed) = (
+                client.clone(),
+                tracker.clone(),
+                index.clone(),
+                processed.clone(),
+            );
+            let root = root.to_path_buf();
+            async move {
+                plain_file(&client, &tracker, &file, &root, &index, verify).await?;
+                if processed.fetch_add(1, Ordering::Relaxed) % 200 == 199 {
+                    save_index(&root, &index).await;
+                }
+                Ok(())
+            }
+        })
+        .await;
+    save_index(root, &index).await;
+    result
+}
+
+async fn plain_file(
+    client: &reqwest::Client,
+    tracker: &Tracker,
+    file: &crate::kuro::KuroFile,
+    root: &Path,
+    index: &Mutex<HashMap<String, String>>,
+    verify: bool,
+) -> Result<(), String> {
+    let control = &tracker.control;
+    control.wait_if_paused().await?;
+    let path = safe_join(root, &file.dest)?;
+    let on_disk = fs::metadata(&path).await.ok().map(|m| m.len());
+    if on_disk == Some(file.size) {
+        let known = index.lock().ok().and_then(|i| i.get(&file.dest).cloned());
+        let ok = if file.md5.is_empty() {
+            true
+        } else if !verify && known.as_deref() == Some(file.md5.as_str()) {
+            true
+        } else {
+            md5_file(&path, control).await? == file.md5
+        };
+        if ok {
+            if let Ok(mut i) = index.lock() {
+                i.insert(file.dest.clone(), file.md5.clone());
+            }
+            tracker.add(file.size);
+            return Ok(());
+        }
+    }
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent)
+            .await
+            .map_err(|e| e.to_string())?;
+    }
+    let part = path.with_file_name(format!(
+        "{}.gachahub-part",
+        path.file_name()
+            .map(|n| n.to_string_lossy())
+            .unwrap_or_default()
+    ));
+    let mut failures = 0u32;
+    let mut current = fs::metadata(&part).await.map(|m| m.len()).unwrap_or(0);
+    if file.size > 0 && current > file.size {
+        let _ = fs::remove_file(&part).await;
+        current = 0;
+    }
+    tracker.add(current);
+    loop {
+        control.wait_if_paused().await?;
+        match download_range(client, tracker, &file.url, &part, &mut current).await {
+            Ok(true) => break,
+            Ok(false) => continue,
+            Err(e) if e == CANCELLED => return Err(e),
+            Err(e) => {
+                failures += 1;
+                if failures >= MAX_RETRIES {
+                    return Err(format!("download of {} failed: {e}", file.dest));
+                }
+                sleep(Duration::from_millis(1000 * 2u64.pow(failures))).await;
+            }
+        }
+    }
+    if !file.md5.is_empty() && md5_file(&part, control).await? != file.md5 {
+        let _ = fs::remove_file(&part).await;
+        return Err(format!("MD5 mismatch for {} – please retry", file.dest));
+    }
+    if fs::metadata(&path).await.is_ok() {
+        let _ = fs::remove_file(&path).await;
+    }
+    fs::rename(&part, &path)
+        .await
+        .map_err(|e| format!("cannot finalize {}: {e}", path.display()))?;
+    if let Ok(mut i) = index.lock() {
+        i.insert(file.dest.clone(), file.md5.clone());
     }
     Ok(())
 }
@@ -1503,6 +1656,48 @@ mod tests {
         assert!(
             !root.join(CACHE_DIR).exists(),
             "download cache should be removed"
+        );
+        let _ = std::fs::remove_dir_all(&root);
+    }
+
+    #[tokio::test(flavor = "multi_thread")]
+    async fn kuro_file_list_install_and_verify() {
+        std::env::set_var("NO_PROXY", "127.0.0.1");
+        std::env::set_var("no_proxy", "127.0.0.1");
+        let exe: Vec<u8> = (0..70_000u32).map(|i| (i % 7) as u8).collect();
+        let pak = b"pak data".to_vec();
+        let mut served = HashMap::new();
+        served.insert(
+            "/res/Client/Binaries/Win64/Client-Win64-Shipping.exe".to_string(),
+            exe.clone(),
+        );
+        served.insert("/res/Client/Content/Paks/a.pak".to_string(), pak.clone());
+        let base = serve(served).await;
+        let mk = |dest: &str, data: &[u8]| crate::kuro::KuroFile {
+            dest: dest.into(),
+            url: format!("{base}/res/{dest}"),
+            size: data.len() as u64,
+            md5: format!("{:x}", md5::compute(data)),
+        };
+        let files = vec![
+            mk("Client/Binaries/Win64/Client-Win64-Shipping.exe", &exe),
+            mk("Client/Content/Paks/a.pak", &pak),
+        ];
+        let root = std::env::temp_dir().join(format!("gachahub-kuro-{}", Uuid::new_v4()));
+        std::fs::create_dir_all(&root).unwrap();
+        let mut opts = DownloadOptions::default();
+        run_files(&tracker(), &files, &root, &opts).await.unwrap();
+        assert_eq!(
+            std::fs::read(root.join("Client/Binaries/Win64/Client-Win64-Shipping.exe")).unwrap(),
+            exe
+        );
+        // damage one file and repair it
+        std::fs::write(root.join("Client/Content/Paks/a.pak"), b"pak dat!").unwrap();
+        opts.kind = JobKind::Verify;
+        run_files(&tracker(), &files, &root, &opts).await.unwrap();
+        assert_eq!(
+            std::fs::read(root.join("Client/Content/Paks/a.pak")).unwrap(),
+            pak
         );
         let _ = std::fs::remove_dir_all(&root);
     }

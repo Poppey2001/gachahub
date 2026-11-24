@@ -71,6 +71,12 @@ fn bundled_icon(game_id: &str) -> Option<&'static [u8]> {
         "genshin" => include_bytes!("../../../assets/game-icons/genshin.svg"),
         "gfl2" => include_bytes!("../../../assets/game-icons/gfl2.svg"),
         "hi3" => include_bytes!("../../../assets/game-icons/hi3.svg"),
+        "bluearchive" => include_bytes!("../../../assets/game-icons/bluearchive.svg"),
+        "limbus" => include_bytes!("../../../assets/game-icons/limbus.svg"),
+        "pgr" => include_bytes!("../../../assets/game-icons/pgr.svg"),
+        "snowbreak" => include_bytes!("../../../assets/game-icons/snowbreak.svg"),
+        "reverse1999" => include_bytes!("../../../assets/game-icons/reverse1999.svg"),
+        "tof" => include_bytes!("../../../assets/game-icons/tof.svg"),
         "hsr" => include_bytes!("../../../assets/game-icons/hsr.svg"),
         "nte" => include_bytes!("../../../assets/game-icons/nte.svg"),
         "wuwa" => include_bytes!("../../../assets/game-icons/wuwa.svg"),
@@ -153,6 +159,15 @@ pub struct GachaHubApp {
     pub uninstall_confirm: Option<String>,
     /// Text field for new mod profile names.
     pub mod_profile_input: String,
+    /// Installed Steam games (local scan).
+    pub steam_apps: Vec<gachahub_core::steam::SteamApp>,
+    /// Re-scan Steam periodically after "Install in Steam" until the game shows up.
+    steam_watch_until: f64,
+    last_steam_scan: f64,
+    /// Search text in the game catalog.
+    pub catalog_filter: String,
+    /// egui time of the current frame.
+    pub now: f64,
     /// Path of the running executable, captured before any self-update.
     startup_exe: Option<PathBuf>,
 }
@@ -276,6 +291,11 @@ impl GachaHubApp {
             sessions: HashMap::new(),
             uninstall_confirm: None,
             mod_profile_input: String::new(),
+            steam_apps: Vec::new(),
+            steam_watch_until: 0.0,
+            last_steam_scan: 0.0,
+            catalog_filter: String::new(),
+            now: 0.0,
         };
         // Developer aid: open a specific page on start (used for screenshots/CI).
         if let Ok(page) = std::env::var("GACHAHUB_START_PAGE") {
@@ -300,6 +320,7 @@ impl GachaHubApp {
         if app.cfg.global.app_update_check {
             app.check_app_update(false);
         }
+        app.refresh_steam();
         app.refresh_runners();
         app.refresh_xxmi();
         app
@@ -470,6 +491,107 @@ impl GachaHubApp {
                 let res = gachahub_core::exe_icon::extract_png(&exe_path, &cache).map(|_| cache);
                 Msg::ExeIcon(id, res)
             });
+        }
+    }
+
+    // ------------------------------------------------------------ Steam
+
+    pub fn refresh_steam(&mut self) {
+        self.backend
+            .blocking(|| Msg::SteamApps(gachahub_core::steam::detect()));
+    }
+
+    /// The Steam installation that belongs to a catalog game, if any.
+    pub fn steam_app_for(&self, game: &Game) -> Option<gachahub_core::steam::SteamApp> {
+        let names: Vec<&str> = game.steam_names.iter().map(String::as_str).collect();
+        gachahub_core::steam::find_app(&self.steam_apps, &names).cloned()
+    }
+
+    /// Link Steam installs to catalog games (paths, executable, launch through Steam).
+    fn link_steam_games(&mut self) {
+        let mut found = Vec::new();
+        for game in self.games.clone() {
+            let Some(app) = self.steam_app_for(&game) else {
+                continue;
+            };
+            let gs = self.cfg.games.get(&game.id);
+            let has_other_install =
+                gs.is_some_and(|g| g.executable_path.is_some() && g.steam_app_id.is_none());
+            let already = gs.and_then(|g| g.steam_app_id.as_deref()) == Some(app.app_id.as_str());
+            if has_other_install || already {
+                continue;
+            }
+            let exe = find_executable(&app.install_dir, &game.id);
+            let gs = self.cfg.game_mut(&game.id);
+            gs.steam_app_id = Some(app.app_id.clone());
+            gs.install_path = Some(app.install_dir.to_string_lossy().into_owned());
+            gs.executable_path = exe.map(|e| e.to_string_lossy().into_owned());
+            gs.installation_detected_at = Some(now_unix().to_string());
+            if !self.cfg.library.contains(&game.id) {
+                self.cfg.library.push(game.id.clone());
+            }
+            self.game_errors.remove(&game.id);
+            found.push(game.name.clone());
+        }
+        if !found.is_empty() {
+            self.toast(
+                ToastKind::Success,
+                format!("Steam: {} {}", found.join(", "), tr("gefunden", "found")),
+            );
+            self.dirty_since.get_or_insert(0.0);
+            self.refresh_installed_versions();
+        }
+    }
+
+    pub fn is_steam_game(&self, game_id: &str) -> bool {
+        self.cfg
+            .games
+            .get(game_id)
+            .is_some_and(|g| g.steam_app_id.is_some())
+    }
+
+    /// Open the game in the Steam client to install it there.
+    pub fn install_via_steam(&mut self, game: &Game, now: f64) {
+        let name = game
+            .steam_names
+            .first()
+            .cloned()
+            .unwrap_or_else(|| game.name.clone());
+        let term: String = name
+            .chars()
+            .map(|c| {
+                if c.is_ascii_alphanumeric() {
+                    c.to_string()
+                } else if c == ' ' {
+                    "+".into()
+                } else {
+                    format!("%{:02X}", c as u32 & 0xff)
+                }
+            })
+            .collect();
+        let url = format!("steam://openurl/https://store.steampowered.com/search/?term={term}");
+        match open::that_detached(&url) {
+            Ok(()) => {
+                self.toast(
+                    ToastKind::Info,
+                    tr(
+                        "Steam wurde geöffnet – nach der Installation erkennt GachaHub das Spiel automatisch.",
+                        "Steam opened – GachaHub detects the game automatically once it is installed.",
+                    ),
+                );
+                // keep looking for the new installation for 2 hours
+                self.steam_watch_until = now + 2.0 * 3600.0;
+            }
+            Err(e) => self.toast(
+                ToastKind::Error,
+                format!(
+                    "{}: {e}",
+                    tr(
+                        "Steam konnte nicht geöffnet werden – ist Steam installiert?",
+                        "Could not open Steam – is it installed?"
+                    )
+                ),
+            ),
         }
     }
 
@@ -777,6 +899,10 @@ impl GachaHubApp {
                             self.game_errors.insert(game_id, e);
                         }
                     }
+                }
+                Msg::SteamApps(apps) => {
+                    self.steam_apps = apps;
+                    self.link_steam_games();
                 }
                 Msg::SessionStarted(game_id, session) => {
                     self.sessions.insert(game_id, session);
@@ -1156,6 +1282,34 @@ impl GachaHubApp {
         let g = self.cfg.global.clone();
         let gid = game_id.to_string();
         let sender = self.backend.sender();
+        if let Some(app_id) = self
+            .cfg
+            .games
+            .get(game_id)
+            .and_then(|g| g.steam_app_id.clone())
+        {
+            match open::that_detached(gachahub_core::steam::launch_url(&app_id)) {
+                Ok(()) => {
+                    crate::backend::track_detached(
+                        self.backend.sender(),
+                        game_id.to_string(),
+                        &r.executable_path,
+                    );
+                    self.running.insert(game_id.to_string(), self.now);
+                    self.cfg.game_mut(game_id).last_played_unix = Some(now_unix());
+                    self.dirty_since.get_or_insert(0.0);
+                    self.toast(
+                        ToastKind::Success,
+                        tr("Start über Steam…", "Launching through Steam…"),
+                    );
+                }
+                Err(e) => {
+                    self.game_errors
+                        .insert(game_id.to_string(), format!("Steam: {e}"));
+                }
+            }
+            return;
+        }
         let xxmi_importer = game.xxmi_importer.clone().filter(|_| r.xxmi_enabled);
         self.busy.insert(format!("launch:{game_id}"));
         self.backend.blocking(move || {
@@ -1540,7 +1694,16 @@ pub use gachahub_core::install::find_executable;
 impl eframe::App for GachaHubApp {
     fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
         let ctx = ui.ctx().clone();
+        self.now = ctx.input(|i| i.time);
         self.process_messages(&ctx);
+        // After "install in Steam": re-scan the Steam libraries every 20 s.
+        if self.now < self.steam_watch_until && self.now - self.last_steam_scan > 20.0 {
+            self.last_steam_scan = self.now;
+            self.refresh_steam();
+        }
+        if self.steam_watch_until > self.now {
+            ctx.request_repaint_after(std::time::Duration::from_secs(5));
+        }
         self.refresh_exe_icons();
 
         egui::Panel::left("rail")

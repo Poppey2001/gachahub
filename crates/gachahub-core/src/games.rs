@@ -32,6 +32,9 @@ pub struct Game {
     pub notes_de: Option<String>,
     pub xxmi_importer: Option<String>,
     pub assets: Option<GameAssets>,
+    /// Names under which the game appears in Steam (for detection / store search).
+    #[serde(default)]
+    pub steam_names: Vec<String>,
 }
 
 #[derive(Debug, Clone)]

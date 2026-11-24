@@ -118,7 +118,9 @@ fn runtime_combo(ui: &mut egui::Ui, id: &str, value: &mut RuntimeKind) -> bool {
         .width(180.0)
         .show_ui(ui, |ui| {
             for r in RuntimeKind::ALL {
-                changed |= ui.selectable_value(value, r, crate::i18n::runtime_label(r)).changed();
+                changed |= ui
+                    .selectable_value(value, r, crate::i18n::runtime_label(r))
+                    .changed();
             }
         });
     changed

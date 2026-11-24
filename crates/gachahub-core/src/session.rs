@@ -23,6 +23,8 @@ pub struct GameSession {
     /// File name of the game executable, e.g. `GenshinImpact.exe`.
     exe_name: String,
     stopped: AtomicBool,
+    /// How long to wait for the game process to appear after the launcher exited.
+    grace: Duration,
 }
 
 impl std::fmt::Debug for GameSession {
@@ -43,6 +45,22 @@ impl GameSession {
             child: Mutex::new(Some(child)),
             exe_name,
             stopped: AtomicBool::new(false),
+            grace: GAME_APPEAR_GRACE,
+        }
+    }
+
+    /// Session for a game started by another program (e.g. the Steam client):
+    /// only the game executable is followed, with a longer start-up grace period.
+    pub fn detached(game_exe: &str) -> Self {
+        let exe_name = std::path::Path::new(game_exe.trim())
+            .file_name()
+            .map(|n| n.to_string_lossy().into_owned())
+            .unwrap_or_default();
+        Self {
+            child: Mutex::new(None),
+            exe_name,
+            stopped: AtomicBool::new(false),
+            grace: Duration::from_secs(120),
         }
     }
 
@@ -72,7 +90,7 @@ impl GameSession {
                 let running = !game_pids(&mut sys, &self.exe_name).is_empty();
                 seen |= running;
                 if self.stopped.load(Ordering::Relaxed)
-                    || (!running && (seen || handed_over.elapsed() > GAME_APPEAR_GRACE))
+                    || (!running && (seen || handed_over.elapsed() > self.grace))
                 {
                     break;
                 }
