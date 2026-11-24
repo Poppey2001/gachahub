@@ -11,6 +11,7 @@ mod theme;
 use eframe::egui;
 
 fn main() -> eframe::Result {
+    gachahub_core::self_update::cleanup_old_versions();
     let icon =
         eframe::icon_data::from_png_bytes(include_bytes!("../assets/gachahub-icon.png")).ok();
     let mut viewport = egui::ViewportBuilder::default()

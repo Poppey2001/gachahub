@@ -1,7 +1,7 @@
 //! Self-updater: checks GitHub releases for a newer GachaHub build, downloads
 //! the matching asset, verifies its SHA-256 digest and replaces the running
-//! executable (works on Windows, where a running .exe cannot be overwritten,
-//! via the `self-replace` crate).
+//! executable (on Windows by renaming the running .exe aside – no helper
+//! processes or temp copies, which antivirus heuristics flag).
 
 use crate::{CoreEvent, EventSink};
 use serde::Deserialize;
@@ -218,16 +218,71 @@ fn extract_binary(tarball: &Path, dir: &Path) -> Result<PathBuf, String> {
     Err("update package does not contain the gachahub binary".into())
 }
 
+/// Swap the running executable for `new_binary` without helper processes.
+///
+/// Windows lets a running .exe be renamed (not deleted): the old file is moved
+/// aside to `<name>.old` next to it and removed on the next start
+/// ([`cleanup_old_versions`]). No copies in %TEMP%, nothing is spawned – the
+/// "copy yourself to Temp and self-delete" pattern used by generic crates is
+/// flagged by antivirus heuristics. On Linux/macOS the new file is renamed over
+/// the old one (the running process keeps its inode).
 fn replace_running_exe(new_binary: &Path) -> Result<(), String> {
-    self_replace::self_replace(new_binary).map_err(|e| {
+    let exe = std::env::current_exe().map_err(|e| format!("cannot locate GachaHub: {e}"))?;
+    let exe = std::fs::canonicalize(&exe).unwrap_or(exe);
+    let dir = exe.parent().ok_or("executable has no folder")?;
+    let name = exe
+        .file_name()
+        .ok_or("executable has no name")?
+        .to_string_lossy()
+        .into_owned();
+    let denied = |e: std::io::Error| {
         if e.kind() == std::io::ErrorKind::PermissionDenied {
-            "no permission to replace GachaHub – it is installed system-wide. Re-run the installer with sudo or update via the release page.".to_string()
+            "no permission to replace GachaHub – it is installed system-wide. Re-run the installer (with sudo on Linux) or update via the release page.".to_string()
         } else {
             format!("could not install the update: {e}")
         }
-    })?;
+    };
+    // stage next to the exe so the final rename stays on one file system
+    let staged = dir.join(format!(".{name}.new"));
+    std::fs::copy(new_binary, &staged).map_err(denied)?;
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let _ = std::fs::set_permissions(&staged, std::fs::Permissions::from_mode(0o755));
+    }
+    #[cfg(windows)]
+    {
+        let old = dir.join(format!("{name}.old"));
+        let _ = std::fs::remove_file(&old);
+        if let Err(e) = std::fs::rename(&exe, &old) {
+            let _ = std::fs::remove_file(&staged);
+            return Err(denied(e));
+        }
+        if let Err(e) = std::fs::rename(&staged, &exe) {
+            let _ = std::fs::rename(&old, &exe); // roll back
+            return Err(denied(e));
+        }
+    }
+    #[cfg(not(windows))]
+    if let Err(e) = std::fs::rename(&staged, &exe) {
+        let _ = std::fs::remove_file(&staged);
+        return Err(denied(e));
+    }
     let _ = std::fs::remove_dir_all(staging_dir());
     Ok(())
+}
+
+/// Remove the previous version left behind by an update (call on start).
+pub fn cleanup_old_versions() {
+    let Ok(exe) = std::env::current_exe() else {
+        return;
+    };
+    let (Some(dir), Some(name)) = (exe.parent(), exe.file_name()) else {
+        return;
+    };
+    let name = name.to_string_lossy();
+    let _ = std::fs::remove_file(dir.join(format!("{name}.old")));
+    let _ = std::fs::remove_file(dir.join(format!(".{name}.new")));
 }
 
 /// Start the (updated) executable again and quit the current process.

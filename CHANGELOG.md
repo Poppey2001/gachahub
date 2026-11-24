@@ -8,6 +8,11 @@
   zwei Stunden lang automatisch nach der neuen Installation.
 - Gilt u. a. für GFL2, Wuthering Waves, Blue Archive, Limbus Company.
 
+## Selbst-Update ohne Antivirus-Fehlalarm
+- Der Updater kopiert sich unter Windows nicht mehr nach `%TEMP%` und startet keine Hilfsprozesse
+  mehr (das Muster „Kopie in Temp + Selbstlöschung“ wurde z. B. von Bitdefender als verdächtig blockiert).
+  Die alte EXE wird jetzt nur neben der neuen in `gachahub.exe.old` umbenannt und beim nächsten Start gelöscht.
+
 ## GFL2 direkt herunterladen: Darkwinter & Haoplay
 - Beim Installieren von GFL2 wählst du die Version: **Global (Darkwinter)** oder **Asien (Haoplay)**.
 - GachaHub lädt das Spiel **selbst** von den offiziellen Servern: Launcher-Konfiguration
