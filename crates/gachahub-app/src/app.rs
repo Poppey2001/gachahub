@@ -1377,6 +1377,14 @@ impl GachaHubApp {
                 None => {
                     let mut args = gachahub_core::launcher::split_args(&r.launch_arguments);
                     args.retain(|a| !a.is_empty());
+                    // GachaHub-installed Kuro games need the resource quality the official launcher passes
+                    if gachahub_core::kuro::supports(&gid)
+                        && !args.iter().any(|a| a.starts_with("-krqlv"))
+                        && gachahub_core::download_manager::installed_version(&r.install_path)
+                            .is_some()
+                    {
+                        args.extend(gachahub_core::kuro::launch_args(&gid));
+                    }
                     Self::spawn_for_game(&gid, &r, &r.executable_path, args)
                 }
             };

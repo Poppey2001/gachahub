@@ -388,8 +388,14 @@ mod live {
         println!(
             "LIVE gfl2/{edition}: client package HTTP {} size {:?}",
             head.status(),
-            head.content_length()
+            head.headers().get(reqwest::header::CONTENT_LENGTH)
         );
+        let len: u64 = head
+            .headers()
+            .get(reqwest::header::CONTENT_LENGTH)
+            .and_then(|v| v.to_str().ok()?.parse().ok())
+            .unwrap_or(0);
+        assert!(len > 100_000_000, "client package size header: {len}");
         assert!(head.status().is_success(), "client package not reachable");
         let first = &files[0];
         let resp = client.get(&first.url).send().await.unwrap();
