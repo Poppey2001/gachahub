@@ -5,7 +5,7 @@
 use crate::{
     app::{GachaHubApp, ToastKind},
     backend::Msg,
-    i18n::{is_german, tr},
+    i18n::{text, tr},
     theme::{self, alpha, mix},
 };
 use eframe::egui::{self, Color32, CornerRadius, RichText, Sense, Stroke, StrokeKind, Vec2};
@@ -91,7 +91,7 @@ impl GachaHubApp {
                     ToastKind::Info,
                     format!(
                         "{} – {}",
-                        launcher.label_for(is_german()),
+                        text(launcher.label_for(true), &launcher.label),
                         tr(
                             "offizielle Seite geöffnet. Lade dort den PC-Launcher herunter und installiere das Spiel – GachaHub erkennt es danach automatisch.",
                             "official site opened. Download the PC launcher there and install the game – GachaHub detects it automatically afterwards.",
@@ -224,7 +224,6 @@ impl GachaHubApp {
             return;
         };
         let (a, b) = Self::accents(&game);
-        let german = is_german();
         let current = self.cfg.games.get(&game_id).and_then(|g| g.edition.clone());
         let direct = gachahub_core::download_manager::supports_direct_download(&game_id);
         let mut chosen: Option<String> = None;
@@ -278,14 +277,14 @@ impl GachaHubApp {
                     p.text(
                         rect.left_top() + Vec2::new(16.0, 14.0),
                         egui::Align2::LEFT_TOP,
-                        l.label_for(german),
+                        text(l.label_for(true), &l.label),
                         theme::font_heavy(16.0),
                         theme::TEXT,
                     );
                     p.text(
                         rect.left_top() + Vec2::new(16.0, 38.0),
                         egui::Align2::LEFT_TOP,
-                        l.region_for(german),
+                        text(l.region_for(true), l.region_for(false)),
                         theme::font(11.5),
                         theme::MUTED,
                     );
@@ -316,7 +315,7 @@ impl GachaHubApp {
                                 .color(theme::MUTED),
                         );
                         for l in &game.official_launchers {
-                            if ui.small_button(l.label_for(german)).clicked() {
+                            if ui.small_button(text(l.label_for(true), &l.label)).clicked() {
                                 official = Some(l.id.clone());
                             }
                         }

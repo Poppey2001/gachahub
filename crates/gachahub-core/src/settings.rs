@@ -94,6 +94,29 @@ pub enum Language {
     #[default]
     De,
     En,
+    Es,
+    Fr,
+}
+
+impl Language {
+    pub const ALL: [Language; 4] = [Language::De, Language::En, Language::Es, Language::Fr];
+    /// Name of the language in itself.
+    pub fn native_name(self) -> &'static str {
+        match self {
+            Language::De => "Deutsch",
+            Language::En => "English",
+            Language::Es => "Español",
+            Language::Fr => "Français",
+        }
+    }
+    pub fn code(self) -> &'static str {
+        match self {
+            Language::De => "DE",
+            Language::En => "EN",
+            Language::Es => "ES",
+            Language::Fr => "FR",
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

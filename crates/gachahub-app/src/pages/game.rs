@@ -197,19 +197,29 @@ impl GachaHubApp {
                             self.section = Section::Settings;
                         }
                         ui.add_space(4.0);
-                        let lang = match self.cfg.global.language {
-                            gachahub_core::settings::Language::De => "DE",
-                            gachahub_core::settings::Language::En => "EN",
-                        };
-                        if theme::ghost_button_sized(ui, "🌐", lang, 36.0, false).clicked() {
-                            self.cfg.global.language = match self.cfg.global.language {
-                                gachahub_core::settings::Language::De => {
-                                    gachahub_core::settings::Language::En
+                        let lang_resp = theme::ghost_button_sized(
+                            ui,
+                            "🌐",
+                            self.cfg.global.language.code(),
+                            36.0,
+                            false,
+                        );
+                        let mut picked = None;
+                        egui::Popup::menu(&lang_resp).show(|ui| {
+                            for l in gachahub_core::settings::Language::ALL {
+                                if ui
+                                    .selectable_label(
+                                        self.cfg.global.language == l,
+                                        l.native_name(),
+                                    )
+                                    .clicked()
+                                {
+                                    picked = Some(l);
                                 }
-                                gachahub_core::settings::Language::En => {
-                                    gachahub_core::settings::Language::De
-                                }
-                            };
+                            }
+                        });
+                        if let Some(l) = picked {
+                            self.cfg.global.language = l;
                             self.mark_dirty(ui.ctx());
                         }
                         ui.add_space(6.0);
@@ -533,7 +543,7 @@ impl GachaHubApp {
                     notice(ui, "⚠", &err, theme::ERR, hero_w);
                     ui.add_space(8.0);
                 }
-                if let Some(notes) = game.notes_for(crate::i18n::is_german()) {
+                if let Some(notes) = game.notes_for(true).map(|de| crate::i18n::text(de, game.notes.as_deref().unwrap_or(de))) {
                     notice(ui, "ℹ", notes, theme::TEXT_DIM, hero_w);
                     ui.add_space(8.0);
                 }
@@ -572,8 +582,8 @@ impl GachaHubApp {
                             theme::pill(ui, &format!("Linux: {short}"), col).on_hover_text(
                                 format!(
                                     "{}\n\n{}",
-                                    c.linux.label_for(crate::i18n::is_german()),
-                                    c.linux.notes_for(crate::i18n::is_german()).join("\n\n")
+                                    crate::i18n::text(c.linux.label_for(true), c.linux.label_for(false)),
+                                    crate::i18n::texts(c.linux.notes_for(true), c.linux.notes_for(false)).join("\n\n")
                                 ),
                             );
                         }
@@ -594,7 +604,7 @@ impl GachaHubApp {
 
                 // ---------- titles
                 ui.label(
-                    RichText::new(game.subtitle_for(crate::i18n::is_german()))
+                    RichText::new(crate::i18n::text(game.subtitle_for(true), &game.subtitle))
                         .font(theme::font(19.0))
                         .color(theme::TEXT_DIM),
                 );

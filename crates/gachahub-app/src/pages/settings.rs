@@ -290,12 +290,12 @@ impl GachaHubApp {
             let g = &mut self.cfg.global;
             changed |= row(ui, tr("Sprache", "Language"), "", |ui| {
                 let mut c = false;
-                c |= ui
-                    .selectable_value(&mut g.language, Language::En, "English")
-                    .changed();
-                c |= ui
-                    .selectable_value(&mut g.language, Language::De, "Deutsch")
-                    .changed();
+                // right-to-left row: reversed so it reads DE · EN · ES · FR
+                for l in Language::ALL.into_iter().rev() {
+                    c |= ui
+                        .selectable_value(&mut g.language, l, l.native_name())
+                        .changed();
+                }
                 c
             });
             changed |= row(
@@ -878,9 +878,12 @@ impl GachaHubApp {
                 theme::card().show(ui, |ui| {
                     ui.set_width(ui.available_width());
                     ui.label(
-                        RichText::new(c.linux.label_for(crate::i18n::is_german()))
-                            .font(theme::font_semi(13.5))
-                            .color(theme::TEXT),
+                        RichText::new(crate::i18n::text(
+                            c.linux.label_for(true),
+                            c.linux.label_for(false),
+                        ))
+                        .font(theme::font_semi(13.5))
+                        .color(theme::TEXT),
                     );
                     ui.label(
                         RichText::new(format!(
@@ -890,7 +893,7 @@ impl GachaHubApp {
                         ))
                         .color(theme::TEXT_DIM),
                     );
-                    for n in c.linux.notes_for(crate::i18n::is_german()) {
+                    for n in crate::i18n::texts(c.linux.notes_for(true), c.linux.notes_for(false)) {
                         ui.label(
                             RichText::new(format!("•  {n}"))
                                 .font(theme::font(12.0))

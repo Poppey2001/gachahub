@@ -1121,6 +1121,7 @@ dependencies = [
  "image",
  "open",
  "rfd",
+ "serde_json",
  "tokio",
  "winresource",
 ]

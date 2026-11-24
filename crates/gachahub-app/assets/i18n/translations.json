@@ -1,0 +1,1410 @@
+{
+ "found": {
+  "es": "encontrado",
+  "fr": "trouvé"
+ },
+ "Steam opened – GachaHub detects the game automatically once it is installed.": {
+  "es": "Steam se ha abierto: GachaHub detectará el juego automáticamente cuando esté instalado.",
+  "fr": "Steam a été ouvert – GachaHub détectera le jeu automatiquement une fois installé."
+ },
+ "Could not open Steam – is it installed?": {
+  "es": "No se pudo abrir Steam: ¿está instalado?",
+  "fr": "Impossible d'ouvrir Steam – est-il installé ?"
+ },
+ "Game stopped": {
+  "es": "Juego detenido",
+  "fr": "Jeu arrêté"
+ },
+ "Game folder does not exist.": {
+  "es": "La carpeta del juego no existe.",
+  "fr": "Le dossier du jeu n'existe pas."
+ },
+ "uninstalled": {
+  "es": "desinstalado",
+  "fr": "désinstallé"
+ },
+ "removed from GachaHub": {
+  "es": "eliminado de GachaHub",
+  "fr": "retiré de GachaHub"
+ },
+ "Unknown app path – please restart manually.": {
+  "es": "Ruta de la aplicación desconocida: reinicia manualmente.",
+  "fr": "Chemin de l'application inconnu – veuillez redémarrer manuellement."
+ },
+ "update installed": {
+  "es": "actualización instalada",
+  "fr": "mise à jour installée"
+ },
+ "files verified and repaired": {
+  "es": "archivos comprobados y reparados",
+  "fr": "fichiers vérifiés et réparés"
+ },
+ "installation finished": {
+  "es": "instalación completada",
+  "fr": "installation terminée"
+ },
+ "is available": {
+  "es": "está disponible",
+  "fr": "est disponible"
+ },
+ "GachaHub is up to date.": {
+  "es": "GachaHub está actualizado.",
+  "fr": "GachaHub est à jour."
+ },
+ "Update installed – restart to activate it.": {
+  "es": "Actualización instalada: reinicia para activarla.",
+  "fr": "Mise à jour installée – redémarrez pour l'activer."
+ },
+ "installing update": {
+  "es": "instalando actualización",
+  "fr": "installation de la mise à jour"
+ },
+ "Game started": {
+  "es": "Juego iniciado",
+  "fr": "Jeu lancé"
+ },
+ "installed": {
+  "es": "instalado",
+  "fr": "installé"
+ },
+ "Runner removed": {
+  "es": "Runner eliminado",
+  "fr": "Runner supprimé"
+ },
+ "XXMI removed": {
+  "es": "XXMI eliminado",
+  "fr": "XXMI supprimé"
+ },
+ "No game executable found in the selected folder.": {
+  "es": "No se encontró el ejecutable del juego en la carpeta seleccionada.",
+  "fr": "Aucun exécutable du jeu trouvé dans le dossier sélectionné."
+ },
+ "Installation detected": {
+  "es": "Instalación detectada",
+  "fr": "Installation détectée"
+ },
+ "Paths imported from GIMI Mod Manager": {
+  "es": "Rutas importadas desde GIMI Mod Manager",
+  "fr": "Chemins importés depuis GIMI Mod Manager"
+ },
+ "No mod paths found in that file.": {
+  "es": "No se encontraron rutas de mods en ese archivo.",
+  "fr": "Aucun chemin de mods trouvé dans ce fichier."
+ },
+ "No matching .exe found – please select it manually in the game settings.": {
+  "es": "No se encontró ningún .exe adecuado: selecciónalo manualmente en los ajustes del juego.",
+  "fr": "Aucun .exe correspondant trouvé – sélectionnez-le manuellement dans les paramètres du jeu."
+ },
+ "Launching through Steam…": {
+  "es": "Iniciando a través de Steam…",
+  "fr": "Lancement via Steam…"
+ },
+ "XXMI opened": {
+  "es": "XXMI abierto",
+  "fr": "XXMI ouvert"
+ },
+ "⬆  Move up": {
+  "es": "⬆  Subir",
+  "fr": "⬆  Monter"
+ },
+ "⬇  Move down": {
+  "es": "⬇  Bajar",
+  "fr": "⬇  Descendre"
+ },
+ "⚙  Settings": {
+  "es": "⚙  Ajustes",
+  "fr": "⚙  Paramètres"
+ },
+ "✖  Remove from library": {
+  "es": "✖  Quitar de la biblioteca",
+  "fr": "✖  Retirer de la bibliothèque"
+ },
+ "Add game": {
+  "es": "Añadir juego",
+  "fr": "Ajouter un jeu"
+ },
+ "Downloads": {
+  "es": "Descargas",
+  "fr": "Téléchargements"
+ },
+ "Runners": {
+  "es": "Runners",
+  "fr": "Runners"
+ },
+ "Settings": {
+  "es": "Ajustes",
+  "fr": "Paramètres"
+ },
+ "English": {
+  "es": "English",
+  "fr": "English"
+ },
+ "Automatic": {
+  "es": "Automático",
+  "fr": "Automatique"
+ },
+ "Native": {
+  "es": "Nativo",
+  "fr": "Natif"
+ },
+ "LIBRARY": {
+  "es": "BIBLIOTECA",
+  "fr": "BIBLIOTHÈQUE"
+ },
+ "Add games": {
+  "es": "Añadir juegos",
+  "fr": "Ajouter des jeux"
+ },
+ "One launcher for all – pick what shows up in your sidebar.": {
+  "es": "Un launcher para todos: elige lo que aparece en tu barra lateral.",
+  "fr": "Un launcher pour tous – choisissez ce qui apparaît dans votre barre latérale."
+ },
+ "🔍  Search games…": {
+  "es": "🔍  Buscar juegos…",
+  "fr": "🔍  Rechercher des jeux…"
+ },
+ "Remove from library": {
+  "es": "Quitar de la biblioteca",
+  "fr": "Retirer de la bibliothèque"
+ },
+ "Add to library": {
+  "es": "Añadir a la biblioteca",
+  "fr": "Ajouter à la bibliothèque"
+ },
+ "Queue": {
+  "es": "Cola",
+  "fr": "File d'attente"
+ },
+ "Resumable downloads with pause, checksums and HTTP range resume.": {
+  "es": "Descargas reanudables con pausa, sumas de comprobación y reanudación por rangos HTTP.",
+  "fr": "Téléchargements reprenables avec pause, sommes de contrôle et reprise par plages HTTP."
+ },
+ "Active": {
+  "es": "Activas",
+  "fr": "En cours"
+ },
+ "No active downloads": {
+  "es": "No hay descargas activas",
+  "fr": "Aucun téléchargement en cours"
+ },
+ "Start an install from a game page.": {
+  "es": "Inicia una instalación desde la página de un juego.",
+  "fr": "Lancez une installation depuis la page d'un jeu."
+ },
+ "Verify": {
+  "es": "Comprobar",
+  "fr": "Vérifier"
+ },
+ "Cancel": {
+  "es": "Cancelar",
+  "fr": "Annuler"
+ },
+ "History": {
+  "es": "Historial",
+  "fr": "Historique"
+ },
+ "Clear": {
+  "es": "Borrar",
+  "fr": "Effacer"
+ },
+ "official site opened. Download the PC launcher there and install the game – GachaHub detects it automatically afterwards.": {
+  "es": "sitio oficial abierto. Descarga allí el launcher para PC e instala el juego; GachaHub lo detectará automáticamente después.",
+  "fr": "site officiel ouvert. Téléchargez-y le launcher PC et installez le jeu – GachaHub le détectera ensuite automatiquement."
+ },
+ "Installer download failed": {
+  "es": "Error al descargar el instalador",
+  "fr": "Échec du téléchargement de l'installateur"
+ },
+ "Official installer started – install the game there. GachaHub detects it automatically afterwards.": {
+  "es": "Instalador oficial iniciado: instala el juego allí. GachaHub lo detectará automáticamente después.",
+  "fr": "Installateur officiel lancé – installez-y le jeu. GachaHub le détectera ensuite automatiquement."
+ },
+ "installation detected – ready to play": {
+  "es": "instalación detectada: listo para jugar",
+  "fr": "installation détectée – prêt à jouer"
+ },
+ "CHOOSE EDITION": {
+  "es": "ELIGE LA VERSIÓN",
+  "fr": "CHOISIR LA VERSION"
+ },
+ "Your account belongs to one server – pick the matching edition. GachaHub downloads the game straight from the official servers (resumable, with updates and file verification).": {
+  "es": "Tu cuenta pertenece a un servidor: elige la versión correspondiente. GachaHub descarga el juego directamente de los servidores oficiales (reanudable, con actualizaciones y comprobación de archivos).",
+  "fr": "Votre compte appartient à un serveur – choisissez la version correspondante. GachaHub télécharge le jeu directement depuis les serveurs officiels (reprenable, avec mises à jour et vérification des fichiers)."
+ },
+ "Your account belongs to one server – pick the matching edition. GachaHub downloads the official installer, runs it and picks the game up automatically afterwards.": {
+  "es": "Tu cuenta pertenece a un servidor: elige la versión correspondiente. GachaHub descarga el instalador oficial, lo ejecuta y detecta el juego automáticamente después.",
+  "fr": "Votre compte appartient à un serveur – choisissez la version correspondante. GachaHub télécharge l'installateur officiel, le lance puis reprend le jeu automatiquement."
+ },
+ "⬇ Download": {
+  "es": "⬇ Descargar",
+  "fr": "⬇ Télécharger"
+ },
+ "Official site ↗": {
+  "es": "Sitio oficial ↗",
+  "fr": "Site officiel ↗"
+ },
+ "⬇ Get installer": {
+  "es": "⬇ Obtener instalador",
+  "fr": "⬇ Obtenir l'installateur"
+ },
+ "Or the official launcher:": {
+  "es": "O el launcher oficial:",
+  "fr": "Ou le launcher officiel :"
+ },
+ "Via Steam": {
+  "es": "Mediante Steam",
+  "fr": "Via Steam"
+ },
+ "Game settings": {
+  "es": "Ajustes del juego",
+  "fr": "Paramètres du jeu"
+ },
+ "● Running": {
+  "es": "● En ejecución",
+  "fr": "● En cours"
+ },
+ "Resume": {
+  "es": "Reanudar",
+  "fr": "Reprendre"
+ },
+ "Pause": {
+  "es": "Pausar",
+  "fr": "Pause"
+ },
+ "Starting…": {
+  "es": "Iniciando…",
+  "fr": "Démarrage…"
+ },
+ "Preparing…": {
+  "es": "Preparando…",
+  "fr": "Préparation…"
+ },
+ "Running": {
+  "es": "En ejecución",
+  "fr": "En cours"
+ },
+ "PLAY": {
+  "es": "JUGAR",
+  "fr": "JOUER"
+ },
+ "RESUME": {
+  "es": "REANUDAR",
+  "fr": "REPRENDRE"
+ },
+ "INSTALL": {
+  "es": "INSTALAR",
+  "fr": "INSTALLER"
+ },
+ "INSTALLER": {
+  "es": "INSTALADOR",
+  "fr": "INSTALLATEUR"
+ },
+ "INSTALLER…": {
+  "es": "INSTALADOR…",
+  "fr": "INSTALLATEUR…"
+ },
+ "INSTALL VIA STEAM": {
+  "es": "INSTALAR CON STEAM",
+  "fr": "INSTALLER VIA STEAM"
+ },
+ "IMPORT GAME": {
+  "es": "IMPORTAR JUEGO",
+  "fr": "IMPORTER LE JEU"
+ },
+ "GachaHub is looking for the finished installation in the background.": {
+  "es": "GachaHub está buscando la instalación terminada en segundo plano.",
+  "fr": "GachaHub recherche l'installation terminée en arrière-plan."
+ },
+ "choose install folder": {
+  "es": "elige la carpeta de instalación",
+  "fr": "choisir le dossier d'installation"
+ },
+ "Stop": {
+  "es": "Detener",
+  "fr": "Arrêter"
+ },
+ "Play": {
+  "es": "Jugar",
+  "fr": "Jouer"
+ },
+ "Verify files": {
+  "es": "Comprobar archivos",
+  "fr": "Vérifier les fichiers"
+ },
+ "Checks all game files and re-downloads damaged or missing ones.": {
+  "es": "Comprueba todos los archivos del juego y vuelve a descargar los dañados o que faltan.",
+  "fr": "Vérifie tous les fichiers du jeu et retélécharge ceux qui sont endommagés ou manquants."
+ },
+ "Existing install": {
+  "es": "Instalación existente",
+  "fr": "Installation existante"
+ },
+ "Install XXMI": {
+  "es": "Instalar XXMI",
+  "fr": "Installer XXMI"
+ },
+ "ON": {
+  "es": "SÍ",
+  "fr": "OUI"
+ },
+ "OFF": {
+  "es": "NO",
+  "fr": "NON"
+ },
+ "INSTALL PATH": {
+  "es": "RUTA DE INSTALACIÓN",
+  "fr": "CHEMIN D'INSTALLATION"
+ },
+ "📁  Choose folder": {
+  "es": "📁  Elegir carpeta",
+  "fr": "📁  Choisir un dossier"
+ },
+ "Install folder": {
+  "es": "Carpeta de instalación",
+  "fr": "Dossier d'installation"
+ },
+ "Mods supported": {
+  "es": "Mods compatibles",
+  "fr": "Mods pris en charge"
+ },
+ "Mods restricted": {
+  "es": "Mods restringidos",
+  "fr": "Mods restreints"
+ },
+ "No mods": {
+  "es": "Sin mods",
+  "fr": "Pas de mods"
+ },
+ "native": {
+  "es": "nativo",
+  "fr": "natif"
+ },
+ "playable": {
+  "es": "jugable",
+  "fr": "jouable"
+ },
+ "playable with caveats": {
+  "es": "jugable con limitaciones",
+  "fr": "jouable avec réserves"
+ },
+ "experimental": {
+  "es": "experimental",
+  "fr": "expérimental"
+ },
+ "unsupported": {
+  "es": "no compatible",
+  "fr": "non pris en charge"
+ },
+ "unknown": {
+  "es": "desconocido",
+  "fr": "inconnu"
+ },
+ "Ready": {
+  "es": "Listo",
+  "fr": "Prêt"
+ },
+ "Not installed": {
+  "es": "No instalado",
+  "fr": "Non installé"
+ },
+ "STATUS": {
+  "es": "ESTADO",
+  "fr": "STATUT"
+ },
+ "INSTALL TYPE": {
+  "es": "TIPO DE INSTALACIÓN",
+  "fr": "TYPE D'INSTALLATION"
+ },
+ "RUNTIME": {
+  "es": "ENTORNO",
+  "fr": "ENVIRONNEMENT"
+ },
+ "Steam (its own Proton)": {
+  "es": "Steam (su propio Proton)",
+  "fr": "Steam (son propre Proton)"
+ },
+ "Native (Windows)": {
+  "es": "Nativo (Windows)",
+  "fr": "Natif (Windows)"
+ },
+ "PLAYTIME": {
+  "es": "TIEMPO DE JUEGO",
+  "fr": "TEMPS DE JEU"
+ },
+ "Resolving": {
+  "es": "Resolviendo",
+  "fr": "Résolution"
+ },
+ "Queued": {
+  "es": "En cola",
+  "fr": "En attente"
+ },
+ "Downloading": {
+  "es": "Descargando",
+  "fr": "Téléchargement"
+ },
+ "Paused": {
+  "es": "En pausa",
+  "fr": "En pause"
+ },
+ "Verifying": {
+  "es": "Comprobando",
+  "fr": "Vérification"
+ },
+ "Extracting": {
+  "es": "Extrayendo",
+  "fr": "Extraction"
+ },
+ "Downloaded": {
+  "es": "Descargado",
+  "fr": "Téléchargé"
+ },
+ "Cancelled": {
+  "es": "Cancelado",
+  "fr": "Annulé"
+ },
+ "Error": {
+  "es": "Error",
+  "fr": "Erreur"
+ },
+ "Restart to update": {
+  "es": "Reiniciar para actualizar",
+  "fr": "Redémarrer pour mettre à jour"
+ },
+ "GachaHub update": {
+  "es": "Actualización de GachaHub",
+  "fr": "Mise à jour de GachaHub"
+ },
+ "Download and install the new GachaHub version": {
+  "es": "Descargar e instalar la nueva versión de GachaHub",
+  "fr": "Télécharger et installer la nouvelle version de GachaHub"
+ },
+ "More actions": {
+  "es": "Más acciones",
+  "fr": "Plus d'actions"
+ },
+ "📂  Open game folder": {
+  "es": "📂  Abrir carpeta del juego",
+  "fr": "📂  Ouvrir le dossier du jeu"
+ },
+ "🔀  Choose edition / download source…": {
+  "es": "🔀  Elegir versión / fuente de descarga…",
+  "fr": "🔀  Choisir la version / la source…"
+ },
+ "🎮  Install via Steam instead": {
+  "es": "🎮  Instalar con Steam en su lugar",
+  "fr": "🎮  Installer plutôt via Steam"
+ },
+ "⟳  Scan Steam library": {
+  "es": "⟳  Buscar en la biblioteca de Steam",
+  "fr": "⟳  Analyser la bibliothèque Steam"
+ },
+ "⚙  Game settings": {
+  "es": "⚙  Ajustes del juego",
+  "fr": "⚙  Paramètres du jeu"
+ },
+ "🗑  Uninstall…": {
+  "es": "🗑  Desinstalar…",
+  "fr": "🗑  Désinstaller…"
+ },
+ "– uninstall?": {
+  "es": "– ¿desinstalar?",
+  "fr": "– désinstaller ?"
+ },
+ "All game files will be deleted:": {
+  "es": "Se eliminarán todos los archivos del juego:",
+  "fr": "Tous les fichiers du jeu seront supprimés :"
+ },
+ "This installation was not created by GachaHub. Files are kept – GachaHub only forgets the path.": {
+  "es": "Esta instalación no fue creada por GachaHub. Los archivos se conservan: GachaHub solo olvida la ruta.",
+  "fr": "Cette installation n'a pas été créée par GachaHub. Les fichiers sont conservés – GachaHub oublie seulement le chemin."
+ },
+ "🗑  Delete files": {
+  "es": "🗑  Eliminar archivos",
+  "fr": "🗑  Supprimer les fichiers"
+ },
+ "Remove from GachaHub": {
+  "es": "Quitar de GachaHub",
+  "fr": "Retirer de GachaHub"
+ },
+ "Mod manager": {
+  "es": "Gestor de mods",
+  "fr": "Gestionnaire de mods"
+ },
+ "Library kept apart from the game, activation via copy or symlink, archive import (ZIP/7z/RAR).": {
+  "es": "Biblioteca separada del juego, activación por copia o enlace simbólico, importación de archivos (ZIP/7z/RAR).",
+  "fr": "Bibliothèque séparée du jeu, activation par copie ou lien symbolique, import d'archives (ZIP/7z/RAR)."
+ },
+ "supported": {
+  "es": "compatible",
+  "fr": "pris en charge"
+ },
+ "restricted": {
+  "es": "restringido",
+  "fr": "restreint"
+ },
+ "disabled": {
+  "es": "desactivado",
+  "fr": "désactivé"
+ },
+ "⚠  Mods are restricted for this game (anti-cheat / terms of service). Use at your own risk.": {
+  "es": "⚠  Los mods están restringidos en este juego (anti-cheat / términos de servicio). Úsalos bajo tu propia responsabilidad.",
+  "fr": "⚠  Les mods sont restreints pour ce jeu (anti-triche / conditions d'utilisation). À vos risques et périls."
+ },
+ "Library": {
+  "es": "Biblioteca",
+  "fr": "Bibliothèque"
+ },
+ "Choose mod library": {
+  "es": "Elegir biblioteca de mods",
+  "fr": "Choisir la bibliothèque de mods"
+ },
+ "Active mods folder": {
+  "es": "Carpeta de mods activos",
+  "fr": "Dossier des mods actifs"
+ },
+ "not set – e.g. XXMI/GIMI/Mods": {
+  "es": "sin definir, p. ej. XXMI/GIMI/Mods",
+  "fr": "non défini – p. ex. XXMI/GIMI/Mods"
+ },
+ "Choose active mods folder": {
+  "es": "Elegir carpeta de mods activos",
+  "fr": "Choisir le dossier des mods actifs"
+ },
+ "📂  Import folder": {
+  "es": "📂  Importar carpeta",
+  "fr": "📂  Importer un dossier"
+ },
+ "Import mod folder": {
+  "es": "Importar carpeta de mod",
+  "fr": "Importer un dossier de mod"
+ },
+ "📦  Import archive": {
+  "es": "📦  Importar archivo",
+  "fr": "📦  Importer une archive"
+ },
+ "Import mod archive": {
+  "es": "Importar archivo de mod",
+  "fr": "Importer une archive de mod"
+ },
+ "⟳  Rescan": {
+  "es": "⟳  Volver a analizar",
+  "fr": "⟳  Réanalyser"
+ },
+ "⚙  Paths": {
+  "es": "⚙  Rutas",
+  "fr": "⚙  Chemins"
+ },
+ "🔍 Search…": {
+  "es": "🔍 Buscar…",
+  "fr": "🔍 Rechercher…"
+ },
+ "Not scanned yet": {
+  "es": "Aún no analizado",
+  "fr": "Pas encore analysé"
+ },
+ "Click “Rescan”.": {
+  "es": "Pulsa «Volver a analizar».",
+  "fr": "Cliquez sur « Réanalyser »."
+ },
+ "Could not read mods": {
+  "es": "No se pudieron leer los mods",
+  "fr": "Impossible de lire les mods"
+ },
+ "total": {
+  "es": "en total",
+  "fr": "au total"
+ },
+ "enabled": {
+  "es": "activados",
+  "fr": "activés"
+ },
+ "conflicts": {
+  "es": "conflictos",
+  "fr": "conflits"
+ },
+ "broken": {
+  "es": "dañados",
+  "fr": "endommagés"
+ },
+ "No mods found": {
+  "es": "No se encontraron mods",
+  "fr": "Aucun mod trouvé"
+ },
+ "Import a folder or an archive.": {
+  "es": "Importa una carpeta o un archivo.",
+  "fr": "Importez un dossier ou une archive."
+ },
+ "Enabled": {
+  "es": "Activado",
+  "fr": "Activé"
+ },
+ "Conflict": {
+  "es": "Conflicto",
+  "fr": "Conflit"
+ },
+ "Broken": {
+  "es": "Dañado",
+  "fr": "Endommagé"
+ },
+ "Disabled": {
+  "es": "Desactivado",
+  "fr": "Désactivé"
+ },
+ "external": {
+  "es": "externo",
+  "fr": "externe"
+ },
+ "Lives in the active folder but is not managed by GachaHub.": {
+  "es": "Está en la carpeta activa, pero GachaHub no lo gestiona.",
+  "fr": "Se trouve dans le dossier actif mais n'est pas géré par GachaHub."
+ },
+ "Profile": {
+  "es": "Perfil",
+  "fr": "Profil"
+ },
+ "no profiles": {
+  "es": "sin perfiles",
+  "fr": "aucun profil"
+ },
+ "Choose profile…": {
+  "es": "Elegir perfil…",
+  "fr": "Choisir un profil…"
+ },
+ "Apply profile": {
+  "es": "Aplicar perfil",
+  "fr": "Appliquer le profil"
+ },
+ "Delete profile": {
+  "es": "Eliminar perfil",
+  "fr": "Supprimer le profil"
+ },
+ "Name for current setup": {
+  "es": "Nombre de la configuración actual",
+  "fr": "Nom de la configuration actuelle"
+ },
+ "💾  Save": {
+  "es": "💾  Guardar",
+  "fr": "💾  Enregistrer"
+ },
+ "Saves the currently enabled mods as a profile.": {
+  "es": "Guarda los mods activados actualmente como perfil.",
+  "fr": "Enregistre les mods actuellement activés comme profil."
+ },
+ "saved": {
+  "es": "guardado",
+  "fr": "enregistré"
+ },
+ "📥  Import GIMI Mod Manager": {
+  "es": "📥  Importar GIMI Mod Manager",
+  "fr": "📥  Importer GIMI Mod Manager"
+ },
+ "Takes over library and mods folder from the old GIMI Mod Manager configuration.": {
+  "es": "Adopta la biblioteca y la carpeta de mods de la configuración del antiguo GIMI Mod Manager.",
+  "fr": "Reprend la bibliothèque et le dossier de mods de l'ancienne configuration de GIMI Mod Manager."
+ },
+ "Choose GIMI Mod Manager config": {
+  "es": "Elegir configuración de GIMI Mod Manager",
+  "fr": "Choisir la configuration de GIMI Mod Manager"
+ },
+ "Compatibility": {
+  "es": "Compatibilidad",
+  "fr": "Compatibilité"
+ },
+ "Detect, install and manage Wine and Proton builds.": {
+  "es": "Detecta, instala y gestiona versiones de Wine y Proton.",
+  "fr": "Détecter, installer et gérer les versions de Wine et Proton."
+ },
+ "⟳  Re-detect": {
+  "es": "⟳  Volver a detectar",
+  "fr": "⟳  Redétecter"
+ },
+ "Not needed on Windows": {
+  "es": "No es necesario en Windows",
+  "fr": "Inutile sous Windows"
+ },
+ "Games run natively – runners only matter on Linux.": {
+  "es": "Los juegos se ejecutan de forma nativa: los runners solo importan en Linux.",
+  "fr": "Les jeux tournent nativement – les runners ne servent que sous Linux."
+ },
+ "Installed": {
+  "es": "Instalados",
+  "fr": "Installés"
+ },
+ "No runners found": {
+  "es": "No se encontraron runners",
+  "fr": "Aucun runner trouvé"
+ },
+ "Install a Proton build below.": {
+  "es": "Instala una versión de Proton a continuación.",
+  "fr": "Installez une version de Proton ci-dessous."
+ },
+ "Remove": {
+  "es": "Eliminar",
+  "fr": "Supprimer"
+ },
+ "Download runners": {
+  "es": "Descargar runners",
+  "fr": "Télécharger des runners"
+ },
+ "Loading releases…": {
+  "es": "Cargando versiones…",
+  "fr": "Chargement des versions…"
+ },
+ "Retry": {
+  "es": "Reintentar",
+  "fr": "Réessayer"
+ },
+ "✔ installed": {
+  "es": "✔ instalado",
+  "fr": "✔ installé"
+ },
+ "Verifying checksum…": {
+  "es": "Comprobando suma de verificación…",
+  "fr": "Vérification de la somme de contrôle…"
+ },
+ "Extracting…": {
+  "es": "Extrayendo…",
+  "fr": "Extraction…"
+ },
+ "Installing…": {
+  "es": "Instalando…",
+  "fr": "Installation…"
+ },
+ "⬇  Install": {
+  "es": "⬇  Instalar",
+  "fr": "⬇  Installer"
+ },
+ "Reset to global value": {
+  "es": "Restablecer al valor global",
+  "fr": "Revenir à la valeur globale"
+ },
+ "global": {
+  "es": "global",
+  "fr": "global"
+ },
+ "Configuration": {
+  "es": "Configuración",
+  "fr": "Configuration"
+ },
+ "Stored in": {
+  "es": "Guardado en",
+  "fr": "Enregistré dans"
+ },
+ "General": {
+  "es": "General",
+  "fr": "Général"
+ },
+ "Per game": {
+  "es": "Por juego",
+  "fr": "Par jeu"
+ },
+ "Update installed – restart required.": {
+  "es": "Actualización instalada: es necesario reiniciar.",
+  "fr": "Mise à jour installée – redémarrage requis."
+ },
+ "New version available:": {
+  "es": "Nueva versión disponible:",
+  "fr": "Nouvelle version disponible :"
+ },
+ " (pre-release)": {
+  "es": " (versión preliminar)",
+  "fr": " (préversion)"
+ },
+ "Checking for updates…": {
+  "es": "Buscando actualizaciones…",
+  "fr": "Recherche de mises à jour…"
+ },
+ "↻  Restart": {
+  "es": "↻  Reiniciar",
+  "fr": "↻  Redémarrer"
+ },
+ "⬆  Update now": {
+  "es": "⬆  Actualizar ahora",
+  "fr": "⬆  Mettre à jour"
+ },
+ "⟳  Check for updates": {
+  "es": "⟳  Buscar actualizaciones",
+  "fr": "⟳  Rechercher des mises à jour"
+ },
+ "Check for updates on start": {
+  "es": "Buscar actualizaciones al iniciar",
+  "fr": "Rechercher des mises à jour au démarrage"
+ },
+ "Update channel": {
+  "es": "Canal de actualización",
+  "fr": "Canal de mise à jour"
+ },
+ "Pre-releases are built automatically for every change – newer, but less tested.": {
+  "es": "Las versiones preliminares se compilan automáticamente con cada cambio: más nuevas, pero menos probadas.",
+  "fr": "Les préversions sont compilées automatiquement à chaque modification – plus récentes, mais moins testées."
+ },
+ "Pre-releases": {
+  "es": "Versiones preliminares",
+  "fr": "Préversions"
+ },
+ "Stable": {
+  "es": "Estable",
+  "fr": "Stable"
+ },
+ "Interface": {
+  "es": "Interfaz",
+  "fr": "Interface"
+ },
+ "Language": {
+  "es": "Idioma",
+  "fr": "Langue"
+ },
+ "Animated backgrounds": {
+  "es": "Fondos animados",
+  "fr": "Arrière-plans animés"
+ },
+ "Softly drifting gradients and particles.": {
+  "es": "Degradados y partículas que se mueven suavemente.",
+  "fr": "Dégradés et particules en douce dérive."
+ },
+ "Background dim": {
+  "es": "Oscurecer fondo",
+  "fr": "Assombrir l'arrière-plan"
+ },
+ "Applies to custom artwork.": {
+  "es": "Se aplica a ilustraciones propias.",
+  "fr": "S'applique aux illustrations personnalisées."
+ },
+ "Paths": {
+  "es": "Rutas",
+  "fr": "Chemins"
+ },
+ "Default install folder": {
+  "es": "Carpeta de instalación predeterminada",
+  "fr": "Dossier d'installation par défaut"
+ },
+ "Each game gets a sub folder.": {
+  "es": "Cada juego tiene una subcarpeta.",
+  "fr": "Chaque jeu a son sous-dossier."
+ },
+ "Wine/Proton prefixes": {
+  "es": "Prefijos de Wine/Proton",
+  "fr": "Préfixes Wine/Proton"
+ },
+ "Mod root folder": {
+  "es": "Carpeta raíz de mods",
+  "fr": "Dossier racine des mods"
+ },
+ "Choose folder": {
+  "es": "Elegir carpeta",
+  "fr": "Choisir un dossier"
+ },
+ "Linux runtime (defaults)": {
+  "es": "Entorno de Linux (predeterminado)",
+  "fr": "Environnement Linux (par défaut)"
+ },
+ "Runtime": {
+  "es": "Entorno",
+  "fr": "Environnement"
+ },
+ "“Automatic” uses umu-run with managed Proton.": {
+  "es": "«Automático» usa umu-run con Proton gestionado.",
+  "fr": "« Automatique » utilise umu-run avec un Proton géré."
+ },
+ "Runner": {
+  "es": "Runner",
+  "fr": "Runner"
+ },
+ "Specific Proton/Wine build (empty = automatic).": {
+  "es": "Versión concreta de Proton/Wine (vacío = automático).",
+  "fr": "Version précise de Proton/Wine (vide = automatique)."
+ },
+ "Feral GameMode CPU/GPU tuning.": {
+  "es": "Optimización de CPU/GPU con Feral GameMode.",
+  "fr": "Optimisation CPU/GPU avec Feral GameMode."
+ },
+ "Valve's micro compositor.": {
+  "es": "El microcompositor de Valve.",
+  "fr": "Le micro-compositeur de Valve."
+ },
+ "FPS/performance overlay.": {
+  "es": "Superposición de FPS/rendimiento.",
+  "fr": "Superposition FPS/performances."
+ },
+ "Prevent sleep": {
+  "es": "Evitar suspensión",
+  "fr": "Empêcher la mise en veille"
+ },
+ "Via systemd-inhibit while the game runs.": {
+  "es": "Mediante systemd-inhibit mientras el juego se ejecuta.",
+  "fr": "Via systemd-inhibit pendant que le jeu tourne."
+ },
+ "Choose runner folder": {
+  "es": "Elegir carpeta del runner",
+  "fr": "Choisir le dossier du runner"
+ },
+ "Downloads & updates": {
+  "es": "Descargas y actualizaciones",
+  "fr": "Téléchargements et mises à jour"
+ },
+ "Automatic updates": {
+  "es": "Actualizaciones automáticas",
+  "fr": "Mises à jour automatiques"
+ },
+ "Check for new game versions on start and install them right away.": {
+  "es": "Busca nuevas versiones de los juegos al iniciar y las instala de inmediato.",
+  "fr": "Recherche de nouvelles versions des jeux au démarrage et installation immédiate."
+ },
+ "Parallel downloads": {
+  "es": "Descargas en paralelo",
+  "fr": "Téléchargements parallèles"
+ },
+ "Number of files fetched at the same time.": {
+  "es": "Número de archivos descargados a la vez.",
+  "fr": "Nombre de fichiers téléchargés simultanément."
+ },
+ "Limit bandwidth": {
+  "es": "Limitar ancho de banda",
+  "fr": "Limiter la bande passante"
+ },
+ "Maximum download speed.": {
+  "es": "Velocidad máxima de descarga.",
+  "fr": "Vitesse de téléchargement maximale."
+ },
+ "Voice language": {
+  "es": "Idioma de voces",
+  "fr": "Langue des voix"
+ },
+ "Voice pack for Genshin, Star Rail and ZZZ.": {
+  "es": "Paquete de voces para Genshin, Star Rail y ZZZ.",
+  "fr": "Pack de voix pour Genshin, Star Rail et ZZZ."
+ },
+ "Deployment": {
+  "es": "Despliegue",
+  "fr": "Déploiement"
+ },
+ "Copy is safest, symlinks save space.": {
+  "es": "Copiar es lo más seguro; los enlaces simbólicos ahorran espacio.",
+  "fr": "La copie est la plus sûre, les liens symboliques économisent de l'espace."
+ },
+ "Copy": {
+  "es": "Copiar",
+  "fr": "Copie"
+ },
+ "↺  Reset all global settings": {
+  "es": "↺  Restablecer todos los ajustes globales",
+  "fr": "↺  Réinitialiser tous les paramètres globaux"
+ },
+ "Use per-game values": {
+  "es": "Usar valores por juego",
+  "fr": "Utiliser des valeurs par jeu"
+ },
+ "Off = everything comes from the global settings.": {
+  "es": "Desactivado = todo se toma de los ajustes globales.",
+  "fr": "Désactivé = tout provient des paramètres globaux."
+ },
+ "Installation": {
+  "es": "Instalación",
+  "fr": "Installation"
+ },
+ "Game executable": {
+  "es": "Ejecutable del juego",
+  "fr": "Exécutable du jeu"
+ },
+ "Detected automatically on import.": {
+  "es": "Se detecta automáticamente al importar.",
+  "fr": "Détecté automatiquement lors de l'import."
+ },
+ "Detect automatically": {
+  "es": "Detectar automáticamente",
+  "fr": "Détecter automatiquement"
+ },
+ "not set": {
+  "es": "sin definir",
+  "fr": "non défini"
+ },
+ "Use global": {
+  "es": "Usar global",
+  "fr": "Utiliser le global"
+ },
+ "Launch": {
+  "es": "Inicio",
+  "fr": "Lancement"
+ },
+ "Launch arguments": {
+  "es": "Argumentos de inicio",
+  "fr": "Arguments de lancement"
+ },
+ "Shell-like, quotes allowed.": {
+  "es": "Estilo shell, se permiten comillas.",
+  "fr": "Style shell, guillemets autorisés."
+ },
+ "Environment variables (KEY=VALUE, one per line)": {
+  "es": "Variables de entorno (CLAVE=VALOR, una por línea)",
+  "fr": "Variables d'environnement (CLÉ=VALEUR, une par ligne)"
+ },
+ "Compatibility (Linux)": {
+  "es": "Compatibilidad (Linux)",
+  "fr": "Compatibilité (Linux)"
+ },
+ "Recommended": {
+  "es": "Recomendado",
+  "fr": "Recommandé"
+ },
+ "✨  Apply recommended values": {
+  "es": "✨  Aplicar valores recomendados",
+  "fr": "✨  Appliquer les valeurs recommandées"
+ },
+ "Checked:": {
+  "es": "Comprobado:",
+  "fr": "Vérifié :"
+ },
+ "Mod library": {
+  "es": "Biblioteca de mods",
+  "fr": "Bibliothèque de mods"
+ },
+ "e.g. …/XXMI/GIMI/Mods": {
+  "es": "p. ej. …/XXMI/GIMI/Mods",
+  "fr": "p. ex. …/XXMI/GIMI/Mods"
+ },
+ "Launch through XXMI": {
+  "es": "Iniciar con XXMI",
+  "fr": "Lancer via XXMI"
+ },
+ "Launches the game with the model importer.": {
+  "es": "Inicia el juego con el model importer.",
+  "fr": "Lance le jeu avec le model importer."
+ },
+ "↺  Reset game settings": {
+  "es": "↺  Restablecer ajustes del juego",
+  "fr": "↺  Réinitialiser les paramètres du jeu"
+ },
+ "Choose game executable": {
+  "es": "Elegir ejecutable del juego",
+  "fr": "Choisir l'exécutable du jeu"
+ },
+ "Model importers for GIMI, SRMI, ZZMI, WWMI, EFMI and HIMI – installed and updated by GachaHub.": {
+  "es": "Model importers para GIMI, SRMI, ZZMI, WWMI, EFMI y HIMI, instalados y actualizados por GachaHub.",
+  "fr": "Model importers pour GIMI, SRMI, ZZMI, WWMI, EFMI et HIMI – installés et mis à jour par GachaHub."
+ },
+ "Refresh status": {
+  "es": "Actualizar estado",
+  "fr": "Actualiser l'état"
+ },
+ "Latest:": {
+  "es": "Última:",
+  "fr": "Dernière :"
+ },
+ "Update available": {
+  "es": "Actualización disponible",
+  "fr": "Mise à jour disponible"
+ },
+ "⬇  Install XXMI": {
+  "es": "⬇  Instalar XXMI",
+  "fr": "⬇  Installer XXMI"
+ },
+ "⬆  Update": {
+  "es": "⬆  Actualizar",
+  "fr": "⬆  Mettre à jour"
+ },
+ "🛠  Repair": {
+  "es": "🛠  Reparar",
+  "fr": "🛠  Réparer"
+ },
+ "🗑  Remove": {
+  "es": "🗑  Eliminar",
+  "fr": "🗑  Supprimer"
+ },
+ "Open (GUI)": {
+  "es": "Abrir (GUI)",
+  "fr": "Ouvrir (GUI)"
+ },
+ "Empty = default in the data folder.": {
+  "es": "Vacío = predeterminado en la carpeta de datos.",
+  "fr": "Vide = valeur par défaut dans le dossier de données."
+ },
+ "default": {
+  "es": "predeterminado",
+  "fr": "par défaut"
+ },
+ "Custom launcher": {
+  "es": "Launcher personalizado",
+  "fr": "Launcher personnalisé"
+ },
+ "Optional: use an existing XXMI Launcher.exe.": {
+  "es": "Opcional: usar un XXMI Launcher.exe existente.",
+  "fr": "Facultatif : utiliser un XXMI Launcher.exe existant."
+ },
+ "Launch without GUI": {
+  "es": "Iniciar sin GUI",
+  "fr": "Lancer sans GUI"
+ },
+ "Auto update": {
+  "es": "Actualización automática",
+  "fr": "Mise à jour automatique"
+ },
+ "Rhodes Island tactical operations": {
+  "es": "Operaciones tácticas de Rhodes Island",
+  "fr": "Opérations tactiques de Rhodes Island"
+ },
+ "Official PC client; Linux community reports via GE-Proton/Proton Experimental.": {
+  "es": "Cliente oficial para PC; la comunidad informa que funciona en Linux con GE-Proton/Proton Experimental.",
+  "fr": "Client PC officiel ; la communauté signale qu'il tourne sous Linux via GE-Proton/Proton Experimental."
+ },
+ "Explore Talos-II": {
+  "es": "Explora Talos-II",
+  "fr": "Explorez Talos-II"
+ },
+ "Use Proton builds with Endfield/ACE fixes; avoid Proton Vanilla/UMU per current launcher guidance.": {
+  "es": "Usa versiones de Proton con correcciones para Endfield/ACE; evita Proton Vanilla/UMU según las indicaciones actuales del launcher.",
+  "fr": "Utilisez des versions de Proton avec correctifs Endfield/ACE ; évitez Proton Vanilla/UMU selon les recommandations actuelles du launcher."
+ },
+ "Step into a vast magical world": {
+  "es": "Adéntrate en un vasto mundo mágico",
+  "fr": "Entrez dans un vaste monde magique"
+ },
+ "Board the Astral Express": {
+  "es": "Sube al Expreso Astral",
+  "fr": "Montez à bord de l'Astral Express"
+ },
+ "Welcome to New Eridu": {
+  "es": "Bienvenido a Nueva Eridu",
+  "fr": "Bienvenue à New Eridu"
+ },
+ "Wake and journey as a Rover": {
+  "es": "Despierta y viaja como Vagabundo",
+  "fr": "Réveillez-vous et voyagez en tant que Vagabond"
+ },
+ "Command your tactical dolls": {
+  "es": "Dirige a tus dolls tácticas",
+  "fr": "Commandez vos dolls tactiques"
+ },
+ "Pick your edition – Global (Darkwinter) or Asia (Haoplay) – and GachaHub downloads the game straight from the official servers, with updates and file verification. Steam and the official launchers work too.": {
+  "es": "Elige tu versión, Global (Darkwinter) o Asia (Haoplay), y GachaHub descargará el juego directamente de los servidores oficiales, con actualizaciones y comprobación de archivos. Steam y los launchers oficiales también funcionan.",
+  "fr": "Choisissez votre version – Global (Darkwinter) ou Asie (Haoplay) – et GachaHub télécharge le jeu directement depuis les serveurs officiels, avec mises à jour et vérification des fichiers. Steam et les launchers officiels fonctionnent aussi."
+ },
+ "Global (Darkwinter)": {
+  "es": "Global (Darkwinter)",
+  "fr": "Global (Darkwinter)"
+ },
+ "Global servers: America, Europe": {
+  "es": "Servidores globales: América, Europa",
+  "fr": "Serveurs globaux : Amérique, Europe"
+ },
+ "Asia (Haoplay)": {
+  "es": "Asia (Haoplay)",
+  "fr": "Asie (Haoplay)"
+ },
+ "Asia servers: Japan, Korea, SEA, TW/HK/MO": {
+  "es": "Servidores de Asia: Japón, Corea, Sudeste Asiático, TW/HK/MO",
+  "fr": "Serveurs Asie : Japon, Corée, Asie du Sud-Est, TW/HK/MO"
+ },
+ "Supernatural urban open-world RPG": {
+  "es": "RPG urbano sobrenatural de mundo abierto",
+  "fr": "RPG urbain surnaturel en monde ouvert"
+ },
+ "Install NTE with its official launcher, then click “Import game” and select the game folder. Anti-cheat protected – mods stay disabled.": {
+  "es": "Instala NTE con su launcher oficial, luego pulsa «Importar juego» y selecciona la carpeta del juego. Protegido por anti-cheat: los mods permanecen desactivados.",
+  "fr": "Installez NTE avec son launcher officiel, puis cliquez sur « Importer le jeu » et sélectionnez le dossier du jeu. Protégé par un anti-triche – les mods restent désactivés."
+ },
+ "Fight for all that is beautiful in this world": {
+  "es": "Lucha por todo lo bello de este mundo",
+  "fr": "Combattez pour tout ce qui est beau en ce monde"
+ },
+ "Join the students of Kivotos": {
+  "es": "Únete a los estudiantes de Kivotos",
+  "fr": "Rejoignez les élèves de Kivotos"
+ },
+ "Install via Steam with one click – GachaHub detects the installation automatically and launches it through Steam.": {
+  "es": "Instálalo con Steam en un clic: GachaHub detecta la instalación automáticamente y lo inicia a través de Steam.",
+  "fr": "Installez-le via Steam en un clic – GachaHub détecte l'installation automatiquement et le lance via Steam."
+ },
+ "Lead the sinners into the depths": {
+  "es": "Guía a los pecadores hacia las profundidades",
+  "fr": "Menez les pécheurs dans les profondeurs"
+ },
+ "Fight for the last of humanity": {
+  "es": "Lucha por lo que queda de la humanidad",
+  "fr": "Combattez pour ce qui reste de l'humanité"
+ },
+ "Contain the Titans": {
+  "es": "Contén a los Titanes",
+  "fr": "Contenez les Titans"
+ },
+ "Weather the Storm": {
+  "es": "Resiste la Tormenta",
+  "fr": "Affrontez la Tempête"
+ },
+ "Explore the world of Aida": {
+  "es": "Explora el mundo de Aida",
+  "fr": "Explorez le monde d'Aida"
+ },
+ "Community: runs via Proton": {
+  "es": "Comunidad: funciona con Proton",
+  "fr": "Communauté : fonctionne via Proton"
+ },
+ "Linux users have launched the new official PC client with Proton/GE-Proton.": {
+  "es": "Usuarios de Linux han iniciado el nuevo cliente oficial para PC con Proton/GE-Proton.",
+  "fr": "Des utilisateurs Linux ont lancé le nouveau client PC officiel avec Proton/GE-Proton."
+ },
+ "Gamescope can help with sluggish mouse/window behaviour.": {
+  "es": "Gamescope puede ayudar si el ratón o la ventana responden con lentitud.",
+  "fr": "Gamescope peut aider si la souris ou la fenêtre réagit lentement."
+ },
+ "There is no official Linux support, so the status is community-based.": {
+  "es": "No hay soporte oficial para Linux, así que el estado se basa en la comunidad.",
+  "fr": "Il n'y a pas de support Linux officiel, le statut repose donc sur la communauté."
+ },
+ "Runs with suitable Proton builds": {
+  "es": "Funciona con versiones de Proton adecuadas",
+  "fr": "Fonctionne avec des versions de Proton adaptées"
+ },
+ "Newer Proton builds include Endfield-specific Wine/ACE fixes.": {
+  "es": "Las versiones recientes de Proton incluyen correcciones de Wine/ACE específicas para Endfield.",
+  "fr": "Les versions récentes de Proton incluent des correctifs Wine/ACE propres à Endfield."
+ },
+ "Twintail still advises against Proton Vanilla or Proton UMU for Endfield.": {
+  "es": "Twintail sigue desaconsejando Proton Vanilla o Proton UMU para Endfield.",
+  "fr": "Twintail déconseille toujours Proton Vanilla ou Proton UMU pour Endfield."
+ },
+ "If problems occur, switch the runner first before recreating the prefix or installation.": {
+  "es": "Si hay problemas, cambia primero el runner antes de recrear el prefijo o la instalación.",
+  "fr": "En cas de problème, changez d'abord de runner avant de recréer le préfixe ou l'installation."
+ },
+ "Community/Twintail: playable via Proton": {
+  "es": "Comunidad/Twintail: jugable con Proton",
+  "fr": "Communauté/Twintail : jouable via Proton"
+ },
+ "Recent community reports show Genshin playable on Fedora/Bazzite/Mint via Proton.": {
+  "es": "Informes recientes de la comunidad muestran Genshin jugable en Fedora/Bazzite/Mint con Proton.",
+  "fr": "Des rapports récents de la communauté montrent Genshin jouable sous Fedora/Bazzite/Mint via Proton."
+ },
+ "For sporadic security-token/timeout crashes WINE_ENABLE_TIMEOUT_FIX=1 can help; do not force it globally.": {
+  "es": "Para cierres esporádicos por token de seguridad/tiempo de espera puede ayudar WINE_ENABLE_TIMEOUT_FIX=1; no lo fuerces globalmente.",
+  "fr": "Pour des plantages sporadiques de jeton de sécurité/délai d'attente, WINE_ENABLE_TIMEOUT_FIX=1 peut aider ; ne le forcez pas globalement."
+ },
+ "Updates can be installed through GachaHub or the official launcher.": {
+  "es": "Las actualizaciones se pueden instalar con GachaHub o con el launcher oficial.",
+  "fr": "Les mises à jour peuvent être installées via GachaHub ou le launcher officiel."
+ },
+ "Twintail: current Proton builds work": {
+  "es": "Twintail: las versiones actuales de Proton funcionan",
+  "fr": "Twintail : les versions actuelles de Proton fonctionnent"
+ },
+ "Twintail reported in May 2026 that Star Rail runs again with current Proton families.": {
+  "es": "Twintail informó en mayo de 2026 que Star Rail vuelve a funcionar con las familias actuales de Proton.",
+  "fr": "Twintail a signalé en mai 2026 que Star Rail fonctionne à nouveau avec les familles actuelles de Proton."
+ },
+ "Older Proton 10 builds had regressions at times, so do not blindly pin an old version.": {
+  "es": "Algunas versiones antiguas de Proton 10 tuvieron regresiones, así que no fijes una versión antigua a ciegas.",
+  "fr": "D'anciennes versions de Proton 10 ont parfois eu des régressions, ne figez donc pas une ancienne version à l'aveugle."
+ },
+ "If an update causes launch problems, try a current alternative runner first.": {
+  "es": "Si una actualización causa problemas al iniciar, prueba primero otro runner actual.",
+  "fr": "Si une mise à jour pose des problèmes de lancement, essayez d'abord un autre runner récent."
+ },
+ "Generally playable; note current 3.2 regression reports": {
+  "es": "Jugable en general; ten en cuenta los informes de regresión de la 3.2",
+  "fr": "Jouable en général ; attention aux régressions signalées avec la 3.2"
+ },
+ "Twintail supports ZZZ, but after update 3.2 some instant launch crashes under Proton were reported in September 2026.": {
+  "es": "Twintail es compatible con ZZZ, pero tras la actualización 3.2 se informaron en septiembre de 2026 cierres inmediatos al iniciar con Proton.",
+  "fr": "Twintail prend en charge ZZZ, mais après la mise à jour 3.2, des plantages immédiats au lancement sous Proton ont été signalés en septembre 2026."
+ },
+ "DX12/RTX/frame generation has extra bug reports on some Linux systems, so runner and rendering mode are not hard-wired.": {
+  "es": "DX12/RTX/generación de fotogramas tiene más informes de errores en algunos sistemas Linux, así que el runner y el modo de renderizado no están fijados.",
+  "fr": "DX12/RTX/génération d'images fait l'objet de rapports de bugs supplémentaires sur certains systèmes Linux, le runner et le mode de rendu ne sont donc pas imposés."
+ },
+ "After game updates check runner/prefix first and do not bypass protection mechanisms.": {
+  "es": "Tras actualizar el juego, revisa primero el runner/prefijo y no eludas los mecanismos de protección.",
+  "fr": "Après une mise à jour du jeu, vérifiez d'abord le runner/préfixe et ne contournez pas les mécanismes de protection."
+ },
+ "Playable; current Proton recommended": {
+  "es": "Jugable; se recomienda un Proton actual",
+  "fr": "Jouable ; Proton récent recommandé"
+ },
+ "Wuthering Waves is playable under Proton; current Proton versions fix older media/WebView issues.": {
+  "es": "Wuthering Waves es jugable con Proton; las versiones actuales corrigen antiguos problemas de multimedia/WebView.",
+  "fr": "Wuthering Waves est jouable sous Proton ; les versions actuelles corrigent d'anciens problèmes de médias/WebView."
+ },
+ "Some VRAM/UI issues were reported on NVIDIA, so runner and Gamescope stay configurable separately.": {
+  "es": "Se informaron algunos problemas de VRAM/interfaz en NVIDIA, por eso el runner y Gamescope se configuran por separado.",
+  "fr": "Des problèmes de VRAM/interface ont été signalés sur NVIDIA, le runner et Gamescope restent donc configurables séparément."
+ },
+ "Proton works, watch for runner regressions": {
+  "es": "Proton funciona, atención a regresiones del runner",
+  "fr": "Proton fonctionne, attention aux régressions du runner"
+ },
+ "The Steam version runs with Proton for many users; Valve still lists SteamOS as unsupported.": {
+  "es": "La versión de Steam funciona con Proton para muchos usuarios; Valve sigue indicando SteamOS como no compatible.",
+  "fr": "La version Steam fonctionne avec Proton chez beaucoup d'utilisateurs ; Valve indique toujours SteamOS comme non pris en charge."
+ },
+ "Proton 11 beta had a launch regression; Proton 10.0-4 worked in the related Valve report.": {
+  "es": "La beta de Proton 11 tuvo una regresión al iniciar; Proton 10.0-4 funcionó según el informe de Valve correspondiente.",
+  "fr": "La bêta de Proton 11 avait une régression au lancement ; Proton 10.0-4 fonctionnait selon le rapport Valve correspondant."
+ },
+ "GE-Proton 11.1–11.3 had reported video issues; GE 10-34 was the last working version.": {
+  "es": "GE-Proton 11.1–11.3 tuvo problemas de vídeo; GE 10-34 fue la última versión que funcionaba.",
+  "fr": "GE-Proton 11.1–11.3 a eu des problèmes vidéo ; GE 10-34 était la dernière version fonctionnelle."
+ },
+ "The launcher may need WebView2 in the prefix.": {
+  "es": "Puede que el launcher necesite WebView2 en el prefijo.",
+  "fr": "Le launcher peut nécessiter WebView2 dans le préfixe."
+ },
+ "UMU_ID=0 is an optional Steam workaround and should not be forced globally.": {
+  "es": "UMU_ID=0 es una solución opcional para Steam y no debe forzarse globalmente.",
+  "fr": "UMU_ID=0 est un contournement Steam facultatif et ne doit pas être forcé globalement."
+ },
+ "Untested – anti-cheat may block Proton": {
+  "es": "Sin probar: el anti-cheat puede bloquear Proton",
+  "fr": "Non testé – l'anti-triche peut bloquer Proton"
+ },
+ "GachaHub has no reliable Linux reports yet.": {
+  "es": "GachaHub aún no tiene informes fiables de Linux.",
+  "fr": "GachaHub n'a pas encore de rapports Linux fiables."
+ },
+ "Games with kernel anti-cheat often fail under Proton – on Windows NTE runs natively.": {
+  "es": "Los juegos con anti-cheat a nivel de kernel suelen fallar con Proton; en Windows NTE funciona de forma nativa.",
+  "fr": "Les jeux avec un anti-triche noyau échouent souvent sous Proton – sous Windows, NTE tourne nativement."
+ },
+ "Untested – depends on Proton and anti-cheat": {
+  "es": "Sin probar: depende de Proton y del anti-cheat",
+  "fr": "Non testé – dépend de Proton et de l'anti-triche"
+ },
+ "GachaHub has no current Linux reports for Honkai Impact 3rd yet.": {
+  "es": "GachaHub aún no tiene informes actuales de Linux para Honkai Impact 3rd.",
+  "fr": "GachaHub n'a pas encore de rapports Linux récents pour Honkai Impact 3rd."
+ },
+ "If it fails to start, try another current runner first.": {
+  "es": "Si no arranca, prueba primero otro runner actual.",
+  "fr": "S'il ne démarre pas, essayez d'abord un autre runner récent."
+ },
+ "Untested – Steam/Proton, check ProtonDB": {
+  "es": "Sin probar: Steam/Proton, consulta ProtonDB",
+  "fr": "Non testé – Steam/Proton, consultez ProtonDB"
+ },
+ "GachaHub has no own test results for Blue Archive yet.": {
+  "es": "GachaHub aún no tiene resultados de prueba propios para Blue Archive.",
+  "fr": "GachaHub n'a pas encore ses propres résultats de test pour Blue Archive."
+ },
+ "The Steam version starts through Steam with the Proton version selected there.": {
+  "es": "La versión de Steam se inicia a través de Steam con la versión de Proton seleccionada allí.",
+  "fr": "La version Steam se lance via Steam avec la version de Proton qui y est sélectionnée."
+ },
+ "GachaHub has no own test results for Limbus Company yet.": {
+  "es": "GachaHub aún no tiene resultados de prueba propios para Limbus Company.",
+  "fr": "GachaHub n'a pas encore ses propres résultats de test pour Limbus Company."
+ },
+ "GachaHub has no own test results for Punishing: Gray Raven yet.": {
+  "es": "GachaHub aún no tiene resultados de prueba propios para Punishing: Gray Raven.",
+  "fr": "GachaHub n'a pas encore ses propres résultats de test pour Punishing: Gray Raven."
+ },
+ "GachaHub has no own test results for Snowbreak: Containment Zone yet.": {
+  "es": "GachaHub aún no tiene resultados de prueba propios para Snowbreak: Containment Zone.",
+  "fr": "GachaHub n'a pas encore ses propres résultats de test pour Snowbreak: Containment Zone."
+ },
+ "GachaHub has no own test results for Reverse: 1999 yet.": {
+  "es": "GachaHub aún no tiene resultados de prueba propios para Reverse: 1999.",
+  "fr": "GachaHub n'a pas encore ses propres résultats de test pour Reverse: 1999."
+ },
+ "GachaHub has no own test results for Tower of Fantasy yet.": {
+  "es": "GachaHub aún no tiene resultados de prueba propios para Tower of Fantasy.",
+  "fr": "GachaHub n'a pas encore ses propres résultats de test pour Tower of Fantasy."
+ }
+}

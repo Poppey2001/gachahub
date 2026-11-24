@@ -23,7 +23,7 @@ eigenständige Rust-Bibliothek.
 - **Mods** – Bibliothek getrennt vom Spiel, Aktivieren per Kopie oder Symlink, ZIP/7z/RAR-Import,
   Konflikterkennung.
 - **XXMI** – XXMI Launcher automatisch installieren/aktualisieren, Spiele mit GIMI/SRMI/ZZMI/WWMI/EFMI starten.
-- **Spielzeit-Tracking**, **Deutsch/Englisch**, Einstellungen global und pro Spiel.
+- **Spielzeit-Tracking**, **Deutsch/Englisch/Spanisch/Französisch**, Einstellungen global und pro Spiel.
 
 ## Wie kommen die Spiele auf den PC?
 

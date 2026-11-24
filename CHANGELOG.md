@@ -8,6 +8,11 @@
   zwei Stunden lang automatisch nach der neuen Installation.
 - Gilt u. a. für GFL2, Wuthering Waves, Blue Archive, Limbus Company.
 
+## Spanisch & Französisch
+- GachaHub gibt es jetzt auf **Deutsch, Englisch, Spanisch und Französisch** – umschaltbar über 🌐 oben rechts
+  oder unter *Einstellungen → Oberfläche → Sprache*. Übersetzt sind alle Texte der Oberfläche sowie
+  Spielbeschreibungen und Kompatibilitätshinweise; ein Test stellt sicher, dass kein Text fehlt.
+
 ## Selbst-Update ohne Antivirus-Fehlalarm
 - Der Updater kopiert sich unter Windows nicht mehr nach `%TEMP%` und startet keine Hilfsprozesse
   mehr (das Muster „Kopie in Temp + Selbstlöschung“ wurde z. B. von Bitdefender als verdächtig blockiert).

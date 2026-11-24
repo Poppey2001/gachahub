@@ -99,7 +99,7 @@ impl GachaHubApp {
                             p.text(
                                 Pos2::new(r.left() + pad, title_y + title_h + 4.0),
                                 Align2::LEFT_TOP,
-                                game.subtitle_for(crate::i18n::is_german()),
+                                crate::i18n::text(game.subtitle_for(true), &game.subtitle),
                                 theme::font(11.5),
                                 theme::MUTED,
                             );
