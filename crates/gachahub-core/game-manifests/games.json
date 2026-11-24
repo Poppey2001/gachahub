@@ -201,6 +201,7 @@
       "Linux (Proton with runner caveats)"
     ],
     "installModes": [
+      "Official launcher (Darkwinter / Haoplay)",
       "Steam",
       "Official launcher import"
     ],
@@ -209,7 +210,7 @@
     "accent": "#ff8d72",
     "accent2": "#ff4f7a",
     "version": "Latest",
-    "notes": "Install via Steam with one click, or import a folder from the official launcher. GachaHub finds Steam installs automatically.",
+    "notes": "Pick your edition: GachaHub downloads the official Darkwinter (Global) or Haoplay (Asia) installer, runs it and detects the game afterwards. Steam works too.",
     "assets": {
       "background": "/game-assets/gfl2/background.webp",
       "video": "/game-assets/gfl2/background.mp4",
@@ -218,10 +219,52 @@
     },
     "xxmiImporter": null,
     "subtitleDe": "Befehlige deine taktischen Dolls",
-    "notesDe": "Mit einem Klick über Steam installieren oder einen Ordner aus dem offiziellen Launcher importieren. Steam-Installationen findet GachaHub automatisch.",
+    "notesDe": "Version wählen: GachaHub lädt den offiziellen Installer von Darkwinter (Global) oder Haoplay (Asien), startet ihn und erkennt das Spiel danach automatisch. Steam geht auch.",
     "steamNames": [
       "GIRLS' FRONTLINE 2: EXILIUM",
       "Girls Frontline 2"
+    ],
+    "officialLaunchers": [
+      {
+        "id": "darkwinter",
+        "label": "Global (Darkwinter)",
+        "labelDe": "Global (Darkwinter)",
+        "region": "Global servers: America, Europe",
+        "regionDe": "Globale Server: Amerika, Europa",
+        "installerUrls": [],
+        "website": "https://gf2exilium.sunborngame.com/",
+        "detectNames": [
+          "GF2 Exilium",
+          "GF2_Exilium",
+          "GIRLS' FRONTLINE 2",
+          "Girls Frontline 2",
+          "GirlsFrontline2",
+          "GF2Exilium",
+          "Exilium"
+        ]
+      },
+      {
+        "id": "haoplay",
+        "label": "Asia (Haoplay)",
+        "labelDe": "Asien (Haoplay)",
+        "region": "Asia servers: Japan, Korea, SEA, TW/HK/MO",
+        "regionDe": "Asien-Server: Japan, Korea, Südostasien, TW/HK/MO",
+        "installerUrls": [
+          "https://gf2-dl.haoplay.com/pc/GF2_v1.0.3.exe",
+          "https://gf2-dl.haoplay.com/pc/GF2_v1.0.1.exe"
+        ],
+        "website": "https://gf2.haoplay.com/",
+        "detectNames": [
+          "GF2 Exilium",
+          "GF2_Exilium",
+          "GIRLS' FRONTLINE 2",
+          "Girls Frontline 2",
+          "GirlsFrontline2",
+          "GF2Exilium",
+          "Exilium",
+          "GF2"
+        ]
+      }
     ]
   },
   {

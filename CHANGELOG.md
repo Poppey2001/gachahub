@@ -8,6 +8,14 @@
   zwei Stunden lang automatisch nach der neuen Installation.
 - Gilt u. a. für GFL2, Wuthering Waves, Blue Archive, Limbus Company.
 
+## GFL2: Darkwinter & Haoplay
+- Beim Installieren von GFL2 wählst du die Version: **Global (Darkwinter)** oder **Asien (Haoplay)**.
+- GachaHub lädt den offiziellen Installer der gewählten Version, startet ihn (Windows nativ, Linux im
+  Wine/Proton-Präfix) und erkennt die fertige Installation danach automatisch
+  (Windows-Registry + übliche Installationsordner auf allen Laufwerken).
+- Ist kein direkter Installer-Link bekannt oder funktioniert er nicht mehr, öffnet GachaHub die
+  offizielle Seite – die automatische Erkennung läuft trotzdem.
+
 ## Wuthering Waves direkt herunterladen
 - Neuer Kuro-Downloader: Dateiliste aus dem offiziellen Launcher-Index, paralleler Download mit
   MD5-Prüfung und Fortsetzen; derselbe Weg macht Updates (nur geänderte Dateien) und „Dateien prüfen“.

@@ -202,6 +202,8 @@ pub struct GameSettings {
     pub playtime_seconds: u64,
     /// Steam app id when the game is installed through Steam (launch via Steam).
     pub steam_app_id: Option<String>,
+    /// Chosen official edition (e.g. "darkwinter" / "haoplay" for GFL2).
+    pub edition: Option<String>,
     /// Named mod profiles: profile name → enabled mod ids.
     pub mod_profiles: BTreeMap<String, Vec<String>>,
     pub last_played_unix: Option<u64>,
@@ -233,6 +235,7 @@ impl Default for GameSettings {
             post_install_applied_at: None,
             playtime_seconds: 0,
             steam_app_id: None,
+            edition: None,
             mod_profiles: BTreeMap::new(),
             last_played_unix: None,
         }

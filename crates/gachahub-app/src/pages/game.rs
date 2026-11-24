@@ -324,7 +324,11 @@ impl GachaHubApp {
                         let running = self.running.contains_key(&game.id);
                         let update = if installed { self.update_available(&game.id) } else { None };
                         let resumable = !installed && downloadable && self.partial_installs.contains(&game.id);
-                        let steam_only = !downloadable && !game.steam_names.is_empty();
+                        let official = !downloadable && !game.official_launchers.is_empty();
+                        let steam_only = !downloadable && !official && !game.steam_names.is_empty();
+                        let installer = self.installer_progress.get(&game.id).copied();
+                        let watching = self.official_watch.contains_key(&game.id);
+                        let installer_label;
                         let update_label;
                         let (icon, label) = if launch_busy {
                             ("⏳", tr("Startet…", "Starting…"))
@@ -341,6 +345,15 @@ impl GachaHubApp {
                             ("⬇", tr("FORTSETZEN", "RESUME"))
                         } else if downloadable {
                             ("⬇", tr("INSTALLIEREN", "INSTALL"))
+                        } else if let Some((done, total)) = installer {
+                            installer_label = if total > 0 {
+                                format!("{} {:.0}%", tr("INSTALLER", "INSTALLER"), done as f64 * 100.0 / total as f64)
+                            } else {
+                                tr("INSTALLER…", "INSTALLER…").to_string()
+                            };
+                            ("⏳", installer_label.as_str())
+                        } else if official {
+                            ("⬇", tr("INSTALLIEREN", "INSTALL"))
                         } else if steam_only {
                             ("🎮", tr("ÜBER STEAM INSTALLIEREN", "INSTALL VIA STEAM"))
                         } else {
@@ -348,8 +361,16 @@ impl GachaHubApp {
                         };
                         let resp = ui.add(
                             CtaButton::new(icon, label, a, b)
-                                .enabled(!install_busy && !launch_busy && !running),
+                                .enabled(!install_busy && !launch_busy && !running && installer.is_none()),
                         );
+                        let resp = if watching && !installed {
+                            resp.on_hover_text(tr(
+                                "GachaHub sucht im Hintergrund nach der fertigen Installation.",
+                                "GachaHub is looking for the finished installation in the background.",
+                            ))
+                        } else {
+                            resp
+                        };
                         if resp.clicked() {
                             if update.is_some() {
                                 self.start_job(&game.id, JobKind::Update);
@@ -357,6 +378,8 @@ impl GachaHubApp {
                                 self.launch(&game.id);
                             } else if downloadable {
                                 self.start_install(&game.id);
+                            } else if official {
+                                self.edition_picker = Some(game.id.clone());
                             } else if steam_only {
                                 let now = self.now;
                                 self.install_via_steam(&game, now);
@@ -395,7 +418,7 @@ impl GachaHubApp {
                             {
                                 self.start_job(&game.id, JobKind::Verify);
                             }
-                        } else if (installed || downloadable || steam_only)
+                        } else if (installed || downloadable || steam_only || official)
                             && theme::ghost_button(
                                 ui,
                                 "📂",
@@ -783,6 +806,16 @@ impl GachaHubApp {
                 .clicked()
             {
                 self.open_game_folder(&game.id);
+            }
+            if !game.official_launchers.is_empty()
+                && ui
+                    .button(tr(
+                        "⬇  Offiziellen Launcher installieren…",
+                        "⬇  Install official launcher…",
+                    ))
+                    .clicked()
+            {
+                self.edition_picker = Some(game.id.clone());
             }
             if !game.steam_names.is_empty() {
                 if !installed

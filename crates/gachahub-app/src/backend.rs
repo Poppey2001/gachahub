@@ -48,6 +48,12 @@ pub enum Msg {
     Launched(String, Result<LaunchResult, String>),
     SessionStarted(String, Arc<gachahub_core::session::GameSession>),
     SessionEnded(String, u64),
+    /// Official installer download progress: (game, downloaded, total).
+    InstallerProgress(String, u64, u64),
+    /// (game, edition id, downloaded installer)
+    InstallerReady(String, String, Result<PathBuf, String>),
+    /// (game, Some((install folder, exe)) when found)
+    OfficialDetected(String, Option<(PathBuf, PathBuf)>),
     SteamApps(Vec<gachahub_core::steam::SteamApp>),
     Runners(Vec<RunnerInfo>),
     RunnerVersions(String, Result<Vec<RunnerVersion>, String>),

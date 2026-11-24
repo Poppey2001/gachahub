@@ -164,6 +164,13 @@ pub struct GachaHubApp {
     /// Re-scan Steam periodically after "Install in Steam" until the game shows up.
     steam_watch_until: f64,
     last_steam_scan: f64,
+    /// Game whose edition picker (official launchers) is open.
+    pub edition_picker: Option<String>,
+    /// Official installer downloads in flight: game → (downloaded, total).
+    pub installer_progress: HashMap<String, (u64, u64)>,
+    /// After running an official installer: game → watch-until time.
+    pub official_watch: HashMap<String, f64>,
+    pub last_official_scan: f64,
     /// Search text in the game catalog.
     pub catalog_filter: String,
     /// egui time of the current frame.
@@ -294,6 +301,10 @@ impl GachaHubApp {
             steam_apps: Vec::new(),
             steam_watch_until: 0.0,
             last_steam_scan: 0.0,
+            edition_picker: None,
+            installer_progress: HashMap::new(),
+            official_watch: HashMap::new(),
+            last_official_scan: 0.0,
             catalog_filter: String::new(),
             now: 0.0,
         };
@@ -304,6 +315,11 @@ impl GachaHubApp {
                 "mods" => Section::Mods,
                 "runners" => Section::Runners,
                 "settings" => Section::Settings,
+                "editions" => {
+                    app.edition_picker = Some("gfl2".into());
+                    app.cfg.selected_game = "gfl2".into();
+                    Section::Game
+                }
                 "catalog" => {
                     app.catalog_open = true;
                     Section::Game
@@ -340,6 +356,11 @@ impl GachaHubApp {
 
     pub fn accents(game: &Game) -> (Color32, Color32) {
         (hex(&game.accent), hex(&game.accent2))
+    }
+
+    /// Schedule a config save on the next frame.
+    pub fn dirty_now(&mut self) {
+        self.dirty_since.get_or_insert(0.0);
     }
 
     pub fn mark_dirty(&mut self, ctx: &egui::Context) {
@@ -900,6 +921,18 @@ impl GachaHubApp {
                         }
                     }
                 }
+                Msg::InstallerProgress(game_id, done, total) => {
+                    self.installer_progress.insert(game_id, (done, total));
+                }
+                Msg::InstallerReady(game_id, edition, res) => {
+                    self.installer_progress.remove(&game_id);
+                    self.on_installer_ready(&game_id, &edition, res);
+                }
+                Msg::OfficialDetected(game_id, found) => {
+                    if let Some((dir, exe)) = found {
+                        self.on_official_detected(&game_id, dir, exe);
+                    }
+                }
                 Msg::SteamApps(apps) => {
                     self.steam_apps = apps;
                     self.link_steam_games();
@@ -1139,7 +1172,7 @@ impl GachaHubApp {
 
     /// Point a game at an existing installation. Tries to find the executable
     /// (via the post-install profile for Genshin, by scanning otherwise).
-    fn import_existing(&mut self, game_id: &str, folder: &Path) {
+    pub(crate) fn import_existing(&mut self, game_id: &str, folder: &Path) {
         let folder_s = folder.to_string_lossy().into_owned();
         self.cfg.game_mut(game_id).install_path = Some(folder_s.clone());
         if game_id == "genshin" {
@@ -1251,7 +1284,7 @@ impl GachaHubApp {
 
     /// Start a Windows program for a game with the game's runtime settings
     /// (native on Windows, Proton/Wine with the game's prefix on Linux).
-    fn spawn_for_game(
+    pub(crate) fn spawn_for_game(
         game_id: &str,
         r: &gachahub_core::settings::ResolvedGameSettings,
         exe: &str,
@@ -1701,7 +1734,8 @@ impl eframe::App for GachaHubApp {
             self.last_steam_scan = self.now;
             self.refresh_steam();
         }
-        if self.steam_watch_until > self.now {
+        self.official_watch_tick();
+        if self.steam_watch_until > self.now || !self.official_watch.is_empty() {
             ctx.request_repaint_after(std::time::Duration::from_secs(5));
         }
         self.refresh_exe_icons();
@@ -1723,6 +1757,9 @@ impl eframe::App for GachaHubApp {
 
         if self.catalog_open {
             self.catalog_modal(&ctx);
+        }
+        if self.edition_picker.is_some() {
+            self.edition_modal(&ctx);
         }
         self.toasts_ui(&ctx);
 

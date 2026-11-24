@@ -14,6 +14,7 @@ pub mod kuro;
 pub mod launcher;
 pub mod mod_manager;
 pub mod mods;
+pub mod official;
 pub mod platform;
 pub mod postinstall;
 pub mod providers;

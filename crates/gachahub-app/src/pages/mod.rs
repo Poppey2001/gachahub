@@ -1,5 +1,6 @@
 mod catalog;
 mod downloads;
+mod editions;
 pub mod game;
 mod mods;
 mod runners;

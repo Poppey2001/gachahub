@@ -35,6 +35,52 @@ pub struct Game {
     /// Names under which the game appears in Steam (for detection / store search).
     #[serde(default)]
     pub steam_names: Vec<String>,
+    /// Official PC editions (publisher launchers) GachaHub can install.
+    #[serde(default)]
+    pub official_launchers: Vec<OfficialLauncher>,
+}
+
+/// One official PC edition of a game, e.g. a regional publisher's launcher.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct OfficialLauncher {
+    pub id: String,
+    pub label: String,
+    #[serde(default)]
+    pub label_de: Option<String>,
+    /// Servers / regions this edition plays on.
+    #[serde(default)]
+    pub region: Option<String>,
+    #[serde(default)]
+    pub region_de: Option<String>,
+    /// Direct installer downloads, tried in order.
+    #[serde(default)]
+    pub installer_urls: Vec<String>,
+    /// Official website (fallback when no installer download works).
+    pub website: String,
+    /// Folder / program names the finished installation shows up under.
+    #[serde(default)]
+    pub detect_names: Vec<String>,
+}
+
+impl OfficialLauncher {
+    pub fn label_for(&self, german: bool) -> &str {
+        if german {
+            self.label_de.as_deref().unwrap_or(&self.label)
+        } else {
+            &self.label
+        }
+    }
+    pub fn region_for(&self, german: bool) -> &str {
+        if german {
+            self.region_de
+                .as_deref()
+                .or(self.region.as_deref())
+                .unwrap_or("")
+        } else {
+            self.region.as_deref().unwrap_or("")
+        }
+    }
 }
 
 #[derive(Debug, Clone)]
