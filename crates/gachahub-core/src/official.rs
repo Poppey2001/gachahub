@@ -165,7 +165,6 @@ fn candidate_dirs(names: &[String], prefix: Option<&Path>) -> Vec<PathBuf> {
     let mut bases: Vec<PathBuf> = Vec::new();
     #[cfg(windows)]
     {
-        let _ = prefix;
         for drive in b'C'..=b'Z' {
             let root = PathBuf::from(format!("{}:\\", drive as char));
             if !root.exists() {
@@ -181,7 +180,7 @@ fn candidate_dirs(names: &[String], prefix: Option<&Path>) -> Vec<PathBuf> {
             bases.push(PathBuf::from(local).join("Programs"));
         }
     }
-    #[cfg(not(windows))]
+    // Wine/Proton prefix (Linux; also honoured elsewhere when one is given)
     if let Some(prefix) = prefix {
         let c = prefix.join("drive_c");
         bases.push(c.join("Program Files"));
