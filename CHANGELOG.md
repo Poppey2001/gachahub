@@ -20,6 +20,13 @@
 ## Wuthering Waves direkt herunterladen
 - Neuer Kuro-Downloader: Dateiliste aus dem offiziellen Launcher-Index, paralleler Download mit
   MD5-Prüfung und Fortsetzen; derselbe Weg macht Updates (nur geänderte Dateien) und „Dateien prüfen“.
+- Unterstützt das aktuelle Index-Format mit Ressourcen-Paketen (Qualität HD wie der offizielle Launcher,
+  Start mit `-krqlv=hd`), gzip-komprimierte Indexdateien und mehrere CDNs mit Ausweich-Server.
+
+## Live-Prüfung gegen die echten Server
+- Neuer Workflow *Live check*: prüft bei Änderungen und wöchentlich, ob die Downloader noch zu den
+  Servern von Sunborn/Darkwinter, Haoplay und Kuro passen (Konfiguration, Dateiliste, Client-Paket,
+  Stichprobe mit MD5).
 
 ## Neue Spiele
 - Blue Archive, Limbus Company, Punishing: Gray Raven, Snowbreak: Containment Zone,
