@@ -74,6 +74,9 @@ begin
   Exec(ExpandConstant('{sys}\taskkill.exe'), '/F /IM gachahub.exe', '', SW_HIDE,
     ewWaitUntilTerminated, ResultCode);
   Sleep(500);
+  // stale shortcuts from an earlier install are recreated fresh
+  DeleteFile(ExpandConstant('{autoprograms}\GachaHub.lnk'));
+  DeleteFile(ExpandConstant('{autodesktop}\GachaHub.lnk'));
   Exe := ExpandConstant('{app}\gachahub.exe');
   Old := Exe + '.old';
   if FileExists(Exe) then
