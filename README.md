@@ -117,7 +117,9 @@ assets/
 Jedes Spiel hat ein eigenes GachaHub-Icon (`assets/game-icons/*.svg`, eigene Gestaltung,
 keine offiziellen Logos). Sobald ein Spiel installiert/importiert ist, liest GachaHub das
 **offizielle Icon direkt aus der Spiel-EXE** aus (funktioniert auch unter Linux) und zeigt
-dieses an. Reihenfolge: eigenes Artwork › Icon aus der EXE › GachaHub-Icon.
+dieses an. Zusätzlich lädt GachaHub für alle Spiele das offizielle Icon zur Laufzeit (HoYoPlay-API,
+App Store oder Spiel-Website, abschaltbar). Reihenfolge: eigenes Artwork › offizielles Icon ›
+Icon aus der EXE › GachaHub-Icon.
 
 ## Eigene Artworks
 

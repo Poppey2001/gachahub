@@ -124,6 +124,8 @@ impl Language {
 pub struct GlobalSettings {
     pub language: Language,
     pub animated_backgrounds: bool,
+    /// Load official game icons (HoYoPlay, App Store, game website) and cache them.
+    pub official_icons: bool,
     pub background_dim: u8,
     pub default_install_path: String,
     pub parallel_downloads: u8,
@@ -156,6 +158,7 @@ impl Default for GlobalSettings {
         Self {
             language: Language::De,
             animated_backgrounds: true,
+            official_icons: true,
             background_dim: 58,
             default_install_path: "~/Games/GachaHub/Games".into(),
             parallel_downloads: 8,

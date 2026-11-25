@@ -65,6 +65,9 @@ pub enum Msg {
     PostInstall(String, Result<PostInstallResult, String>),
     Picked(PickTarget, Option<PathBuf>),
     ExeIcon(String, Result<PathBuf, String>),
+    /// Official icon cached at the path (or why it could not be loaded).
+    OfficialIcon(String, Result<PathBuf, String>),
+    OfficialIconsDone,
     LatestVersion(String, Result<String, String>),
     /// (result, started manually by the user)
     AppUpdateChecked(

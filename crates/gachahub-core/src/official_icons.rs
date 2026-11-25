@@ -40,7 +40,7 @@ pub async fn fetch(client: &reqwest::Client, game: &Game) -> Result<Vec<u8>, Str
             Err(e) => errors.push(e),
         }
     }
-    match app_store_icon_url(client, &game.name).await {
+    match app_store_icon_url(client, game.app_store_name.as_deref().unwrap_or(&game.name)).await {
         Ok(url) => match download_image(client, &url).await {
             Ok(png) => return Ok(png),
             Err(e) => errors.push(e),

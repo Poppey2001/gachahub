@@ -35,6 +35,9 @@ pub struct Game {
     /// Names under which the game appears in Steam (for detection / store search).
     #[serde(default)]
     pub steam_names: Vec<String>,
+    /// Name of the mobile app in Apple's App Store when it differs from `name`.
+    #[serde(default)]
+    pub app_store_name: Option<String>,
     /// Official website (source of the official icon, fetched at runtime).
     #[serde(default)]
     pub website: Option<String>,

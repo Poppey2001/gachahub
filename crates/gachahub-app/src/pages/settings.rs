@@ -309,6 +309,15 @@ impl GachaHubApp {
             );
             changed |= row(
                 ui,
+                tr("Offizielle Spiel-Icons", "Official game icons"),
+                tr(
+                    "Lädt die echten Icons aller Spiele (HoYoPlay, App Store, Spiel-Website) und speichert sie lokal.",
+                    "Loads the real icons of all games (HoYoPlay, App Store, game website) and caches them locally.",
+                ),
+                |ui| theme::toggle(ui, &mut g.official_icons).changed(),
+            );
+            changed |= row(
+                ui,
                 tr("Hintergrund abdunkeln", "Background dim"),
                 tr("Wirkt auf eigene Artworks.", "Applies to custom artwork."),
                 |ui| {

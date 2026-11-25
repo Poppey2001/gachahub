@@ -1422,5 +1422,13 @@
  ".exe files checked": {
   "es": "archivos .exe comprobados",
   "fr": "fichiers .exe vérifiés"
+ },
+ "Official game icons": {
+  "es": "Iconos oficiales de los juegos",
+  "fr": "Icônes officielles des jeux"
+ },
+ "Loads the real icons of all games (HoYoPlay, App Store, game website) and caches them locally.": {
+  "es": "Carga los iconos reales de todos los juegos (HoYoPlay, App Store, sitio web del juego) y los guarda localmente.",
+  "fr": "Charge les vraies icônes de tous les jeux (HoYoPlay, App Store, site du jeu) et les met en cache localement."
  }
 }

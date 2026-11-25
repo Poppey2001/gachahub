@@ -61,6 +61,17 @@ pub struct Artwork {
     pub logo: Option<String>,
     /// Icon extracted from the installed game executable.
     pub exe_icon: Option<String>,
+    /// Official icon (HoYoPlay / App Store / website), cached locally.
+    pub official_icon: Option<String>,
+}
+
+/// Where official icons are cached.
+fn official_icon_cache(game_id: &str) -> PathBuf {
+    directories::ProjectDirs::from("", "", "gachahub")
+        .map(|d| d.cache_dir().to_path_buf())
+        .unwrap_or_else(std::env::temp_dir)
+        .join("official-icons")
+        .join(format!("{game_id}.png"))
 }
 
 /// GachaHub's own emblem for each supported game (original artwork, see assets/game-icons).
@@ -179,6 +190,8 @@ pub struct GachaHubApp {
     /// After running an official installer: game → watch-until time.
     pub official_watch: HashMap<String, f64>,
     pub last_official_scan: f64,
+    /// Value of the "official icons" setting the artwork was loaded with.
+    official_icons_applied: bool,
     /// Search text in the game catalog.
     pub catalog_filter: String,
     /// egui time of the current frame.
@@ -262,6 +275,7 @@ impl GachaHubApp {
                         icon: find_asset(&dirs, &g.id, "icon"),
                         logo: find_asset(&dirs, &g.id, "logo"),
                         exe_icon: None,
+                        official_icon: None,
                     },
                 )
             })
@@ -313,6 +327,7 @@ impl GachaHubApp {
             installer_progress: HashMap::new(),
             official_watch: HashMap::new(),
             last_official_scan: 0.0,
+            official_icons_applied: false,
             catalog_filter: String::new(),
             now: 0.0,
         };
@@ -345,6 +360,8 @@ impl GachaHubApp {
             app.check_app_update(false);
         }
         app.refresh_steam();
+        app.official_icons_applied = app.cfg.global.official_icons;
+        app.refresh_official_icons();
         app.refresh_runners();
         app.refresh_xxmi();
         app
@@ -472,7 +489,12 @@ impl GachaHubApp {
         // Custom artwork / icon from the game exe; if it cannot be loaded
         // (broken file, unsupported format) fall back to GachaHub's own icon
         // instead of egui's red error triangle.
-        let image = match art.and_then(|x| x.icon.clone().or_else(|| x.exe_icon.clone())) {
+        let image = match art.and_then(|x| {
+            x.icon
+                .clone()
+                .or_else(|| x.official_icon.clone())
+                .or_else(|| x.exe_icon.clone())
+        }) {
             Some(uri) => {
                 let img = egui::Image::new(uri);
                 if img.load_for_size(ui.ctx(), rect.size()).is_ok() {
@@ -532,6 +554,58 @@ impl GachaHubApp {
                 Msg::ExeIcon(id, res)
             });
         }
+    }
+
+    /// Use cached official icons and fetch missing/stale ones (once per start).
+    pub fn refresh_official_icons(&mut self) {
+        if !self.cfg.global.official_icons {
+            for art in self.artwork.values_mut() {
+                art.official_icon = None;
+            }
+            return;
+        }
+        let mut missing = Vec::new();
+        for game in &self.games {
+            let cache = official_icon_cache(&game.id);
+            let fresh = std::fs::metadata(&cache)
+                .and_then(|m| m.modified())
+                .ok()
+                .and_then(|t| t.elapsed().ok())
+                .is_some_and(|age| age.as_secs() < 30 * 24 * 3600);
+            if cache.is_file() {
+                if let Some(art) = self.artwork.get_mut(&game.id) {
+                    art.official_icon = Some(file_uri(&cache));
+                }
+            }
+            if !fresh {
+                missing.push(game.clone());
+            }
+        }
+        if missing.is_empty() {
+            return;
+        }
+        let sender = self.backend.sender();
+        self.backend.spawn(async move {
+            let Ok(client) = gachahub_core::official_icons::client() else {
+                return Msg::OfficialIconsDone;
+            };
+            for game in missing {
+                let res = match gachahub_core::official_icons::fetch(&client, &game).await {
+                    Ok(png) => {
+                        let path = official_icon_cache(&game.id);
+                        if let Some(dir) = path.parent() {
+                            let _ = std::fs::create_dir_all(dir);
+                        }
+                        std::fs::write(&path, png)
+                            .map(|_| path)
+                            .map_err(|e| e.to_string())
+                    }
+                    Err(e) => Err(e),
+                };
+                sender.send(Msg::OfficialIcon(game.id.clone(), res));
+            }
+            Msg::OfficialIconsDone
+        });
     }
 
     // ------------------------------------------------------------ Steam
@@ -1085,6 +1159,17 @@ impl GachaHubApp {
                         self.mark_dirty(ctx);
                     }
                 }
+                Msg::OfficialIcon(game_id, res) => {
+                    // keep the cached (or bundled) icon when a source is unreachable
+                    if let (Ok(path), Some(art)) = (res, self.artwork.get_mut(&game_id)) {
+                        if self.cfg.global.official_icons {
+                            let uri = file_uri(&path);
+                            ctx.forget_image(&uri);
+                            art.official_icon = Some(uri);
+                        }
+                    }
+                }
+                Msg::OfficialIconsDone => {}
                 Msg::ExeIcon(game_id, res) => {
                     // Not every executable carries an icon – the bundled emblem stays then.
                     if let (Ok(path), Some(art)) = (res, self.artwork.get_mut(&game_id)) {
@@ -1784,6 +1869,10 @@ impl eframe::App for GachaHubApp {
             self.refresh_steam();
         }
         self.official_watch_tick();
+        if self.official_icons_applied != self.cfg.global.official_icons {
+            self.official_icons_applied = self.cfg.global.official_icons;
+            self.refresh_official_icons();
+        }
         if self.steam_watch_until > self.now || !self.official_watch.is_empty() {
             ctx.request_repaint_after(std::time::Duration::from_secs(5));
         }

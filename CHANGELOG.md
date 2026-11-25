@@ -9,6 +9,13 @@
 - Wird nichts gefunden, nennt die Meldung die Zahl der geprüften EXE-Dateien, und ein Button
   „Spiel-EXE selbst auswählen“ erscheint direkt darunter.
 
+## Offizielle Icons für alle Spiele
+- Auch nicht installierte Spiele zeigen jetzt ihr echtes Icon. GachaHub lädt es zur Laufzeit aus
+  offiziellen Quellen – HoYoPlay-Launcher-API (Genshin, Star Rail, ZZZ, HI3), Apples App Store
+  (offizielles App-Icon) oder die Website des Spiels – und speichert es 30 Tage lokal.
+  Nichts davon ist im Programm selbst enthalten. Abschaltbar unter *Einstellungen → Oberfläche*.
+- Reihenfolge: eigenes Artwork › offizielles Icon › Icon aus der Spiel-EXE › GachaHub-Emblem.
+
 ## Icons unter Windows
 - Spiel-Icons aus der EXE und eigene Artworks wurden unter Windows nicht geladen (rotes ▲ in der
   Seitenleiste): die Datei-Adresse war `file://C:\…` statt `file:///C:/…`. Behoben; schlägt ein Bild
