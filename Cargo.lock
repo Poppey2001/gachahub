@@ -1111,7 +1111,7 @@ dependencies = [
 
 [[package]]
 name = "gachahub"
-version = "0.18.0"
+version = "0.19.0"
 dependencies = [
  "directories",
  "eframe",
@@ -1128,7 +1128,7 @@ dependencies = [
 
 [[package]]
 name = "gachahub-core"
-version = "0.18.0"
+version = "0.19.0"
 dependencies = [
  "directories",
  "flate2",
