@@ -1,5 +1,12 @@
 # GachaHub v0.19.0 (in Arbeit)
 
+## Arknights & Arknights: Endfield direkt herunterladen
+- **Arknights (Global/EN):** über die offizielle Yostar-Launcher-API (signierte Anfragen) – Datei für Datei
+  mit CRC-64-Prüfsumme, fortsetzbar; Updates laden nur geänderte Dateien, „Dateien prüfen“ repariert.
+- **Arknights: Endfield (Global):** über die offizielle Gryphline-Launcher-API – geteiltes ZIP-Archiv mit
+  MD5 je Teil, fortsetzbar, wird nach dem Download entpackt. Updates laden die aktuelle Version komplett.
+- Vorbild/Referenz: der Open-Source-Launcher Twintail (Endpunkte und Formate); live gegen die echten Server geprüft.
+
 ## Spiel-EXE zuverlässig erkennen (alle Spiele)
 - Die EXE wird jetzt in drei Stufen gesucht (bis 8 Ordner tief): bekannter Dateiname → **Versionsinfos
   der EXE** (Produktname, Beschreibung, Originaldateiname – bleiben über Updates gleich, anders als

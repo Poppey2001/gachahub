@@ -9,6 +9,7 @@ pub mod download_manager;
 pub mod events;
 pub mod exe_icon;
 pub mod games;
+pub mod hypergryph;
 pub mod install;
 pub mod kuro;
 pub mod launcher;

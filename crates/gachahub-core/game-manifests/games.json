@@ -11,14 +11,15 @@
       "Linux (community Proton)"
     ],
     "installModes": [
-      "Official PC Client"
+      "Direct download (Yostar launcher)",
+      "Official launcher import"
     ],
     "status": "not_installed",
     "modPolicy": "restricted",
     "accent": "#55d7ff",
     "accent2": "#536dff",
     "version": "PC Client",
-    "notes": "Official PC client; Linux community reports via GE-Proton/Proton Experimental.",
+    "notes": "GachaHub downloads Arknights (Global/EN) straight from Yostar's official launcher servers – file by file with checksums, so updates only fetch changed files.",
     "assets": {
       "background": "/game-assets/arknights/background.webp",
       "video": "/game-assets/arknights/background.mp4",
@@ -27,7 +28,7 @@
     },
     "xxmiImporter": null,
     "subtitleDe": "Taktische Operationen von Rhodes Island",
-    "notesDe": "Offizieller PC-Client; unter Linux laut Community mit GE-Proton/Proton Experimental.",
+    "notesDe": "GachaHub lädt Arknights (Global/EN) direkt von den offiziellen Yostar-Launcher-Servern – Datei für Datei mit Prüfsummen, Updates laden nur geänderte Dateien.",
     "steamNames": [
       "Arknights"
     ],
@@ -45,14 +46,15 @@
       "Linux (Proton with compatible runner)"
     ],
     "installModes": [
-      "Official PC Client"
+      "Direct download (Gryphline launcher)",
+      "Official launcher import"
     ],
     "status": "not_installed",
     "modPolicy": "restricted",
     "accent": "#f4cd58",
     "accent2": "#ff7a45",
     "version": "Stable",
-    "notes": "Use Proton builds with Endfield/ACE fixes; avoid Proton Vanilla/UMU per current launcher guidance.",
+    "notes": "GachaHub downloads Arknights: Endfield (Global) from Gryphline's official launcher servers as a split archive with MD5 checks. Needs free space for the archive plus the game during installation.",
     "assets": {
       "background": "/game-assets/endfield/background.webp",
       "video": "/game-assets/endfield/background.mp4",
@@ -61,7 +63,7 @@
     },
     "xxmiImporter": "EFMI",
     "subtitleDe": "Erkunde Talos-II",
-    "notesDe": "Proton-Builds mit Endfield/ACE-Fixes verwenden; Proton Vanilla/UMU laut aktuellen Hinweisen meiden.",
+    "notesDe": "GachaHub lädt Arknights: Endfield (Global) von den offiziellen Gryphline-Launcher-Servern als geteiltes Archiv mit MD5-Prüfung. Während der Installation wird Platz für Archiv und Spiel benötigt.",
     "steamNames": [
       "Arknights: Endfield"
     ],

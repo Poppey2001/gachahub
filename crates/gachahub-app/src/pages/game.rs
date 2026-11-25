@@ -417,7 +417,7 @@ impl GachaHubApp {
                             if theme::ghost_button(ui, "▶", tr("Spielen", "Play")).clicked() && idle {
                                 self.launch(&game.id);
                             }
-                        } else if installed && downloadable && self.installed_versions.contains_key(&game.id) {
+                        } else if installed && downloadable && game.id != "endfield" && self.installed_versions.contains_key(&game.id) {
                             if theme::ghost_button(ui, "🔍", tr("Dateien prüfen", "Verify files"))
                                 .on_hover_text(tr(
                                     "Prüft alle Spieldateien und lädt beschädigte oder fehlende neu.",

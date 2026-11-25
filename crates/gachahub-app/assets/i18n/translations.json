@@ -1430,5 +1430,13 @@
  "Loads the real icons of all games (HoYoPlay, App Store, game website) and caches them locally.": {
   "es": "Carga los iconos reales de todos los juegos (HoYoPlay, App Store, sitio web del juego) y los guarda localmente.",
   "fr": "Charge les vraies icônes de tous les jeux (HoYoPlay, App Store, site du jeu) et les met en cache localement."
+ },
+ "GachaHub downloads Arknights (Global/EN) straight from Yostar's official launcher servers – file by file with checksums, so updates only fetch changed files.": {
+  "es": "GachaHub descarga Arknights (Global/EN) directamente de los servidores oficiales del launcher de Yostar, archivo por archivo con sumas de comprobación; las actualizaciones solo descargan los archivos modificados.",
+  "fr": "GachaHub télécharge Arknights (Global/EN) directement depuis les serveurs officiels du launcher Yostar – fichier par fichier avec sommes de contrôle, les mises à jour ne récupèrent que les fichiers modifiés."
+ },
+ "GachaHub downloads Arknights: Endfield (Global) from Gryphline's official launcher servers as a split archive with MD5 checks. Needs free space for the archive plus the game during installation.": {
+  "es": "GachaHub descarga Arknights: Endfield (Global) de los servidores oficiales del launcher de Gryphline como archivo dividido con comprobación MD5. Durante la instalación se necesita espacio para el archivo y el juego.",
+  "fr": "GachaHub télécharge Arknights: Endfield (Global) depuis les serveurs officiels du launcher Gryphline sous forme d'archive découpée avec vérification MD5. L'installation nécessite de l'espace pour l'archive et le jeu."
  }
 }

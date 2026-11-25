@@ -286,6 +286,7 @@ pub fn supports_direct_download(game_id: &str) -> bool {
     matches!(game_id, "genshin" | "hsr" | "zzz" | "hi3")
         || crate::kuro::supports(game_id)
         || crate::sunborn::supports(game_id)
+        || matches!(game_id, "endfield" | "arknights")
 }
 
 pub async fn resolve_plan(
@@ -332,6 +333,14 @@ pub async fn latest_version_for(game_id: &str, edition: Option<&str>) -> Result<
         return Err(format!("no update source for {game_id}"));
     }
     let client = http_client(Some(Duration::from_secs(30)))?;
+    if game_id == "endfield" {
+        return crate::hypergryph::fetch_endfield(&client)
+            .await
+            .map(|b| b.version);
+    }
+    if game_id == "arknights" {
+        return crate::hypergryph::arknights_version(&client).await;
+    }
     if crate::sunborn::supports(game_id) {
         return crate::sunborn::fetch_plug(&client, crate::sunborn::config_url(edition))
             .await
@@ -395,7 +404,35 @@ pub async fn start(
 
     // Kuro games: file list from the Kuro launcher index.
     // HoYoverse: prefer Sophon; fall back to classic packages for fresh installs.
-    let source = if crate::sunborn::supports(&game_id) {
+    let source = if game_id == "endfield" {
+        if opts.kind == JobKind::Verify {
+            return Err(
+                "Endfield is distributed as one archive – file verification is not available; reinstall instead".into(),
+            );
+        }
+        let build = crate::hypergryph::fetch_endfield(&client).await?;
+        let total_bytes = build.packs.iter().map(|p| p.size).sum();
+        Ok(Source::Direct {
+            plan: ProviderDownloadPlan {
+                game_id: game_id.clone(),
+                provider: "gryphline".into(),
+                version: build.version,
+                mode: "split-zip".into(),
+                packages: build.packs,
+                total_bytes,
+                resource_list_url: None,
+                notes: Vec::new(),
+            },
+        })
+    } else if game_id == "arknights" {
+        let build = crate::hypergryph::fetch_arknights(&client).await?;
+        Ok(Source::Files {
+            build: crate::kuro::KuroBuild {
+                version: build.version,
+                files: build.files,
+            },
+        })
+    } else if crate::sunborn::supports(&game_id) {
         let url = crate::sunborn::config_url(opts.edition.as_deref());
         Ok(Source::Gf2 {
             build: crate::sunborn::fetch_build(&client, url).await?,
@@ -652,6 +689,32 @@ fn safe_join(root: &Path, name: &str) -> Result<PathBuf, String> {
         }
     }
     Ok(out)
+}
+
+/// Does the file match `expected` – an MD5 hex digest or `crc64:<decimal>`
+/// (CRC-64/XZ, used by Yostar)?
+async fn checksum_ok(
+    path: &Path,
+    expected: &str,
+    control: &DownloadControl,
+) -> Result<bool, String> {
+    if let Some(want) = expected.strip_prefix("crc64:") {
+        let mut file = fs::File::open(path).await.map_err(|e| e.to_string())?;
+        let mut crc = crate::hypergryph::Crc64::new();
+        let mut buf = vec![0u8; 1 << 20];
+        loop {
+            control.check_cancel()?;
+            let n = file.read(&mut buf).await.map_err(|e| e.to_string())?;
+            if n == 0 {
+                break;
+            }
+            crc.update(&buf[..n]);
+        }
+        return Ok(crc.finish().to_string() == want.trim());
+    }
+    Ok(md5_file(path, control)
+        .await?
+        .eq_ignore_ascii_case(expected))
 }
 
 async fn md5_file(path: &Path, control: &DownloadControl) -> Result<String, String> {
@@ -966,7 +1029,7 @@ async fn plain_file(
         } else if !verify && known.as_deref() == Some(file.md5.as_str()) {
             true
         } else {
-            md5_file(&path, control).await? == file.md5
+            checksum_ok(&path, &file.md5, control).await?
         };
         if ok {
             if let Ok(mut i) = index.lock() {
@@ -1009,9 +1072,12 @@ async fn plain_file(
             }
         }
     }
-    if !file.md5.is_empty() && md5_file(&part, control).await? != file.md5 {
+    if !file.md5.is_empty() && !checksum_ok(&part, &file.md5, control).await? {
         let _ = fs::remove_file(&part).await;
-        return Err(format!("MD5 mismatch for {} – please retry", file.dest));
+        return Err(format!(
+            "checksum mismatch for {} – please retry",
+            file.dest
+        ));
     }
     if fs::metadata(&path).await.is_ok() {
         let _ = fs::remove_file(&path).await;
@@ -1898,6 +1964,53 @@ mod tests {
         assert_eq!(crate::sunborn::installed_client(&root), None);
         run_gf2(&tracker(), &build, &root, &opts).await.unwrap();
         assert!(root.join("UnityPlayer.dll").exists());
+        let _ = std::fs::remove_dir_all(&root);
+    }
+
+    #[tokio::test]
+    async fn yostar_crc64_file_list_install_and_repair() {
+        std::env::set_var("NO_PROXY", "127.0.0.1");
+        std::env::set_var("no_proxy", "127.0.0.1");
+        let exe: Vec<u8> = (0..50_000u32).map(|i| (i % 11) as u8).collect();
+        let ab = b"asset bundle".to_vec();
+        let mut served = HashMap::new();
+        served.insert(
+            "/Arknights_EN-042-game/Arknights.exe".to_string(),
+            exe.clone(),
+        );
+        served.insert(
+            "/Arknights_EN-042-game/Arknights_Data/a%23b.ab".to_string(),
+            ab.clone(),
+        );
+        let base = serve(served).await;
+        let crc = |d: &[u8]| {
+            let mut c = crate::hypergryph::Crc64::new();
+            c.update(d);
+            c.finish()
+        };
+        let index = serde_json::json!({"source": "/Arknights_EN-042-game", "file": [
+            {"path": "/Arknights.exe", "hash": crc(&exe).to_string(), "size": exe.len().to_string()},
+            {"path": "/Arknights_Data/a#b.ab", "hash": crc(&ab).to_string(), "size": ab.len().to_string()},
+        ]});
+        let files =
+            crate::hypergryph::parse_yostar_files(&index, &format!("{base}/Arknights_EN-042-game"))
+                .unwrap();
+        let root = std::env::temp_dir().join(format!("gachahub-ak-{}", Uuid::new_v4()));
+        std::fs::create_dir_all(&root).unwrap();
+        let mut opts = DownloadOptions::default();
+        run_files(&tracker(), &files, &root, &opts).await.unwrap();
+        assert_eq!(std::fs::read(root.join("Arknights.exe")).unwrap(), exe);
+        assert_eq!(
+            std::fs::read(root.join("Arknights_Data/a#b.ab")).unwrap(),
+            ab
+        );
+        std::fs::write(root.join("Arknights_Data/a#b.ab"), b"asset bundlX").unwrap();
+        opts.kind = JobKind::Verify;
+        run_files(&tracker(), &files, &root, &opts).await.unwrap();
+        assert_eq!(
+            std::fs::read(root.join("Arknights_Data/a#b.ab")).unwrap(),
+            ab
+        );
         let _ = std::fs::remove_dir_all(&root);
     }
 }
