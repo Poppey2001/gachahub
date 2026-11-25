@@ -103,6 +103,15 @@ jobs:
           if (-not (Test-Path "$dir\gachahub.exe")) { throw "gachahub.exe was not installed" }
           $lnk = Get-ChildItem "$env:APPDATA\Microsoft\Windows\Start Menu\Programs" -Recurse -Filter "GachaHub.lnk"
           if (-not $lnk) { throw "start menu shortcut missing" }
+          # upgrade over a running GachaHub: setup must stop it and replace the exe
+          $app = Start-Process "$dir\gachahub.exe" -PassThru
+          Start-Sleep -Seconds 3
+          $p = Start-Process dist/gachahub-setup.exe -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/CURRENTUSER' -Wait -PassThru
+          if ($p.ExitCode -ne 0) { throw "upgrade over running app: installer exit code $($p.ExitCode)" }
+          if (-not (Test-Path "$dir\gachahub.exe")) { throw "upgrade removed gachahub.exe" }
+          if ((Get-FileHash "$dir\gachahub.exe").Hash -ne (Get-FileHash dist/gachahub.exe).Hash) { throw "upgrade did not replace gachahub.exe" }
+          Get-Process gachahub -ErrorAction SilentlyContinue | Stop-Process -Force
+          Start-Sleep -Seconds 1
           $u = Start-Process "$dir\unins000.exe" -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART' -Wait -PassThru
           # the uninstaller re-launches itself from %TEMP%, so poll for completion
           for ($i = 0; $i -lt 30 -and (Test-Path "$dir\gachahub.exe"); $i++) { Start-Sleep -Seconds 1 }

@@ -1,3 +1,10 @@
+# GachaHub v0.19.0 (in Arbeit)
+
+## Installer
+- Der Setup beendet laufende GachaHub-Instanzen selbst und schiebt die alte `gachahub.exe` vor dem
+  Kopieren zur Seite – behebt „MoveFile schlug fehl; Code 5. Zugriff verweigert“ beim Update über eine
+  bestehende Installation. Im CI wird jetzt auch ein Update über eine laufende Installation getestet.
+
 # GachaHub v0.18.0 — Steam, Wuthering Waves & neue Spiele
 
 ## Steam-Integration
