@@ -1,5 +1,19 @@
 # GachaHub v0.19.0 (in Arbeit)
 
+## Spiel-EXE zuverlässig erkennen (alle Spiele)
+- Die EXE wird jetzt in drei Stufen gesucht (bis 8 Ordner tief): bekannter Dateiname → **Versionsinfos
+  der EXE** (Produktname, Beschreibung, Originaldateiname – bleiben über Updates gleich, anders als
+  ein Hash) → größte plausible EXE. Hinterlegt für alle 15 Spiele.
+- Genshin-Import unter Windows ohne PowerShell-Skript (das nur `GenshinImpact.exe` kannte und von
+  Virenscannern als verdächtig gewertet werden kann).
+- Wird nichts gefunden, nennt die Meldung die Zahl der geprüften EXE-Dateien, und ein Button
+  „Spiel-EXE selbst auswählen“ erscheint direkt darunter.
+
+## Icons unter Windows
+- Spiel-Icons aus der EXE und eigene Artworks wurden unter Windows nicht geladen (rotes ▲ in der
+  Seitenleiste): die Datei-Adresse war `file://C:\…` statt `file:///C:/…`. Behoben; schlägt ein Bild
+  trotzdem fehl, zeigt GachaHub sein eigenes Spiel-Icon.
+
 ## Installer
 - Der Setup beendet laufende GachaHub-Instanzen selbst und schiebt die alte `gachahub.exe` vor dem
   Kopieren zur Seite – behebt „MoveFile schlug fehl; Code 5. Zugriff verweigert“ beim Update über eine

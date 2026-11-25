@@ -1,15 +1,13 @@
 use serde::Serialize;
 use std::{
     collections::HashMap,
-    fs,
-    process::Command,
     time::{SystemTime, UNIX_EPOCH},
 };
+#[cfg(unix)]
+use std::{fs, process::Command};
 
 #[cfg(not(target_os = "windows"))]
 const GENSHIN_LINUX: &str = include_str!("../postinstall/genshin-linux.sh");
-#[cfg(target_os = "windows")]
-const GENSHIN_WINDOWS: &str = include_str!("../postinstall/genshin-windows.ps1");
 
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -120,36 +118,41 @@ fn run_script(
     Ok(String::from_utf8_lossy(&output.stdout).to_string())
 }
 
-#[cfg(windows)]
-fn run_script(
-    script: &str,
-    extension: &str,
-    install_path: &str,
-    prefix_path: &str,
-) -> Result<String, String> {
-    let file = std::env::temp_dir().join(format!(
-        "gachahub-postinstall-{}-{}.{}",
-        std::process::id(),
-        now_stamp(),
-        extension
-    ));
-    fs::write(&file, script).map_err(|e| format!("post-install script write failed: {e}"))?;
-    use std::os::windows::process::CommandExt;
-    let output = Command::new("powershell")
-        .creation_flags(0x0800_0000) // CREATE_NO_WINDOW
-        .args(["-NoProfile", "-ExecutionPolicy", "Bypass", "-File"])
-        .arg(&file)
-        .arg("-InstallPath")
-        .arg(install_path)
-        .arg("-PrefixPath")
-        .arg(prefix_path)
-        .output()
-        .map_err(|e| format!("post-install script failed to start: {e}"))?;
-    let _ = fs::remove_file(&file);
-    if !output.status.success() {
-        return Err(String::from_utf8_lossy(&output.stderr).trim().to_string());
+#[cfg(target_os = "windows")]
+fn windows_defaults(install_path: &str, prefix_path: &str) -> String {
+    let mut out = String::new();
+    for (k, v) in [
+        ("profileVersion", "genshin-defaults-v1"),
+        ("gameId", "genshin"),
+        ("platform", "windows"),
+        ("installPath", install_path),
+        ("prefixPath", prefix_path),
+        ("executablePath", ""),
+        ("runtime", "native"),
+        ("runnerVersion", "Native"),
+        ("runnerPath", ""),
+        ("launchArguments", ""),
+        ("environmentVariables", ""),
+        ("gamescopeEnabled", "false"),
+        ("gameModeEnabled", "false"),
+        ("mangoHudEnabled", "false"),
+        ("preventSleep", "true"),
+        ("autoUpdate", "true"),
+        ("allowPreloads", "true"),
+        ("updateChannel", "stable"),
+        ("modsEnabled", "false"),
+        ("verifyBeforeLaunch", "false"),
+        ("xxmiEnabled", "false"),
+        ("hasGameMode", "false"),
+        ("hasGamescope", "false"),
+        ("hasMangoHud", "false"),
+        ("hasUmu", "false"),
+        ("warning", "Keine Anti-Cheat- oder Schutzmechanismus-Workarounds werden automatisch gesetzt."),
+        ("warning", "GenshinImpact.exe wurde im Installationspfad noch nicht gefunden. Der Pfad wird trotzdem als Standard übernommen."),
+    ] {
+        out.push_str(&format!("{k}={v}\n"));
     }
-    Ok(String::from_utf8_lossy(&output.stdout).to_string())
+    out
 }
 
 pub fn defaults(
@@ -161,12 +164,27 @@ pub fn defaults(
         return Err(format!("no post-install profile registered for {game_id}"));
     }
 
+    // Windows: plain native defaults, computed here (no PowerShell script –
+    // running temp scripts with a bypassed execution policy alarms antivirus).
     #[cfg(target_os = "windows")]
-    let stdout = run_script(GENSHIN_WINDOWS, "ps1", install_path, prefix_path)?;
+    let stdout = windows_defaults(install_path, prefix_path);
     #[cfg(not(target_os = "windows"))]
     let stdout = run_script(GENSHIN_LINUX, "sh", install_path, prefix_path)?;
 
-    let (values, warnings) = parse_output(&stdout);
+    let (mut values, mut warnings) = parse_output(&stdout);
+    // The game binary is found by name or by its version info (see
+    // `install::scan_executables`), also when the script found nothing.
+    if values
+        .get("executablePath")
+        .is_none_or(|v| v.trim().is_empty())
+    {
+        if let Some(exe) =
+            crate::install::find_executable(&crate::expand_user(install_path), "genshin")
+        {
+            values.insert("executablePath".into(), exe.to_string_lossy().into_owned());
+            warnings.retain(|w| !w.contains("GenshinImpact.exe"));
+        }
+    }
     let get = |key: &str| values.get(key).cloned().unwrap_or_default();
 
     Ok(PostInstallResult {

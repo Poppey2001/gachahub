@@ -99,8 +99,16 @@ fn exe_icon_cache(game_id: &str, exe: &str) -> PathBuf {
         .join(format!("{game_id}-{:016x}.png", h.finish()))
 }
 
-fn file_uri(path: &Path) -> String {
-    format!("file://{}", path.display())
+/// `file://` URI for egui's file loader. Windows needs `file:///C:/…`
+/// (`file://C:\…` would be read as a network path and fail to load).
+pub fn file_uri(path: &Path) -> String {
+    if cfg!(windows) {
+        let p = path.display().to_string().replace('\\', "/");
+        let p = p.strip_prefix("//?/").unwrap_or(&p);
+        format!("file:///{}", p.trim_start_matches('/'))
+    } else {
+        format!("file://{}", path.display())
+    }
 }
 
 pub struct GachaHubApp {
@@ -216,7 +224,7 @@ fn find_asset(dirs: &[PathBuf], game_id: &str, stem: &str) -> Option<String> {
                 } else {
                     path.canonicalize().unwrap_or(path)
                 };
-                return Some(format!("file://{}", path.display()));
+                return Some(file_uri(&path));
             }
         }
     }
@@ -456,14 +464,25 @@ impl GachaHubApp {
             );
         }
         let art = self.artwork.get(&game.id);
-        let image =
-            if let Some(uri) = art.and_then(|x| x.icon.clone().or_else(|| x.exe_icon.clone())) {
-                Some(egui::Image::new(uri))
-            } else {
-                bundled_icon(&game.id).map(|bytes| {
-                    egui::Image::from_bytes(format!("bytes://game-icons/{}.svg", game.id), bytes)
-                })
-            };
+        let bundled = || {
+            bundled_icon(&game.id).map(|bytes| {
+                egui::Image::from_bytes(format!("bytes://game-icons/{}.svg", game.id), bytes)
+            })
+        };
+        // Custom artwork / icon from the game exe; if it cannot be loaded
+        // (broken file, unsupported format) fall back to GachaHub's own icon
+        // instead of egui's red error triangle.
+        let image = match art.and_then(|x| x.icon.clone().or_else(|| x.exe_icon.clone())) {
+            Some(uri) => {
+                let img = egui::Image::new(uri);
+                if img.load_for_size(ui.ctx(), rect.size()).is_ok() {
+                    Some(img)
+                } else {
+                    bundled()
+                }
+            }
+            None => bundled(),
+        };
         match image {
             Some(image) => {
                 let level = if active { 255.0 } else { 175.0 + hover * 80.0 };
@@ -1041,8 +1060,8 @@ impl GachaHubApp {
                                 self.game_errors.insert(
                                     game_id,
                                     tr(
-                                        "Keine Spiel-EXE im gewählten Ordner gefunden.",
-                                        "No game executable found in the selected folder.",
+                                        "Keine passende Spiel-EXE gefunden – wähle sie unten selbst aus.",
+                                        "No matching game executable found – pick it yourself below.",
                                     )
                                     .into(),
                                 );
@@ -1185,7 +1204,8 @@ impl GachaHubApp {
             });
             return;
         }
-        match find_executable(folder, game_id) {
+        let scan = gachahub_core::install::scan_executables(folder, game_id);
+        match scan.best {
             Some(exe) => {
                 let gs = self.cfg.game_mut(game_id);
                 gs.executable_path = Some(exe.to_string_lossy().into_owned());
@@ -1199,11 +1219,15 @@ impl GachaHubApp {
             None => {
                 self.game_errors.insert(
                     game_id.to_string(),
-                    tr(
-                        "Keine passende .exe gefunden – bitte in den Spiel-Einstellungen manuell auswählen.",
-                        "No matching .exe found – please select it manually in the game settings.",
-                    )
-                    .into(),
+                    format!(
+                        "{} ({} {})",
+                        tr(
+                            "Keine passende Spiel-EXE gefunden – wähle sie unten selbst aus.",
+                            "No matching game executable found – pick it yourself below.",
+                        ),
+                        scan.checked,
+                        tr(".exe-Dateien geprüft", ".exe files checked"),
+                    ),
                 );
             }
         }
@@ -1812,5 +1836,26 @@ impl eframe::App for GachaHubApp {
 
     fn on_exit(&mut self, _gl: Option<&eframe::glow::Context>) {
         let _ = self.cfg.save();
+    }
+}
+
+#[cfg(test)]
+mod uri_tests {
+    #[test]
+    fn file_uris() {
+        let p = std::path::Path::new(if cfg!(windows) {
+            r"C:\Users\Me\AppData\Local\gachahub\cache\exe-icons\genshin.png"
+        } else {
+            "/home/me/.cache/gachahub/exe-icons/genshin.png"
+        });
+        let uri = super::file_uri(p);
+        if cfg!(windows) {
+            assert_eq!(
+                uri,
+                "file:///C:/Users/Me/AppData/Local/gachahub/cache/exe-icons/genshin.png"
+            );
+        } else {
+            assert_eq!(uri, "file:///home/me/.cache/gachahub/exe-icons/genshin.png");
+        }
     }
 }

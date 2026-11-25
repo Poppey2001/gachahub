@@ -1406,5 +1406,21 @@
  "GachaHub has no own test results for Tower of Fantasy yet.": {
   "es": "GachaHub aún no tiene resultados de prueba propios para Tower of Fantasy.",
   "fr": "GachaHub n'a pas encore ses propres résultats de test pour Tower of Fantasy."
+ },
+ "Pick the game executable": {
+  "es": "Elegir el ejecutable del juego",
+  "fr": "Choisir l'exécutable du jeu"
+ },
+ "choose game executable": {
+  "es": "elige el ejecutable del juego",
+  "fr": "choisir l'exécutable du jeu"
+ },
+ "No matching game executable found – pick it yourself below.": {
+  "es": "No se encontró el ejecutable del juego: elígelo tú abajo.",
+  "fr": "Aucun exécutable du jeu trouvé – choisissez-le vous-même ci-dessous."
+ },
+ ".exe files checked": {
+  "es": "archivos .exe comprobados",
+  "fr": "fichiers .exe vérifiés"
  }
 }

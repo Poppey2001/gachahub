@@ -30,4 +30,4 @@ Until the real downloader emits an installation-complete event, the same hook is
 
 ## Windows profile
 
-`scripts/postinstall/genshin-windows.ps1` applies conservative native defaults and records the detected `GenshinImpact.exe` path.
+On Windows GachaHub applies conservative native defaults itself (no script) and records the game executable found by name or version info.

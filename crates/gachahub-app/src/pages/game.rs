@@ -541,6 +541,17 @@ impl GachaHubApp {
                 // ---------- notices
                 if let Some(err) = self.game_errors.get(&game.id).cloned() {
                     notice(ui, "⚠", &err, theme::ERR, hero_w);
+                    ui.add_space(4.0);
+                    if !installed
+                        && theme::ghost_button(ui, "🔎", tr("Spiel-EXE selbst auswählen", "Pick the game executable"))
+                            .clicked()
+                    {
+                        self.backend.pick_file(
+                            PickTarget::GameExecutable(game.id.clone()),
+                            &format!("{}: {}", game.name, tr("Spiel-EXE wählen", "choose game executable")),
+                            &[("Windows", &["exe"])],
+                        );
+                    }
                     ui.add_space(8.0);
                 }
                 if let Some(notes) = game.notes_for(true).map(|de| crate::i18n::text(de, game.notes.as_deref().unwrap_or(de))) {
