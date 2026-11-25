@@ -1,7 +1,9 @@
 //! Official game icons, fetched at runtime from the publishers' own sources
 //! (never bundled with GachaHub):
 //! - HoYoverse games: the HoYoPlay launcher API (`getGames` → `display.icon`);
-//! - every other game: the app icon of its official website
+//! - otherwise the game's official mobile app icon from Apple's public
+//!   iTunes Search API (512 px, matched by exact app name),
+//! - or the app icon of the official website
 //!   (`apple-touch-icon` / largest `<link rel="icon">`, then `/favicon.ico`).
 //!
 //! The result is normalised to a square PNG (max. 256 px) for the UI cache.
@@ -38,6 +40,13 @@ pub async fn fetch(client: &reqwest::Client, game: &Game) -> Result<Vec<u8>, Str
             Err(e) => errors.push(e),
         }
     }
+    match app_store_icon_url(client, &game.name).await {
+        Ok(url) => match download_image(client, &url).await {
+            Ok(png) => return Ok(png),
+            Err(e) => errors.push(e),
+        },
+        Err(e) => errors.push(e),
+    }
     if let Some(site) = game.website.as_deref().filter(|s| !s.is_empty()) {
         match website_icon_urls(client, site).await {
             Ok(urls) => {
@@ -55,6 +64,57 @@ pub async fn fetch(client: &reqwest::Client, game: &Game) -> Result<Vec<u8>, Str
         errors.push(format!("no official icon source for {}", game.id));
     }
     Err(errors.join("; "))
+}
+
+fn norm(s: &str) -> String {
+    s.chars()
+        .filter(|c| c.is_alphanumeric())
+        .flat_map(char::to_lowercase)
+        .collect()
+}
+
+async fn app_store_icon_url(client: &reqwest::Client, name: &str) -> Result<String, String> {
+    let doc: Value = client
+        .get("https://itunes.apple.com/search")
+        .query(&[
+            ("term", name),
+            ("entity", "software"),
+            ("limit", "15"),
+            ("country", "us"),
+        ])
+        .send()
+        .await
+        .and_then(|r| r.error_for_status())
+        .map_err(|e| format!("App Store: {e}"))?
+        .json()
+        .await
+        .map_err(|e| format!("App Store: {e}"))?;
+    parse_app_store_icon(&doc, name).ok_or_else(|| format!("App Store: no app named {name}"))
+}
+
+/// Icon of the app whose name matches `name` (exactly, ignoring case and
+/// punctuation; otherwise an app name that starts with it).
+pub fn parse_app_store_icon(doc: &Value, name: &str) -> Option<String> {
+    let want = norm(name);
+    let results = doc.get("results")?.as_array()?;
+    let icon = |r: &Value| {
+        r.get("artworkUrl512")
+            .or_else(|| r.get("artworkUrl100"))
+            .and_then(Value::as_str)
+            .filter(|u| u.starts_with("https://"))
+            .map(str::to_string)
+    };
+    let track = |r: &Value| norm(r.get("trackName").and_then(Value::as_str).unwrap_or(""));
+    results
+        .iter()
+        .find(|r| track(r) == want)
+        .or_else(|| {
+            results.iter().find(|r| {
+                let t = track(r);
+                !t.is_empty() && t.starts_with(&want) && t.len() <= want.len() + 16
+            })
+        })
+        .and_then(icon)
 }
 
 async fn hoyoplay_icon_url(
@@ -259,6 +319,30 @@ mod tests {
     }
 
     #[test]
+    fn matches_app_store_names() {
+        let doc: Value = serde_json::from_str(
+            r#"{"results":[
+                {"trackName":"Arknights: Endfield","artworkUrl512":"https://is1.example/endfield.png"},
+                {"trackName":"Arknights","artworkUrl512":"https://is1.example/arknights.png"},
+                {"trackName":"Wuthering Waves","artworkUrl100":"https://is1.example/ww.png"}]}"#,
+        )
+        .unwrap();
+        assert_eq!(
+            parse_app_store_icon(&doc, "Arknights").as_deref(),
+            Some("https://is1.example/arknights.png")
+        );
+        assert_eq!(
+            parse_app_store_icon(&doc, "Arknights: Endfield").as_deref(),
+            Some("https://is1.example/endfield.png")
+        );
+        assert_eq!(
+            parse_app_store_icon(&doc, "Wuthering Waves").as_deref(),
+            Some("https://is1.example/ww.png")
+        );
+        assert!(parse_app_store_icon(&doc, "Limbus Company").is_none());
+    }
+
+    #[test]
     fn parses_hoyoplay_games() {
         let doc: Value = serde_json::from_str(
             r#"{"retcode":0,"data":{"games":[{"id":"gopR6Cufr3","biz":"hk4e_global",
@@ -305,11 +389,23 @@ mod live {
                 Ok(png) => {
                     ok += 1;
                     println!("LIVE icon {}: OK ({} bytes)", game.id, png.len());
+                    // small thumbnail for a visual check of the CI log
+                    let img = image::load_from_memory(&png).unwrap().thumbnail(48, 48);
+                    let mut thumb = Vec::new();
+                    img.write_to(
+                        &mut std::io::Cursor::new(&mut thumb),
+                        image::ImageFormat::Png,
+                    )
+                    .unwrap();
+                    println!("LIVE thumb {} {}", game.id, hex(&thumb));
                 }
                 Err(e) => println!("LIVE icon {}: FAILED {e}", game.id),
             }
         }
         println!("LIVE icons: {ok}/{} games", registry.games.len());
+        fn hex(b: &[u8]) -> String {
+            b.iter().map(|x| format!("{x:02x}")).collect()
+        }
         assert!(ok >= 4, "at least the HoYoverse icons must load");
     }
 }
