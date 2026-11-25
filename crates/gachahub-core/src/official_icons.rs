@@ -74,22 +74,28 @@ fn norm(s: &str) -> String {
 }
 
 async fn app_store_icon_url(client: &reqwest::Client, name: &str) -> Result<String, String> {
-    let doc: Value = client
-        .get("https://itunes.apple.com/search")
-        .query(&[
-            ("term", name),
-            ("entity", "software"),
-            ("limit", "15"),
-            ("country", "us"),
-        ])
-        .send()
-        .await
-        .and_then(|r| r.error_for_status())
-        .map_err(|e| format!("App Store: {e}"))?
-        .json()
-        .await
-        .map_err(|e| format!("App Store: {e}"))?;
-    parse_app_store_icon(&doc, name).ok_or_else(|| format!("App Store: no app named {name}"))
+    // some games are only listed in some regions' stores
+    for country in ["us", "gb", "jp", "kr", "tw", "sg"] {
+        let doc: Value = client
+            .get("https://itunes.apple.com/search")
+            .query(&[
+                ("term", name),
+                ("entity", "software"),
+                ("limit", "15"),
+                ("country", country),
+            ])
+            .send()
+            .await
+            .and_then(|r| r.error_for_status())
+            .map_err(|e| format!("App Store: {e}"))?
+            .json()
+            .await
+            .map_err(|e| format!("App Store: {e}"))?;
+        if let Some(url) = parse_app_store_icon(&doc, name) {
+            return Ok(url);
+        }
+    }
+    Err(format!("App Store: no app named {name}"))
 }
 
 /// Icon of the app whose name matches `name` (exactly, ignoring case and
