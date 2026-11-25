@@ -9,6 +9,8 @@ on:
     paths:
       - "crates/gachahub-core/src/sunborn.rs"
       - "crates/gachahub-core/src/kuro.rs"
+      - "crates/gachahub-core/src/official_icons.rs"
+      - "crates/gachahub-core/game-manifests/games.json"
       - ".github/workflows/live-check.yml"
   schedule:
     - cron: "17 5 * * 1"

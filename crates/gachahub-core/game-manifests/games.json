@@ -30,7 +30,8 @@
     "notesDe": "Offizieller PC-Client; unter Linux laut Community mit GE-Proton/Proton Experimental.",
     "steamNames": [
       "Arknights"
-    ]
+    ],
+    "website": "https://www.arknights.global/"
   },
   {
     "id": "endfield",
@@ -63,7 +64,8 @@
     "notesDe": "Proton-Builds mit Endfield/ACE-Fixes verwenden; Proton Vanilla/UMU laut aktuellen Hinweisen meiden.",
     "steamNames": [
       "Arknights: Endfield"
-    ]
+    ],
+    "website": "https://endfield.gryphline.com/en-us"
   },
   {
     "id": "genshin",
@@ -93,7 +95,8 @@
       "icon": "/game-assets/genshin/icon.webp"
     },
     "xxmiImporter": "GIMI",
-    "subtitleDe": "Tauche ein in eine weite magische Welt"
+    "subtitleDe": "Tauche ein in eine weite magische Welt",
+    "website": "https://genshin.hoyoverse.com/en/"
   },
   {
     "id": "hsr",
@@ -123,7 +126,8 @@
       "icon": "/game-assets/hsr/icon.webp"
     },
     "xxmiImporter": "SRMI",
-    "subtitleDe": "Steig ein in den Astral-Express"
+    "subtitleDe": "Steig ein in den Astral-Express",
+    "website": "https://hsr.hoyoverse.com/en-us/"
   },
   {
     "id": "zzz",
@@ -153,7 +157,8 @@
       "icon": "/game-assets/zzz/icon.webp"
     },
     "xxmiImporter": "ZZMI",
-    "subtitleDe": "Willkommen in New Eridu"
+    "subtitleDe": "Willkommen in New Eridu",
+    "website": "https://zenless.hoyoverse.com/en-us/"
   },
   {
     "id": "wuwa",
@@ -187,7 +192,8 @@
     "subtitleDe": "Erwache und reise als Rover",
     "steamNames": [
       "Wuthering Waves"
-    ]
+    ],
+    "website": "https://wutheringwaves.kurogames.com/en/main"
   },
   {
     "id": "gfl2",
@@ -265,7 +271,8 @@
           "GF2"
         ]
       }
-    ]
+    ],
+    "website": "https://gf2exilium.sunborngame.com/"
   },
   {
     "id": "nte",
@@ -298,7 +305,8 @@
     "notesDe": "Installiere NTE mit dem offiziellen Launcher und klicke dann auf „Spiel importieren“, um den Spielordner auszuwählen. Anti-Cheat-geschützt – Mods bleiben deaktiviert.",
     "steamNames": [
       "Neverness to Everness"
-    ]
+    ],
+    "website": "https://nte.perfectworld.com/en/"
   },
   {
     "id": "hi3",
@@ -327,7 +335,8 @@
       "logo": null,
       "icon": null
     },
-    "xxmiImporter": "HIMI"
+    "xxmiImporter": "HIMI",
+    "website": "https://honkaiimpact3.hoyoverse.com/global/en-us"
   },
   {
     "id": "bluearchive",
@@ -360,7 +369,8 @@
     "xxmiImporter": null,
     "steamNames": [
       "Blue Archive"
-    ]
+    ],
+    "website": "https://bluearchive.nexon.com/"
   },
   {
     "id": "limbus",
@@ -393,7 +403,8 @@
     "xxmiImporter": null,
     "steamNames": [
       "Limbus Company"
-    ]
+    ],
+    "website": "https://limbuscompany.com/"
   },
   {
     "id": "pgr",
@@ -427,7 +438,8 @@
     "xxmiImporter": null,
     "steamNames": [
       "Punishing: Gray Raven"
-    ]
+    ],
+    "website": "https://pgr.kurogame.net/"
   },
   {
     "id": "snowbreak",
@@ -461,7 +473,8 @@
     "xxmiImporter": null,
     "steamNames": [
       "Snowbreak: Containment Zone"
-    ]
+    ],
+    "website": "https://snowbreak.amazingseasun.com/"
   },
   {
     "id": "reverse1999",
@@ -495,7 +508,8 @@
     "xxmiImporter": null,
     "steamNames": [
       "Reverse: 1999"
-    ]
+    ],
+    "website": "https://re1999.bluepoch.com/en/"
   },
   {
     "id": "tof",
@@ -529,6 +543,7 @@
     "xxmiImporter": null,
     "steamNames": [
       "Tower of Fantasy"
-    ]
+    ],
+    "website": "https://toweroffantasy-global.com/"
   }
 ]

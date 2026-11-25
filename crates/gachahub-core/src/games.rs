@@ -35,6 +35,9 @@ pub struct Game {
     /// Names under which the game appears in Steam (for detection / store search).
     #[serde(default)]
     pub steam_names: Vec<String>,
+    /// Official website (source of the official icon, fetched at runtime).
+    #[serde(default)]
+    pub website: Option<String>,
     /// Official PC editions (publisher launchers) GachaHub can install.
     #[serde(default)]
     pub official_launchers: Vec<OfficialLauncher>,

@@ -23,7 +23,7 @@ xz2 = "0.1"
 zstd = "0.13"
 directories = "6"
 pelite = "0.10"
-image = { version = "0.25", default-features = false, features = ["png", "ico", "bmp"] }
+image = { version = "0.25", default-features = false, features = ["png", "ico", "bmp", "jpeg", "webp", "gif"] }
 semver = "1"
 sysinfo = { version = "0.37", default-features = false, features = ["system"] }
 

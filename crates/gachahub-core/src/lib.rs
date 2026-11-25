@@ -15,6 +15,7 @@ pub mod launcher;
 pub mod mod_manager;
 pub mod mods;
 pub mod official;
+pub mod official_icons;
 pub mod platform;
 pub mod postinstall;
 pub mod providers;
